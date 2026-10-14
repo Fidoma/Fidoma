@@ -1,0 +1,19 @@
+.reservation-scheduler-card {
+    overflow: hidden;
+    border: 1px solid rgb(229 231 235);
+    border-radius: .75rem;
+    background: white;
+}
+
+.dark .reservation-scheduler-card {
+    border-color: rgb(55 65 81);
+    background: rgb(17 24 39);
+}
+
+#reservations-scheduler { min-height: 480px; }
+.reservation-billing-legend { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; font-size: .8rem; color: rgb(100 116 139); }
+.reservation-legend { border-radius: 9999px; padding: .2rem .6rem; color: rgb(30 41 59); background: rgb(241 245 249); border-top: 4px solid; }
+.reservation-billing-none, .reservation-billing-stripe-none { border-color: #94a3b8; background-color: #94a3b8; }
+.reservation-billing-draft, .reservation-billing-stripe-draft { border-color: #f59e0b; background-color: #f59e0b; }
+.reservation-billing-sent, .reservation-billing-stripe-sent { border-color: #3b82f6; background-color: #3b82f6; }
+.reservation-billing-paid, .reservation-billing-stripe-paid { border-color: #22c55e; background-color: #22c55e; }
