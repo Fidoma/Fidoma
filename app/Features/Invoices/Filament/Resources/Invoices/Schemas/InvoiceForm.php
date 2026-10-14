@@ -6,22 +6,25 @@ use App\Features\Clients\Actions\CreateClient;
 use App\Features\Invoices\Enums\InvoiceType;
 use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
 use App\Features\Invoices\Models\Invoice;
-use App\Features\Invoices\Models\InvoiceItem;
 use App\Features\Invoices\Services\InvoiceDefaults;
 use App\Features\Products\Models\Product;
 use App\Features\Quotes\Services\QuoteAmountCalculator;
 use App\Features\TaxRates\Models\TaxRate;
 use App\Features\Units\Models\Unit;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Repeater\TableColumn;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Callout;
+use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
@@ -94,56 +97,92 @@ class InvoiceForm
                 ->columnSpan(['default' => 12])
                 ->schema([
                     Repeater::make('items')
+                        ->hiddenLabel()
                         ->relationship()
                         ->orderColumn('item_order')
-                        ->defaultItems(1)->minItems(1)->reorderable()->compact()
+                        ->defaultItems(1)
+                        ->minItems(1)
+                        ->deletable(false)
+                        ->reorderable()
+                        ->compact()
                         ->addAction(fn (Action $action): Action => $action->label('Neue Rechnungsposition')->icon(Heroicon::Plus))
-                        ->itemLabel(fn (array $state): string => $state['item_name'] ?? 'Neue Position')
-                        ->columns(['default' => 1, 'sm' => 2, 'xl' => 12])
+                        ->table([
+                            TableColumn::make('Position')->markAsRequired()->width('190px'),
+                            TableColumn::make('Beschreibung')->width('190px'),
+                            TableColumn::make('Menge')->markAsRequired()->width('100px'),
+                            TableColumn::make('Einheit')->width('130px'),
+                            TableColumn::make('Einzelpreis')->markAsRequired()->width('110px'),
+                            TableColumn::make('Steuersatz')->markAsRequired()->width('120px'),
+                            TableColumn::make('Steuer')->width('110px'),
+                            TableColumn::make('Summe')->width('110px'),
+                            TableColumn::make('Aktionen')->hiddenHeaderLabel()->width('56px'),
+                        ])
                         ->schema([
-                            Select::make('product_template')
-                                ->label('Produkt')
-                                ->options(fn () => Product::query()->orderBy('product_name')->pluck('product_name', 'product_id'))
-                                ->searchable()->preload()->live()->dehydrated(false)
-                                ->afterStateHydrated(fn (Select $component, ?InvoiceItem $record) => $component->state($record?->item_product_id))
+                            TextInput::make('item_name')
+                                ->label('Position')
+                                ->datalist(fn (): array => Product::query()
+                                    ->orderBy('product_name')
+                                    ->pluck('product_name')
+                                    ->all())
+                                ->live(debounce: 300)
+                                ->required()
                                 ->afterStateUpdated(function (mixed $state, Set $set): void {
-                                    $product = Product::query()->find($state);
+                                    $product = Product::query()
+                                        ->where('product_name', $state)
+                                        ->first();
+
+                                    $set('item_product_id', $product?->getKey());
+
                                     if (! $product) {
                                         return;
                                     }
-                                    $set('item_product_id', $product->getKey());
-                                    $set('item_name', $product->product_name);
+
                                     $set('item_description', $product->product_description);
                                     $set('item_price', $product->product_price);
                                     $set('item_tax_rate_id', $product->tax_rate_id);
                                     $set('item_product_unit_id', $product->unit_id);
-                                })
-                                ->columnSpan(['default' => 1, 'sm' => 2, 'xl' => 3]),
+                                }),
                             Hidden::make('item_product_id'),
-                            TextInput::make('item_name')->label('Position')->required()
-                                ->columnSpan(['default' => 1, 'sm' => 2, 'xl' => 3]),
-                            Textarea::make('item_description')->label('Beschreibung')->rows(1)->autosize()
-                                ->columnSpan(['default' => 1, 'sm' => 2, 'xl' => 6]),
-                            TextInput::make('item_quantity')->label('Menge')->numeric()->default(1)->step(0.01)->required()->live()
-                                ->columnSpan(['xl' => 2]),
+                            TextInput::make('item_description')->label('Beschreibung'),
+                            TextInput::make('item_quantity')->label('Menge')->numeric()->default(1)->step(0.01)->required()->live(),
                             Select::make('item_product_unit_id')->label('Einheit')
                                 ->options(fn () => Unit::query()->orderBy('unit_name')->pluck('unit_name', 'unit_id'))
-                                ->searchable()->preload()->columnSpan(['xl' => 2]),
-                            TextInput::make('item_price')->label('Einzelpreis')->numeric()->step(0.01)->suffix('€')->required()->live()
-                                ->columnSpan(['xl' => 2]),
-                            TextInput::make('item_discount_amount')->label('Rabatt je Einheit')->numeric()->minValue(0)
-                                ->default(0)->step(0.01)->suffix('€')->live()->columnSpan(['xl' => 2]),
+                                ->searchable()->preload(),
+                            TextInput::make('item_price')->label('Einzelpreis')->numeric()->step(0.01)->required()->live(),
+                            Hidden::make('item_discount_amount')->default(0),
                             Select::make('item_tax_rate_id')->label('Steuersatz')->relationship('taxRate', 'tax_rate_name')
-                                ->searchable()->preload()->required()->live()->columnSpan(['xl' => 3]),
-                            Toggle::make('item_tax_included')->label('Preis inkl. Steuer')->default(false)->live()
-                                ->columnSpan(['xl' => 1]),
+                                ->searchable()->preload()->required()->live(),
+                            Hidden::make('item_tax_included')->default(false),
                             Placeholder::make('item_tax_preview')->label('Steuer')
-                                ->content(fn (Get $get): string => self::formatAmount(self::calculateItem($get)['tax']))
-                                ->columnSpan(['xl' => 6]),
+                                ->content(fn (Get $get): string => self::formatAmount(self::calculateItem($get)['tax'])),
                             Placeholder::make('item_total_preview')->label('Summe')
-                                ->content(fn (Get $get): string => self::formatAmount(self::calculateItem($get)['total']))
-                                ->columnSpan(['xl' => 6]),
-                        ])->columnSpanFull(),
+                                ->content(fn (Get $get): string => self::formatAmount(self::calculateItem($get)['total'])),
+                            Actions::make([
+                                ActionGroup::make([
+                                    Action::make('toggleTaxIncluded')
+                                        ->label('Preis inklusive Steuer')
+                                        ->icon(fn (Get $get): Heroicon => $get('item_tax_included')
+                                            ? Heroicon::CheckCircle
+                                            : Heroicon::OutlinedCheckCircle)
+                                        ->color(fn (Get $get): string => $get('item_tax_included') ? 'success' : 'gray')
+                                        ->action(fn (Get $get, Set $set) => $set(
+                                            'item_tax_included',
+                                            ! $get('item_tax_included'),
+                                            shouldCallUpdatedHooks: true,
+                                        )),
+                                    Action::make('deleteItem')
+                                        ->label('Position löschen')
+                                        ->icon(Heroicon::OutlinedTrash)
+                                        ->color('danger')
+                                        ->action(fn (Component $component) => self::deleteItem($component)),
+                                ])
+                                    ->label('Optionen')
+                                    ->icon(Heroicon::OutlinedEllipsisVertical)
+                                    ->tooltip('Optionen')
+                                    ->iconButton(),
+                            ])->alignCenter(),
+                        ])
+                        ->columnSpanFull(),
                 ]),
             Section::make('Rabatt und Zahlungsbedingungen')
                 ->collapsed()->columns(['default' => 1, 'md' => 2])->columnSpan(['default' => 12])
@@ -229,6 +268,27 @@ class InvoiceForm
     private static function formatAmount(float $amount): string
     {
         return number_format($amount, 2, ',', '.').' €';
+    }
+
+    private static function deleteItem(Component $component): void
+    {
+        $repeater = $component->getParentRepeater();
+        $itemKey = $component->getParentRepeaterItem()?->getStatePath(isAbsolute: false);
+
+        if ((! $repeater) || blank($itemKey)) {
+            return;
+        }
+
+        $items = $repeater->getRawState() ?? [];
+
+        if (! array_key_exists($itemKey, $items)) {
+            return;
+        }
+
+        unset($items[$itemKey]);
+
+        $repeater->rawState($items);
+        $repeater->callAfterStateUpdated();
     }
 
     private static function invoiceType(Get $get): InvoiceType
