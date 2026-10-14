@@ -6,24 +6,27 @@ use App\Features\Clients\Actions\CreateClient;
 use App\Features\Products\Models\Product;
 use App\Features\Quotes\Services\QuoteAmountCalculator;
 use App\Features\Reservations\Enums\ReservationStatus;
+use App\Features\Reservations\Filament\Resources\Reservations\Schemas\Components\ReservationItemsRepeater;
 use App\Features\Reservations\Models\ReservationItem;
 use App\Features\Reservations\Models\Room;
 use App\Features\Reservations\Services\ReservationDefaults;
 use App\Features\TaxRates\Models\TaxRate;
 use Carbon\CarbonImmutable;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Placeholder;
-use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Repeater\TableColumn;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Actions;
+use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 
 class ReservationForm
 {
@@ -71,7 +74,7 @@ class ReservationForm
                 Section::make('Positionen')
                     ->columnSpan(12)
                     ->schema([
-                        Repeater::make('items')
+                        ReservationItemsRepeater::make('items')
                             ->hiddenLabel()
                             ->columnSpanFull()
                             ->relationship()
@@ -83,9 +86,11 @@ class ReservationForm
                                 'item_quantity' => self::nights(request()->query('arrival_date'), request()->query('departure_date')) ?: 1,
                             ]])
                             ->minItems(1)
-                            ->reorderable(false)
-                            ->compact()
+                            ->addable()
                             ->addAction(fn (Action $action): Action => $action->label('Zeile hinzufügen'))
+                            ->deletable(false)
+                            ->reorderable()
+                            ->compact()
                             ->table([
                                 TableColumn::make('Position')->markAsRequired()->width('170px'),
                                 TableColumn::make('Beschreibung')->width('190px'),
@@ -96,7 +101,7 @@ class ReservationForm
                                 TableColumn::make('Einzelpreis')->markAsRequired()->width('110px'),
                                 TableColumn::make('Steuersatz')->markAsRequired()->width('110px'),
                                 TableColumn::make('Summe')->width('110px'),
-                                TableColumn::make('Preis inkl. Steuer')->width('100px')->wrapHeader(),
+                                TableColumn::make('Aktionen')->hiddenHeaderLabel()->width('56px'),
                             ])
                             ->schema([
                                 Select::make('product_template')
@@ -143,24 +148,41 @@ class ReservationForm
                                 Placeholder::make('item_total_preview')
                                     ->label('Summe')
                                     ->content(fn (Get $get): string => self::formatAmount(self::calculateItem($get)['total'])),
-                                Toggle::make('item_tax_included')->label('Preis inkl. Steuer')->default(false)->live(),
-                            ]),
-                    ]),
-                Section::make('Summen')
-                    ->columns(2)
-                    ->columnSpan(['default' => 12, 'lg' => 6])
-                    ->columnStart(['lg' => 7])
-                    ->schema([
-                        Placeholder::make('calculated_subtotal')
-                            ->label('Positionssumme')
-                            ->content(fn (Get $get): string => self::formatAmount(self::calculateTotals($get)['subtotal'])),
-                        Placeholder::make('calculated_item_tax')
-                            ->label('Steuer')
-                            ->content(fn (Get $get): string => self::formatAmount(self::calculateTotals($get)['itemTax'])),
-                        Placeholder::make('calculated_total')
-                            ->label('Gesamtsumme')
-                            ->content(fn (Get $get): string => self::formatAmount(self::calculateTotals($get)['total']))
-                            ->columnSpanFull(),
+                                Hidden::make('item_tax_included')->default(false),
+                                Actions::make([
+                                    ActionGroup::make([
+                                        Action::make('toggleTaxIncluded')
+                                            ->label('Preis inklusive Steuer')
+                                            ->icon(fn (Get $get): Heroicon => $get('item_tax_included')
+                                                ? Heroicon::CheckCircle
+                                                : Heroicon::OutlinedCheckCircle)
+                                            ->color(fn (Get $get): string => $get('item_tax_included') ? 'success' : 'gray')
+                                            ->action(fn (Get $get, Set $set) => $set(
+                                                'item_tax_included',
+                                                ! $get('item_tax_included'),
+                                                shouldCallUpdatedHooks: true,
+                                            )),
+                                        Action::make('deleteItem')
+                                            ->label('Position löschen')
+                                            ->icon(Heroicon::OutlinedTrash)
+                                            ->color('danger')
+                                            ->action(fn (Component $component) => self::deleteItem($component)),
+                                    ])
+                                        ->label('Optionen')
+                                        ->icon(Heroicon::OutlinedEllipsisVertical)
+                                        ->tooltip('Optionen')
+                                        ->iconButton(),
+                                ])->alignCenter(),
+                            ])
+                            ->summaryRows(function (Get $get): array {
+                                $totals = self::calculateTotals($get);
+
+                                return [
+                                    'Zwischensumme' => self::formatAmount($totals['subtotal']),
+                                    'Steuer' => self::formatAmount($totals['itemTax']),
+                                    'Gesamtsumme' => self::formatAmount($totals['total']),
+                                ];
+                            }),
                     ]),
             ]);
     }
@@ -205,6 +227,27 @@ class ReservationForm
     private static function formatAmount(float $amount): string
     {
         return number_format($amount, 2, ',', '.').' €';
+    }
+
+    private static function deleteItem(Component $component): void
+    {
+        $repeater = $component->getParentRepeater();
+        $itemKey = $component->getParentRepeaterItem()?->getStatePath(isAbsolute: false);
+
+        if ((! $repeater) || blank($itemKey)) {
+            return;
+        }
+
+        $items = $repeater->getRawState() ?? [];
+
+        if (! array_key_exists($itemKey, $items)) {
+            return;
+        }
+
+        unset($items[$itemKey]);
+
+        $repeater->rawState($items);
+        $repeater->callAfterStateUpdated();
     }
 
     private static function nights(mixed $arrival, mixed $departure): ?int
