@@ -4,6 +4,7 @@ namespace App\Features\Reservations\Filament\Resources\Reservations\Schemas;
 
 use App\Features\Clients\Actions\CreateClient;
 use App\Features\Products\Models\Product;
+use App\Features\Quotes\Services\QuoteAmountCalculator;
 use App\Features\Reservations\Enums\ReservationStatus;
 use App\Features\Reservations\Models\ReservationItem;
 use App\Features\Reservations\Models\Room;
@@ -13,6 +14,7 @@ use Carbon\CarbonImmutable;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Repeater\TableColumn;
 use Filament\Forms\Components\Select;
@@ -20,6 +22,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 
@@ -90,6 +93,7 @@ class ReservationForm
                         TableColumn::make('Zimmer')->markAsRequired()->width('160px'),
                         TableColumn::make('Einzelpreis')->markAsRequired()->width('110px'),
                         TableColumn::make('Steuersatz')->markAsRequired()->width('110px'),
+                        TableColumn::make('Summe')->width('110px'),
                         TableColumn::make('Preis inkl. Steuer')->width('100px')->wrapHeader(),
                     ])
                     ->schema([
@@ -122,7 +126,7 @@ class ReservationForm
                         DatePicker::make('departure_date')
                             ->label('Abreise')->required()->after('arrival_date')->live()
                             ->afterStateUpdated(fn ($state, Set $set, $get) => $set('item_quantity', self::nights($get('arrival_date'), $state) ?: 1)),
-                        TextInput::make('item_quantity')->label('Menge')->numeric()->minValue(0.01)->step(0.01)->required(),
+                        TextInput::make('item_quantity')->label('Menge')->numeric()->minValue(0.01)->step(0.01)->required()->live(),
                         Select::make('room_id')
                             ->label('Zimmer')
                             ->options(fn () => Room::query()->orderBy('room_number')->get()
@@ -130,11 +134,14 @@ class ReservationForm
                             ->native()
                             ->required(),
                         Hidden::make('item_product_unit_id'),
-                        TextInput::make('item_price')->label('Einzelpreis')->numeric()->step(0.01)->required(),
+                        TextInput::make('item_price')->label('Einzelpreis')->numeric()->step(0.01)->required()->live(),
                         Hidden::make('item_discount_amount')->default(0),
                         Select::make('item_tax_rate_id')
-                            ->label('Steuersatz')->relationship('taxRate', 'tax_rate_name')->native()->required(),
-                        Toggle::make('item_tax_included')->label('Preis inkl. Steuer')->default(false),
+                            ->label('Steuersatz')->relationship('taxRate', 'tax_rate_name')->native()->required()->live(),
+                        Placeholder::make('item_total_preview')
+                            ->label('Summe')
+                            ->content(fn (Get $get): string => self::formatAmount(self::calculateItem($get)['total'])),
+                        Toggle::make('item_tax_included')->label('Preis inkl. Steuer')->default(false)->live(),
                     ]),
                 Section::make('Rabatt und Notizen')
                     ->collapsed()
@@ -160,6 +167,28 @@ class ReservationForm
                             ]),
                     ]),
             ]);
+    }
+
+    /** @return array{tax: float, total: float} */
+    private static function calculateItem(Get $get): array
+    {
+        $taxPercent = $get('item_tax_rate_id')
+            ? (float) (TaxRate::query()->whereKey($get('item_tax_rate_id'))->value('tax_rate_percent') ?? 0)
+            : 0;
+        $amounts = app(QuoteAmountCalculator::class)->calculate([[
+            'quantity' => $get('item_quantity'),
+            'price' => $get('item_price'),
+            'tax_percent' => $taxPercent,
+            'tax_included' => $get('item_tax_included'),
+            'discount_amount' => $get('item_discount_amount'),
+        ]]);
+
+        return ['tax' => $amounts['itemTax'], 'total' => $amounts['total']];
+    }
+
+    private static function formatAmount(float $amount): string
+    {
+        return number_format($amount, 2, ',', '.').' €';
     }
 
     private static function nights(mixed $arrival, mixed $departure): ?int
