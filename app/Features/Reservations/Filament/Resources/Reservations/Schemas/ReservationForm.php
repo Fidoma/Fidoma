@@ -123,6 +123,7 @@ class ReservationForm
                                         $set('item_price', $product->product_price);
                                         $set('item_tax_rate_id', $product->tax_rate_id);
                                         $set('item_product_unit_id', $product->unit_id);
+                                        $set('item_tax_included', $product->product_tax_included);
                                     }),
                                 Hidden::make('item_product_id'),
                                 Hidden::make('item_name')->required()->validationAttribute('Position'),

@@ -22,6 +22,7 @@ class Product extends Model
         'product_name',
         'product_description',
         'product_price',
+        'product_tax_included',
         'purchase_price',
         'provider_name',
         'tax_rate_id',
@@ -34,6 +35,7 @@ class Product extends Model
         return [
             'family_id' => 'integer',
             'product_price' => 'decimal:2',
+            'product_tax_included' => 'boolean',
             'purchase_price' => 'decimal:2',
             'tax_rate_id' => 'integer',
         ];

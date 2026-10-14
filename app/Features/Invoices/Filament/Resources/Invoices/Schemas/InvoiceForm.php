@@ -152,16 +152,19 @@ class InvoiceForm
                                     $set('item_price', $product->product_price);
                                     $set('item_tax_rate_id', $product->tax_rate_id);
                                     $set('item_product_unit_id', $product->unit_id);
+                                    $set('item_tax_included', $product->product_tax_included);
                                 }),
                             Hidden::make('item_product_id'),
                             TextInput::make('item_description')->label('Beschreibung'),
                             TextInput::make('item_quantity')->label('Menge')->numeric()->default(1)->step(0.01)->required()->live(),
                             Select::make('item_product_unit_id')->label('Einheit')
                                 ->options(fn () => Unit::query()->orderBy('unit_name')->pluck('unit_name', 'unit_id'))
+                                ->placeholder('–')
                                 ->searchable()->preload(),
                             TextInput::make('item_price')->label('Einzelpreis')->numeric()->step(0.01)->required()->live(),
                             Hidden::make('item_discount_amount')->default(0),
                             Select::make('item_tax_rate_id')->label('Steuersatz')->relationship('taxRate', 'tax_rate_name')
+                                ->placeholder('–')
                                 ->searchable()->preload()->required()->live(),
                             Hidden::make('item_tax_included')->default(false),
                             Placeholder::make('item_tax_preview')->label('Steuer')

@@ -5,24 +5,29 @@ namespace App\Features\Quotes\Filament\Resources\Quotes\Schemas;
 use App\Features\Clients\Actions\CreateClient;
 use App\Features\Products\Models\Product;
 use App\Features\Quotes\Enums\QuoteStatus;
-use App\Features\Quotes\Models\QuoteItem;
 use App\Features\Quotes\Services\QuoteAmountCalculator;
 use App\Features\Quotes\Services\QuoteDefaults;
 use App\Features\TaxRates\Models\TaxRate;
 use App\Features\Units\Models\Unit;
+use App\Filament\Forms\Components\SummaryTableRepeater;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Repeater\TableColumn;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Actions;
+use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\Size;
 use Filament\Support\Icons\Heroicon;
 
 class QuoteForm
@@ -34,6 +39,15 @@ class QuoteForm
                 'default' => 12,
             ])
             ->components([
+                Hidden::make('quote_discount_percent')->default(0),
+                Hidden::make('quote_discount_amount')->default(0),
+                Repeater::make('quoteTaxRates')
+                    ->relationship()
+                    ->defaultItems(0)
+                    ->hidden()
+                    ->dehydratedWhenHidden()
+                    ->saveRelationshipsWhenHidden()
+                    ->schema(self::quoteTaxRateFields()),
                 Section::make('Angebotskopf')
                     ->columns([
                         'default' => 1,
@@ -92,211 +106,211 @@ class QuoteForm
                 Section::make('Positionen')
                     ->columnSpan(['default' => 12])
                     ->schema([
-                        Repeater::make('items')
+                        SummaryTableRepeater::make('items')
+                            ->hiddenLabel()
                             ->relationship()
                             ->orderColumn('item_order')
                             ->defaultItems(1)
                             ->minItems(1)
+                            ->deletable(false)
                             ->reorderable()
                             ->compact()
-                            ->addAction(fn (Action $action): Action => $action
-                                ->label('Neue Produktzeile')
-                                ->icon(Heroicon::Plus))
-                            ->itemLabel(fn (array $state): string => $state['item_name'] ?? 'Neue Position')
-                            ->columns([
-                                'default' => 1,
-                                'sm' => 2,
-                                'xl' => 12,
+                            ->addAction(fn (Action $action): Action => $action->label('Zeile hinzufügen')->icon(Heroicon::Plus))
+                            ->table([
+                                TableColumn::make('Position')->markAsRequired()->width('190px'),
+                                TableColumn::make('Beschreibung')->width('190px'),
+                                TableColumn::make('Menge')->markAsRequired()->width('100px'),
+                                TableColumn::make('Einheit')->width('130px'),
+                                TableColumn::make('Einzelpreis')->markAsRequired()->width('110px'),
+                                TableColumn::make('Steuersatz')->markAsRequired()->width('120px'),
+                                TableColumn::make('Steuer')->width('110px'),
+                                TableColumn::make('Summe')->width('110px'),
+                                TableColumn::make('Aktionen')->hiddenHeaderLabel()->width('56px'),
                             ])
                             ->schema([
-                                Select::make('product_template')
-                                    ->label('Produkt')
-                                    ->options(fn () => Product::query()->orderBy('product_name')->pluck('product_name', 'product_id'))
-                                    ->searchable()
-                                    ->preload()
-                                    ->live()
-                                    ->dehydrated(false)
-                                    ->afterStateHydrated(function (Select $component, ?QuoteItem $record): void {
-                                        $component->state($record?->item_product_id);
-                                    })
+                                TextInput::make('item_name')
+                                    ->label('Position')
+                                    ->datalist(fn (): array => Product::query()
+                                        ->orderBy('product_name')
+                                        ->pluck('product_name')
+                                        ->all())
+                                    ->live(debounce: 300)
+                                    ->required()
                                     ->afterStateUpdated(function (mixed $state, Set $set): void {
-                                        $product = Product::query()->find($state);
+                                        $product = Product::query()
+                                            ->where('product_name', $state)
+                                            ->first();
+
+                                        $set('item_product_id', $product?->getKey());
 
                                         if (! $product) {
                                             return;
                                         }
 
-                                        $set('item_name', $product->product_name);
                                         $set('item_description', $product->product_description);
                                         $set('item_price', $product->product_price);
                                         $set('item_tax_rate_id', $product->tax_rate_id);
-                                        $set('item_product_id', $product->getKey());
                                         $set('item_product_unit_id', $product->unit_id);
-                                    })
-                                    ->columnSpan([
-                                        'default' => 1,
-                                        'sm' => 2,
-                                        'xl' => 3,
-                                    ]),
+                                        $set('item_tax_included', $product->product_tax_included);
+                                    }),
                                 Hidden::make('item_product_id'),
-                                TextInput::make('item_name')
-                                    ->label('Position')
-                                    ->required()
-                                    ->maxLength(100)
-                                    ->columnSpan([
-                                        'default' => 1,
-                                        'sm' => 2,
-                                        'xl' => 3,
-                                    ]),
-                                Textarea::make('item_description')
-                                    ->label('Beschreibung')
-                                    ->required()
-                                    ->rows(1)
-                                    ->autosize()
-                                    ->columnSpan([
-                                        'default' => 1,
-                                        'sm' => 2,
-                                        'xl' => 6,
-                                    ]),
+                                TextInput::make('item_description')->label('Beschreibung'),
                                 TextInput::make('item_quantity')
                                     ->label('Menge')
                                     ->required()
                                     ->numeric()
                                     ->default(1)
                                     ->step(0.01)
-                                    ->live()
-                                    ->columnSpan(['xl' => 2]),
+                                    ->live(),
                                 Select::make('item_product_unit_id')
                                     ->label('Einheit')
-                                    ->options(fn () => Unit::query()
-                                        ->orderBy('unit_name')
-                                        ->get()
-                                        ->mapWithKeys(fn (Unit $unit): array => [
-                                            $unit->getKey() => $unit->unit_name_plrl
-                                                ? "{$unit->unit_name} / {$unit->unit_name_plrl}"
-                                                : $unit->unit_name,
-                                        ]))
+                                    ->options(fn () => Unit::query()->orderBy('unit_name')->pluck('unit_name', 'unit_id'))
+                                    ->placeholder('–')
                                     ->searchable()
-                                    ->preload()
-                                    ->columnSpan(['xl' => 2]),
+                                    ->preload(),
                                 TextInput::make('item_price')
                                     ->label('Einzelpreis')
                                     ->required()
                                     ->numeric()
                                     ->step(0.01)
-                                    ->suffix('€')
-                                    ->live()
-                                    ->columnSpan(['xl' => 2]),
-                                TextInput::make('item_discount_amount')
-                                    ->label('Rabatt je Einheit')
-                                    ->numeric()
-                                    ->minValue(0)
-                                    ->default(0)
-                                    ->step(0.01)
-                                    ->suffix('€')
-                                    ->live()
-                                    ->columnSpan(['xl' => 2]),
+                                    ->live(),
+                                Hidden::make('item_discount_amount')->default(0),
                                 Select::make('item_tax_rate_id')
                                     ->label('Steuersatz')
                                     ->relationship('taxRate', 'tax_rate_name')
+                                    ->placeholder('–')
                                     ->searchable()
                                     ->preload()
                                     ->required()
-                                    ->live()
-                                    ->columnSpan(['xl' => 3]),
-                                Toggle::make('item_tax_included')
-                                    ->label('Preis inkl. Steuer')
-                                    ->default(false)
-                                    ->live()
-                                    ->columnSpan(['xl' => 1]),
+                                    ->live(),
+                                Hidden::make('item_tax_included')->default(false),
                                 Placeholder::make('item_tax_preview')
                                     ->label('Steuer')
-                                    ->content(fn (Get $get): string => self::formatAmount(self::calculateItemAmounts($get)['tax']))
-                                    ->columnSpan(['xl' => 6]),
+                                    ->content(fn (Get $get): string => self::formatAmount(self::calculateItemAmounts($get)['tax'])),
                                 Placeholder::make('item_total_preview')
                                     ->label('Summe')
-                                    ->content(fn (Get $get): string => self::formatAmount(self::calculateItemAmounts($get)['total']))
-                                    ->columnSpan(['xl' => 6]),
+                                    ->content(fn (Get $get): string => self::formatAmount(self::calculateItemAmounts($get)['total'])),
+                                Actions::make([
+                                    ActionGroup::make([
+                                        Action::make('toggleTaxIncluded')
+                                            ->label('Preis inklusive Steuer')
+                                            ->icon(fn (Get $get): Heroicon => $get('item_tax_included')
+                                                ? Heroicon::CheckCircle
+                                                : Heroicon::OutlinedCheckCircle)
+                                            ->color(fn (Get $get): string => $get('item_tax_included') ? 'success' : 'gray')
+                                            ->action(fn (Get $get, Set $set) => $set(
+                                                'item_tax_included',
+                                                ! $get('item_tax_included'),
+                                                shouldCallUpdatedHooks: true,
+                                            )),
+                                        Action::make('deleteItem')
+                                            ->label('Position löschen')
+                                            ->icon(Heroicon::OutlinedTrash)
+                                            ->color('danger')
+                                            ->action(fn (Component $component) => self::deleteItem($component)),
+                                    ])
+                                        ->label('Optionen')
+                                        ->icon(Heroicon::OutlinedEllipsisVertical)
+                                        ->tooltip('Optionen')
+                                        ->iconButton(),
+                                ])->alignCenter(),
                             ])
+                            ->summaryLayout(tableColumnCount: 9, leadingColumnSpan: 5)
+                            ->summaryActions([
+                                Action::make('editDiscount')
+                                    ->label('Rabatt')
+                                    ->icon(Heroicon::OutlinedReceiptPercent)
+                                    ->color('gray')
+                                    ->button()
+                                    ->size(Size::Small)
+                                    ->modalHeading('Rabatt')
+                                    ->modalSubmitActionLabel('Rabatt übernehmen')
+                                    ->fillForm(fn (Get $get): array => [
+                                        'discount_percent' => $get('quote_discount_percent') ?? 0,
+                                        'discount_amount' => $get('quote_discount_amount') ?? 0,
+                                    ])
+                                    ->schema([
+                                        TextInput::make('discount_percent')
+                                            ->label('Gesamtrabatt in Prozent')
+                                            ->numeric()
+                                            ->minValue(0)
+                                            ->maxValue(100)
+                                            ->suffix('%'),
+                                        TextInput::make('discount_amount')
+                                            ->label('Gesamtrabatt als Betrag')
+                                            ->helperText('Ein prozentualer Rabatt hat Vorrang.')
+                                            ->numeric()
+                                            ->minValue(0)
+                                            ->suffix('€'),
+                                    ])
+                                    ->action(function (array $data, Set $set): void {
+                                        $set('quote_discount_percent', $data['discount_percent'] ?? 0);
+                                        $set('quote_discount_amount', $data['discount_amount'] ?? 0);
+                                    }),
+                                Action::make('editTaxes')
+                                    ->label('Steuer')
+                                    ->icon(Heroicon::OutlinedCalculator)
+                                    ->color('gray')
+                                    ->button()
+                                    ->size(Size::Small)
+                                    ->modalHeading('Angebotssteuer')
+                                    ->modalSubmitActionLabel('Steuer übernehmen')
+                                    ->fillForm(fn (Get $get): array => [
+                                        'tax_rates' => $get('quoteTaxRates') ?? [],
+                                    ])
+                                    ->schema([
+                                        Repeater::make('tax_rates')
+                                            ->label('Steuersätze')
+                                            ->defaultItems(0)
+                                            ->columns(2)
+                                            ->addActionLabel('Steuer hinzufügen')
+                                            ->schema(self::quoteTaxRateFields()),
+                                    ])
+                                    ->action(fn (array $data, Set $set) => $set(
+                                        'quoteTaxRates',
+                                        $data['tax_rates'] ?? [],
+                                        shouldCallUpdatedHooks: true,
+                                    )),
+                            ])
+                            ->summaryRows(function (Get $get): array {
+                                $totals = self::calculateTotals($get);
+
+                                return [
+                                    'Zwischensumme' => self::formatAmount($totals['subtotal']),
+                                    'Steuer' => self::formatAmount($totals['itemTax'] + $totals['quoteTax']),
+                                    'Gesamtsumme' => self::formatAmount($totals['total']),
+                                ];
+                            })
                             ->columnSpanFull(),
                     ]),
-                Section::make('Rabatt und Notizen')
-                    ->collapsed()
-                    ->columns([
-                        'default' => 1,
-                        'md' => 2,
-                    ])
+                Section::make('Angebotsnotizen')
                     ->columnSpan(['default' => 12])
                     ->schema([
-                        TextInput::make('quote_discount_percent')
-                            ->label('Gesamtrabatt in Prozent')
-                            ->numeric()
-                            ->minValue(0)
-                            ->maxValue(100)
-                            ->default(0)
-                            ->suffix('%')
-                            ->live(),
-                        TextInput::make('quote_discount_amount')
-                            ->label('Gesamtrabatt als Betrag')
-                            ->helperText('Wenn ein prozentualer Rabatt gesetzt ist, hat dieser Vorrang.')
-                            ->numeric()
-                            ->minValue(0)
-                            ->default(0)
-                            ->suffix('€')
-                            ->live(),
                         Textarea::make('notes')
-                            ->label('Angebotsnotizen')
+                            ->hiddenLabel()
                             ->default(fn (): string => app(QuoteDefaults::class)->notes())
                             ->rows(4)
                             ->columnSpanFull(),
                     ]),
-                Section::make('Angebotssteuer')
-                    ->collapsed()
-                    ->columnSpan(['default' => 12, 'lg' => 6])
-                    ->schema([
-                        Repeater::make('quoteTaxRates')
-                            ->relationship()
-                            ->defaultItems(0)
-                            ->schema([
-                                Select::make('tax_rate_id')
-                                    ->label('Steuersatz')
-                                    ->relationship('taxRate', 'tax_rate_name')
-                                    ->searchable()
-                                    ->preload()
-                                    ->required()
-                                    ->live(),
-                                Toggle::make('include_item_tax')
-                                    ->label('Positionssteuern einbeziehen')
-                                    ->live(),
-                                Hidden::make('quote_tax_rate_amount')
-                                    ->default(0),
-                            ])
-                            ->columns(2),
-                    ]),
-                Section::make('Summen')
-                    ->columns(2)
-                    ->schema([
-                        Placeholder::make('calculated_original_subtotal')
-                            ->label('Positionssumme')
-                            ->content(fn (Get $get): string => self::formatAmount(self::calculateTotals($get)['originalSubtotal'])),
-                        Placeholder::make('calculated_discount')
-                            ->label('Rabatt')
-                            ->content(fn (Get $get): string => self::formatAmount(self::calculateTotals($get)['discount'])),
-                        Placeholder::make('calculated_subtotal')
-                            ->label('Zwischensumme')
-                            ->content(fn (Get $get): string => self::formatAmount(self::calculateTotals($get)['subtotal'])),
-                        Placeholder::make('calculated_item_tax')
-                            ->label('Steuer Positionen')
-                            ->content(fn (Get $get): string => self::formatAmount(self::calculateTotals($get)['itemTax'])),
-                        Placeholder::make('calculated_quote_tax')
-                            ->label('Angebotssteuer')
-                            ->content(fn (Get $get): string => self::formatAmount(self::calculateTotals($get)['quoteTax'])),
-                        Placeholder::make('calculated_total')
-                            ->label('Gesamtsumme')
-                            ->content(fn (Get $get): string => self::formatAmount(self::calculateTotals($get)['total'])),
-                    ])
-                    ->columnSpan(['default' => 12, 'lg' => 6]),
             ]);
+    }
+
+    /** @return array<int, Component> */
+    private static function quoteTaxRateFields(): array
+    {
+        return [
+            Select::make('tax_rate_id')
+                ->label('Steuersatz')
+                ->options(fn (): array => TaxRate::query()
+                    ->orderBy('tax_rate_name')
+                    ->pluck('tax_rate_name', 'tax_rate_id')
+                    ->all())
+                ->searchable()
+                ->preload()
+                ->required(),
+            Toggle::make('include_item_tax')->label('Positionssteuern einbeziehen'),
+            Hidden::make('quote_tax_rate_amount')->default(0),
+        ];
     }
 
     /**
@@ -361,5 +375,26 @@ class QuoteForm
     private static function formatAmount(float $amount): string
     {
         return number_format($amount, 2, ',', '.').' €';
+    }
+
+    private static function deleteItem(Component $component): void
+    {
+        $repeater = $component->getParentRepeater();
+        $itemKey = $component->getParentRepeaterItem()?->getStatePath(isAbsolute: false);
+
+        if ((! $repeater) || blank($itemKey)) {
+            return;
+        }
+
+        $items = $repeater->getRawState() ?? [];
+
+        if (! array_key_exists($itemKey, $items)) {
+            return;
+        }
+
+        unset($items[$itemKey]);
+
+        $repeater->rawState($items);
+        $repeater->callAfterStateUpdated();
     }
 }
