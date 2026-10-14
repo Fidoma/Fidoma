@@ -1,0 +1,14 @@
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+
+@source '../../../../app/Filament/**/*.php';
+@source '../../../../app/Features/**/*.php';
+@source '../../../../resources/views/filament/**/*.blade.php';
+@source '../../../../resources/views/livewire/**/*.blade.php';
+
+.document-information .fi-in-entry-label {
+    @apply font-bold;
+}
+
+.document-information .fi-in-entry-content {
+    @apply font-normal;
+}
