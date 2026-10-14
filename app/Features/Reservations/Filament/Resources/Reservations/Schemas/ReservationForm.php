@@ -18,7 +18,6 @@ use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Repeater\TableColumn;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
@@ -69,104 +68,121 @@ class ReservationForm
                             ->default(ReservationStatus::Open->value)
                             ->required(),
                     ]),
-                Repeater::make('items')
-                    ->hiddenLabel()
-                    ->columnSpanFull()
-                    ->relationship()
-                    ->orderColumn('item_order')
-                    ->default(fn (): array => [[
-                        'room_id' => request()->integer('room_id') ?: null,
-                        'arrival_date' => request()->query('arrival_date'),
-                        'departure_date' => request()->query('departure_date'),
-                        'item_quantity' => self::nights(request()->query('arrival_date'), request()->query('departure_date')) ?: 1,
-                    ]])
-                    ->minItems(1)
-                    ->reorderable(false)
-                    ->compact()
-                    ->addAction(fn (Action $action): Action => $action->label('Zeile hinzufügen'))
-                    ->table([
-                        TableColumn::make('Position')->markAsRequired()->width('170px'),
-                        TableColumn::make('Beschreibung')->width('190px'),
-                        TableColumn::make('Anreise')->markAsRequired()->width('135px'),
-                        TableColumn::make('Abreise')->markAsRequired()->width('135px'),
-                        TableColumn::make('Menge')->markAsRequired()->width('110px'),
-                        TableColumn::make('Zimmer')->markAsRequired()->width('160px'),
-                        TableColumn::make('Einzelpreis')->markAsRequired()->width('110px'),
-                        TableColumn::make('Steuersatz')->markAsRequired()->width('110px'),
-                        TableColumn::make('Summe')->width('110px'),
-                        TableColumn::make('Preis inkl. Steuer')->width('100px')->wrapHeader(),
-                    ])
+                Section::make('Positionen')
+                    ->columnSpan(12)
                     ->schema([
-                        Select::make('product_template')
-                            ->label('Position')
-                            ->options(fn () => Product::query()->orderBy('product_name')->pluck('product_name', 'product_id'))
-                            ->native()
-                            ->live()
-                            ->required()
-                            ->dehydrated(false)
-                            ->afterStateHydrated(fn (Select $component, ?ReservationItem $record) => $component->state($record?->item_product_id))
-                            ->afterStateUpdated(function (mixed $state, Set $set): void {
-                                $product = Product::query()->find($state);
-                                if (! $product) {
-                                    return;
-                                }
-                                $set('item_product_id', $product->getKey());
-                                $set('item_name', $product->product_name);
-                                $set('item_description', $product->product_description);
-                                $set('item_price', $product->product_price);
-                                $set('item_tax_rate_id', $product->tax_rate_id);
-                                $set('item_product_unit_id', $product->unit_id);
-                            }),
-                        Hidden::make('item_product_id'),
-                        Hidden::make('item_name')->required()->validationAttribute('Position'),
-                        TextInput::make('item_description')->label('Beschreibung'),
-                        DatePicker::make('arrival_date')
-                            ->label('Anreise')->required()->live()
-                            ->afterStateUpdated(fn ($state, Set $set, $get) => $set('item_quantity', self::nights($state, $get('departure_date')) ?: 1)),
-                        DatePicker::make('departure_date')
-                            ->label('Abreise')->required()->after('arrival_date')->live()
-                            ->afterStateUpdated(fn ($state, Set $set, $get) => $set('item_quantity', self::nights($get('arrival_date'), $state) ?: 1)),
-                        TextInput::make('item_quantity')->label('Menge')->numeric()->minValue(0.01)->step(0.01)->required()->live(),
-                        Select::make('room_id')
-                            ->label('Zimmer')
-                            ->options(fn () => Room::query()->orderBy('room_number')->get()
-                                ->mapWithKeys(fn (Room $room): array => [$room->getKey() => $room->displayName()]))
-                            ->native()
-                            ->required(),
-                        Hidden::make('item_product_unit_id'),
-                        TextInput::make('item_price')->label('Einzelpreis')->numeric()->step(0.01)->required()->live(),
-                        Hidden::make('item_discount_amount')->default(0),
-                        Select::make('item_tax_rate_id')
-                            ->label('Steuersatz')->relationship('taxRate', 'tax_rate_name')->native()->required()->live(),
-                        Placeholder::make('item_total_preview')
-                            ->label('Summe')
-                            ->content(fn (Get $get): string => self::formatAmount(self::calculateItem($get)['total'])),
-                        Toggle::make('item_tax_included')->label('Preis inkl. Steuer')->default(false)->live(),
-                    ]),
-                Section::make('Rabatt und Notizen')
-                    ->collapsed()
-                    ->columns(2)
-                    ->columnSpanFull()
-                    ->schema([
-                        TextInput::make('reservation_discount_percent')->label('Gesamtrabatt in Prozent')->numeric()->minValue(0)->maxValue(100)->default(0)->suffix('%'),
-                        TextInput::make('reservation_discount_amount')->label('Gesamtrabatt als Betrag')->numeric()->minValue(0)->default(0)->suffix('€'),
-                        Textarea::make('notes')->label('Notizen')->rows(4)->columnSpanFull(),
-                    ]),
-                Section::make('Reservierungssteuer')
-                    ->collapsed()
-                    ->columnSpanFull()
-                    ->schema([
-                        Repeater::make('reservationTaxRates')
+                        Repeater::make('items')
+                            ->hiddenLabel()
+                            ->columnSpanFull()
                             ->relationship()
-                            ->defaultItems(0)
-                            ->columns(2)
+                            ->orderColumn('item_order')
+                            ->default(fn (): array => [[
+                                'room_id' => request()->integer('room_id') ?: null,
+                                'arrival_date' => request()->query('arrival_date'),
+                                'departure_date' => request()->query('departure_date'),
+                                'item_quantity' => self::nights(request()->query('arrival_date'), request()->query('departure_date')) ?: 1,
+                            ]])
+                            ->minItems(1)
+                            ->reorderable(false)
+                            ->compact()
+                            ->addAction(fn (Action $action): Action => $action->label('Zeile hinzufügen'))
+                            ->table([
+                                TableColumn::make('Position')->markAsRequired()->width('170px'),
+                                TableColumn::make('Beschreibung')->width('190px'),
+                                TableColumn::make('Anreise')->markAsRequired()->width('135px'),
+                                TableColumn::make('Abreise')->markAsRequired()->width('135px'),
+                                TableColumn::make('Menge')->markAsRequired()->width('110px'),
+                                TableColumn::make('Zimmer')->markAsRequired()->width('160px'),
+                                TableColumn::make('Einzelpreis')->markAsRequired()->width('110px'),
+                                TableColumn::make('Steuersatz')->markAsRequired()->width('110px'),
+                                TableColumn::make('Summe')->width('110px'),
+                                TableColumn::make('Preis inkl. Steuer')->width('100px')->wrapHeader(),
+                            ])
                             ->schema([
-                                Select::make('tax_rate_id')->label('Steuersatz')->options(fn () => TaxRate::query()->pluck('tax_rate_name', 'tax_rate_id'))->required(),
-                                Toggle::make('include_item_tax')->label('Positionssteuern einbeziehen'),
-                                Hidden::make('reservation_tax_rate_amount')->default(0),
+                                Select::make('product_template')
+                                    ->label('Position')
+                                    ->options(fn () => Product::query()->orderBy('product_name')->pluck('product_name', 'product_id'))
+                                    ->native()
+                                    ->live()
+                                    ->required()
+                                    ->dehydrated(false)
+                                    ->afterStateHydrated(fn (Select $component, ?ReservationItem $record) => $component->state($record?->item_product_id))
+                                    ->afterStateUpdated(function (mixed $state, Set $set): void {
+                                        $product = Product::query()->find($state);
+                                        if (! $product) {
+                                            return;
+                                        }
+                                        $set('item_product_id', $product->getKey());
+                                        $set('item_name', $product->product_name);
+                                        $set('item_description', $product->product_description);
+                                        $set('item_price', $product->product_price);
+                                        $set('item_tax_rate_id', $product->tax_rate_id);
+                                        $set('item_product_unit_id', $product->unit_id);
+                                    }),
+                                Hidden::make('item_product_id'),
+                                Hidden::make('item_name')->required()->validationAttribute('Position'),
+                                TextInput::make('item_description')->label('Beschreibung'),
+                                DatePicker::make('arrival_date')
+                                    ->label('Anreise')->required()->live()
+                                    ->afterStateUpdated(fn ($state, Set $set, $get) => $set('item_quantity', self::nights($state, $get('departure_date')) ?: 1)),
+                                DatePicker::make('departure_date')
+                                    ->label('Abreise')->required()->after('arrival_date')->live()
+                                    ->afterStateUpdated(fn ($state, Set $set, $get) => $set('item_quantity', self::nights($get('arrival_date'), $state) ?: 1)),
+                                TextInput::make('item_quantity')->label('Menge')->numeric()->minValue(0.01)->step(0.01)->required()->live(),
+                                Select::make('room_id')
+                                    ->label('Zimmer')
+                                    ->options(fn () => Room::query()->orderBy('room_number')->get()
+                                        ->mapWithKeys(fn (Room $room): array => [$room->getKey() => $room->displayName()]))
+                                    ->native()
+                                    ->required(),
+                                Hidden::make('item_product_unit_id'),
+                                TextInput::make('item_price')->label('Einzelpreis')->numeric()->step(0.01)->required()->live(),
+                                Hidden::make('item_discount_amount')->default(0),
+                                Select::make('item_tax_rate_id')
+                                    ->label('Steuersatz')->relationship('taxRate', 'tax_rate_name')->native()->required()->live(),
+                                Placeholder::make('item_total_preview')
+                                    ->label('Summe')
+                                    ->content(fn (Get $get): string => self::formatAmount(self::calculateItem($get)['total'])),
+                                Toggle::make('item_tax_included')->label('Preis inkl. Steuer')->default(false)->live(),
                             ]),
                     ]),
+                Section::make('Summen')
+                    ->columns(2)
+                    ->columnSpan(['default' => 12, 'lg' => 6])
+                    ->columnStart(['lg' => 7])
+                    ->schema([
+                        Placeholder::make('calculated_subtotal')
+                            ->label('Positionssumme')
+                            ->content(fn (Get $get): string => self::formatAmount(self::calculateTotals($get)['subtotal'])),
+                        Placeholder::make('calculated_item_tax')
+                            ->label('Steuer')
+                            ->content(fn (Get $get): string => self::formatAmount(self::calculateTotals($get)['itemTax'])),
+                        Placeholder::make('calculated_total')
+                            ->label('Gesamtsumme')
+                            ->content(fn (Get $get): string => self::formatAmount(self::calculateTotals($get)['total']))
+                            ->columnSpanFull(),
+                    ]),
             ]);
+    }
+
+    /** @return array{originalSubtotal: float, discount: float, subtotal: float, itemTax: float, quoteTax: float, total: float} */
+    private static function calculateTotals(Get $get): array
+    {
+        $items = collect($get('items') ?? []);
+        $taxRateIds = $items->pluck('item_tax_rate_id')->filter()->unique();
+        $taxRates = TaxRate::query()->whereKey($taxRateIds)->pluck('tax_rate_percent', 'tax_rate_id');
+
+        return app(QuoteAmountCalculator::class)->calculate(
+            $items->map(fn (array $item): array => [
+                'quantity' => $item['item_quantity'] ?? 0,
+                'price' => $item['item_price'] ?? 0,
+                'tax_percent' => ! empty($item['item_tax_rate_id'])
+                    ? ($taxRates[$item['item_tax_rate_id']] ?? 0)
+                    : 0,
+                'tax_included' => $item['item_tax_included'] ?? false,
+                'discount_amount' => $item['item_discount_amount'] ?? 0,
+            ])->all(),
+        );
     }
 
     /** @return array{tax: float, total: float} */
