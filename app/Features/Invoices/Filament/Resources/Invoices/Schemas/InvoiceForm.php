@@ -11,6 +11,7 @@ use App\Features\Products\Models\Product;
 use App\Features\Quotes\Services\QuoteAmountCalculator;
 use App\Features\TaxRates\Models\TaxRate;
 use App\Features\Units\Models\Unit;
+use App\Filament\Forms\Components\SummaryTableRepeater;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Forms\Components\DatePicker;
@@ -29,6 +30,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\Size;
 use Filament\Support\Icons\Heroicon;
 
 class InvoiceForm
@@ -38,6 +40,15 @@ class InvoiceForm
         return $schema->columns(['default' => 12])->components([
             Hidden::make('invoice_type')->default(InvoiceType::Invoice->value),
             Hidden::make('creditinvoice_parent_id'),
+            Hidden::make('invoice_discount_percent')->default(0),
+            Hidden::make('invoice_discount_amount')->default(0),
+            Repeater::make('invoiceTaxRates')
+                ->relationship()
+                ->defaultItems(0)
+                ->hidden()
+                ->dehydratedWhenHidden()
+                ->saveRelationshipsWhenHidden()
+                ->schema(self::invoiceTaxRateFields()),
             Callout::make(fn (?Invoice $record): string => $record?->invoice_type === InvoiceType::Credit
                 ? 'Gutschrift'
                 : 'Stornorechnung')
@@ -96,7 +107,7 @@ class InvoiceForm
             Section::make('Positionen')
                 ->columnSpan(['default' => 12])
                 ->schema([
-                    Repeater::make('items')
+                    SummaryTableRepeater::make('items')
                         ->hiddenLabel()
                         ->relationship()
                         ->orderColumn('item_order')
@@ -105,7 +116,7 @@ class InvoiceForm
                         ->deletable(false)
                         ->reorderable()
                         ->compact()
-                        ->addAction(fn (Action $action): Action => $action->label('Neue Rechnungsposition')->icon(Heroicon::Plus))
+                        ->addAction(fn (Action $action): Action => $action->label('Zeile hinzufügen')->icon(Heroicon::Plus))
                         ->table([
                             TableColumn::make('Position')->markAsRequired()->width('190px'),
                             TableColumn::make('Beschreibung')->width('190px'),
@@ -182,47 +193,99 @@ class InvoiceForm
                                     ->iconButton(),
                             ])->alignCenter(),
                         ])
+                        ->summaryLayout(tableColumnCount: 9, leadingColumnSpan: 5)
+                        ->summaryActions([
+                            Action::make('editDiscount')
+                                ->label('Rabatt')
+                                ->icon(Heroicon::OutlinedReceiptPercent)
+                                ->color('gray')
+                                ->button()
+                                ->size(Size::Small)
+                                ->modalHeading('Rabatt')
+                                ->modalSubmitActionLabel('Rabatt übernehmen')
+                                ->fillForm(fn (Get $get): array => [
+                                    'discount_percent' => $get('invoice_discount_percent') ?? 0,
+                                    'discount_amount' => $get('invoice_discount_amount') ?? 0,
+                                ])
+                                ->schema(fn (Get $get): array => [
+                                    TextInput::make('discount_percent')
+                                        ->label('Gesamtrabatt in Prozent')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->maxValue(100)
+                                        ->suffix('%'),
+                                    TextInput::make('discount_amount')
+                                        ->label('Gesamtrabatt als Betrag')
+                                        ->helperText('Ein prozentualer Rabatt hat Vorrang.')
+                                        ->numeric()
+                                        ->minValue(self::invoiceType($get) === InvoiceType::Invoice ? 0 : null)
+                                        ->suffix('€'),
+                                ])
+                                ->action(function (array $data, Set $set): void {
+                                    $set('invoice_discount_percent', $data['discount_percent'] ?? 0);
+                                    $set('invoice_discount_amount', $data['discount_amount'] ?? 0);
+                                }),
+                            Action::make('editTaxes')
+                                ->label('Steuer')
+                                ->icon(Heroicon::OutlinedCalculator)
+                                ->color('gray')
+                                ->button()
+                                ->size(Size::Small)
+                                ->modalHeading('Rechnungssteuer')
+                                ->modalSubmitActionLabel('Steuer übernehmen')
+                                ->fillForm(fn (Get $get): array => [
+                                    'tax_rates' => $get('invoiceTaxRates') ?? [],
+                                ])
+                                ->schema([
+                                    Repeater::make('tax_rates')
+                                        ->label('Steuersätze')
+                                        ->defaultItems(0)
+                                        ->columns(2)
+                                        ->addActionLabel('Steuer hinzufügen')
+                                        ->schema(self::invoiceTaxRateFields()),
+                                ])
+                                ->action(fn (array $data, Set $set) => $set(
+                                    'invoiceTaxRates',
+                                    $data['tax_rates'] ?? [],
+                                    shouldCallUpdatedHooks: true,
+                                )),
+                        ])
+                        ->summaryRows(function (Get $get): array {
+                            $totals = self::calculateTotals($get);
+
+                            return [
+                                'Zwischensumme' => self::formatAmount($totals['subtotal']),
+                                'Steuer' => self::formatAmount($totals['itemTax'] + $totals['quoteTax']),
+                                'Gesamtsumme' => self::formatAmount($totals['total']),
+                            ];
+                        })
                         ->columnSpanFull(),
                 ]),
-            Section::make('Rabatt und Zahlungsbedingungen')
-                ->collapsed()->columns(['default' => 1, 'md' => 2])->columnSpan(['default' => 12])
+            Section::make('Zahlungsbedingungen')
+                ->columnSpan(['default' => 12])
                 ->schema([
-                    TextInput::make('invoice_discount_percent')->label('Gesamtrabatt in Prozent')
-                        ->numeric()->minValue(0)->maxValue(100)->default(0)->suffix('%')->live(),
-                    TextInput::make('invoice_discount_amount')->label('Gesamtrabatt als Betrag')
-                        ->helperText('Ein prozentualer Rabatt hat Vorrang.')->numeric()
-                        ->minValue(fn (Get $get): ?int => self::invoiceType($get) === InvoiceType::Invoice ? 0 : null)
-                        ->default(0)->suffix('€')->live(),
-                    Textarea::make('invoice_terms')->label('Zahlungsbedingungen')
+                    Textarea::make('invoice_terms')->hiddenLabel()
                         ->default(fn (): string => app(InvoiceDefaults::class)->terms())->rows(4)->columnSpanFull(),
                 ]),
-            Section::make('Rechnungssteuer')
-                ->collapsed()->columnSpan(['default' => 12, 'lg' => 6])
-                ->schema([
-                    Repeater::make('invoiceTaxRates')->relationship()->defaultItems(0)->columns(2)->schema([
-                        Select::make('tax_rate_id')->label('Steuersatz')->relationship('taxRate', 'tax_rate_name')
-                            ->searchable()->preload()->required()->live(),
-                        Toggle::make('include_item_tax')->label('Positionssteuern einbeziehen')->live(),
-                        Hidden::make('invoice_tax_rate_amount')->default(0),
-                    ]),
-                ]),
-            Section::make('Summen')
-                ->columns(2)->columnSpan(['default' => 12, 'lg' => 6])
-                ->schema([
-                    Placeholder::make('original_subtotal')->label('Positionssumme')
-                        ->content(fn (Get $get): string => self::formatAmount(self::calculateTotals($get)['originalSubtotal'])),
-                    Placeholder::make('discount')->label('Rabatt')
-                        ->content(fn (Get $get): string => self::formatAmount(self::calculateTotals($get)['discount'])),
-                    Placeholder::make('subtotal')->label('Zwischensumme')
-                        ->content(fn (Get $get): string => self::formatAmount(self::calculateTotals($get)['subtotal'])),
-                    Placeholder::make('item_tax')->label('Steuer Positionen')
-                        ->content(fn (Get $get): string => self::formatAmount(self::calculateTotals($get)['itemTax'])),
-                    Placeholder::make('invoice_tax')->label('Rechnungssteuer')
-                        ->content(fn (Get $get): string => self::formatAmount(self::calculateTotals($get)['quoteTax'])),
-                    Placeholder::make('total')->label('Gesamtsumme')
-                        ->content(fn (Get $get): string => self::formatAmount(self::calculateTotals($get)['total'])),
-                ]),
         ]);
+    }
+
+    /** @return array<int, Component> */
+    private static function invoiceTaxRateFields(): array
+    {
+        return [
+            Select::make('tax_rate_id')
+                ->label('Steuersatz')
+                ->options(fn (): array => TaxRate::query()
+                    ->orderBy('tax_rate_name')
+                    ->pluck('tax_rate_name', 'tax_rate_id')
+                    ->all())
+                ->searchable()
+                ->preload()
+                ->required(),
+            Toggle::make('include_item_tax')->label('Positionssteuern einbeziehen'),
+            Hidden::make('invoice_tax_rate_amount')->default(0),
+        ];
     }
 
     /** @return array<string, mixed> */
