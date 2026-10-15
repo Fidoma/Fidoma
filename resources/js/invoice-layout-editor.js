@@ -27,7 +27,11 @@ window.invoiceLayoutEditor = (initialHtml, initialCss) => ({
     },
 
     createEditor(document, language, parent) {
-        return new EditorView({
+        if (parent.invoiceLayoutEditorView) {
+            return parent.invoiceLayoutEditorView;
+        }
+
+        parent.invoiceLayoutEditorView = new EditorView({
             state: EditorState.create({
                 doc: document,
                 extensions: [
@@ -41,6 +45,8 @@ window.invoiceLayoutEditor = (initialHtml, initialCss) => ({
             }),
             parent,
         });
+
+        return parent.invoiceLayoutEditorView;
     },
 
     values() {

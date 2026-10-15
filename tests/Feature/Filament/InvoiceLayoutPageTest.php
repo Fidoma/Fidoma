@@ -25,6 +25,9 @@ class InvoiceLayoutPageTest extends TestCase
             ->assertOk()
             ->assertSee('Rechnungslayout')
             ->assertSee('PDF-Vorschau')
+            ->assertSee('Beispielwert')
+            ->assertSee('{{ invoice.number }}')
+            ->assertSee('Musterwerk GmbH')
             ->assertSee('RE-2026-1042');
     }
 

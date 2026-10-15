@@ -130,14 +130,56 @@
     color: rgb(161 161 170);
 }
 
-.invoice-layout-help summary {
-    cursor: pointer;
+.invoice-layout-help-title {
     font-weight: 600;
 }
 
-.invoice-layout-help p {
+.invoice-layout-placeholder-table-wrap {
     margin-top: 0.5rem;
-    line-height: 1.6;
+    max-height: 18rem;
+    overflow: auto;
+    border: 1px solid rgb(229 231 235);
+    border-radius: 0.5rem;
+}
+
+.dark .invoice-layout-placeholder-table-wrap {
+    border-color: rgb(255 255 255 / 0.1);
+}
+
+.invoice-layout-placeholder-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.75rem;
+}
+
+.invoice-layout-placeholder-table th,
+.invoice-layout-placeholder-table td {
+    border-bottom: 1px solid rgb(229 231 235);
+    padding: 0.45rem 0.625rem;
+    text-align: left;
+    vertical-align: top;
+}
+
+.dark .invoice-layout-placeholder-table th,
+.dark .invoice-layout-placeholder-table td {
+    border-color: rgb(255 255 255 / 0.1);
+}
+
+.invoice-layout-placeholder-table th {
+    position: sticky;
+    top: 0;
+    background: rgb(249 250 251);
+    color: rgb(55 65 81);
+    font-weight: 600;
+}
+
+.dark .invoice-layout-placeholder-table th {
+    background: rgb(39 39 42);
+    color: rgb(228 228 231);
+}
+
+.invoice-layout-placeholder-table tr:last-child td {
+    border-bottom: 0;
 }
 
 .invoice-layout-help code {

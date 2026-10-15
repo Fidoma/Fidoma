@@ -35,11 +35,15 @@ class InvoiceLayout extends Page
 
     public ?string $pdfPreviewUrl = null;
 
-    public function mount(InvoiceLayoutDefaults $defaults): void
+    /** @var array<int, array{key: string, value: string}> */
+    public array $placeholders = [];
+
+    public function mount(InvoiceLayoutDefaults $defaults, InvoiceTemplateData $templateData): void
     {
         $layout = InvoiceLayoutModel::query()->first();
         $this->html = $layout?->html ?? $defaults->html();
         $this->css = $layout?->css ?? $defaults->css();
+        $this->placeholders = $this->placeholderRows($templateData->sample());
         $this->refreshHtmlPreview();
     }
 
@@ -88,5 +92,48 @@ class InvoiceLayout extends Page
             $this->css,
             app(InvoiceTemplateData::class)->sample(),
         );
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<int, array{key: string, value: string}>
+     */
+    private function placeholderRows(array $data): array
+    {
+        $values = [
+            'client.address' => $data['client']['address'],
+            'client.city' => $data['client']['city'],
+            'client.company' => $data['client']['company'],
+            'client.email' => $data['client']['email'],
+            'client.name' => $data['client']['name'],
+            'client.number' => $data['client']['number'],
+            'invoice.date' => $data['invoice']['date'],
+            'invoice.due_date' => $data['invoice']['due_date'],
+            'invoice.number' => $data['invoice']['number'],
+            'invoice.terms' => $data['invoice']['terms'],
+            'issuer.address' => $data['issuer']['address'],
+            'issuer.city' => $data['issuer']['city'],
+            'issuer.company' => $data['issuer']['company'],
+            'issuer.email' => $data['issuer']['email'],
+            'issuer.iban' => $data['issuer']['iban'],
+            'issuer.name' => $data['issuer']['name'],
+            'issuer.vat_id' => $data['issuer']['vat_id'],
+            'items' => count($data['items']).' Beispielpositionen',
+            'totals.subtotal' => $this->formatMoney($data['totals']['subtotal']),
+            'totals.tax' => $this->formatMoney($data['totals']['tax']),
+            'totals.total' => $this->formatMoney($data['totals']['total']),
+        ];
+
+        ksort($values, SORT_NATURAL | SORT_FLAG_CASE);
+
+        return collect($values)
+            ->map(fn (mixed $value, string $key): array => ['key' => $key, 'value' => (string) $value])
+            ->values()
+            ->all();
+    }
+
+    private function formatMoney(mixed $value): string
+    {
+        return number_format((float) $value, 2, ',', '.').' €';
     }
 }
