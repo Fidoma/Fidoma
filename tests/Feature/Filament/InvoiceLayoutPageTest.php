@@ -16,15 +16,18 @@ class InvoiceLayoutPageTest extends TestCase
 
     public function test_unauthenticated_user_is_redirected_to_login(): void
     {
-        $this->get('/admin/invoice-layout')->assertRedirect('/admin/login');
+        $this->get('/admin/pdf-layouts')->assertRedirect('/admin/login');
     }
 
     public function test_layout_page_shows_editor_preview_and_sample_invoice(): void
     {
         $this->actingAs(User::factory()->create())
-            ->get('/admin/invoice-layout')
+            ->get('/admin/pdf-layouts')
             ->assertOk()
-            ->assertSee('Rechnungslayout')
+            ->assertSee('PDF-Layouts')
+            ->assertSee('Rechnungen')
+            ->assertSee('Angebote')
+            ->assertSee('Reservierungen')
             ->assertSee('PDF-Vorschau')
             ->assertSee('Beispielwert')
             ->assertSee('{{ invoice.number }}')
@@ -41,7 +44,7 @@ class InvoiceLayoutPageTest extends TestCase
         Livewire::actingAs($user)
             ->test(InvoiceLayoutPage::class)
             ->call('saveTemplate', $html, $css)
-            ->assertNotified('Rechnungslayout gespeichert');
+            ->assertNotified('PDF-Layout gespeichert');
 
         $this->assertDatabaseHas('invoice_layouts', ['html' => $html, 'css' => $css]);
 
@@ -65,6 +68,35 @@ class InvoiceLayoutPageTest extends TestCase
         $this->assertDatabaseMissing('invoice_layouts', ['html' => '<h1>{{ invoice.number }}</h1>']);
     }
 
+    public function test_each_document_type_has_its_own_layout_and_placeholders(): void
+    {
+        $user = User::factory()->create();
+
+        Livewire::withQueryParams(['type' => 'quote'])
+            ->actingAs($user)
+            ->test(InvoiceLayoutPage::class)
+            ->assertSet('activeType', 'quote')
+            ->assertSee('{{ quote.number }}')
+            ->call('saveTemplate', '<h1>Angebot {{ quote.number }}</h1>', '');
+
+        Livewire::withQueryParams(['type' => 'reservation'])
+            ->actingAs($user)
+            ->test(InvoiceLayoutPage::class)
+            ->assertSet('activeType', 'reservation')
+            ->assertSee('{{ reservation.number }}')
+            ->assertSee('{{ reservation.arrival_date }}')
+            ->call('saveTemplate', '<h1>Reservierung {{ reservation.number }}</h1>', '');
+
+        $this->assertDatabaseHas('invoice_layouts', [
+            'type' => 'quote',
+            'html' => '<h1>Angebot {{ quote.number }}</h1>',
+        ]);
+        $this->assertDatabaseHas('invoice_layouts', [
+            'type' => 'reservation',
+            'html' => '<h1>Reservierung {{ reservation.number }}</h1>',
+        ]);
+    }
+
     public function test_pdf_preview_uses_the_current_unsaved_draft(): void
     {
         $user = User::factory()->create();
@@ -72,14 +104,15 @@ class InvoiceLayoutPageTest extends TestCase
         Livewire::actingAs($user)
             ->test(InvoiceLayoutPage::class)
             ->call('showPdfPreview', '<h1>{{ invoice.number }}</h1>', 'h1 { color: red; }')
-            ->assertSet('pdfPreviewUrl', fn (?string $url): bool => str_contains($url ?? '', '/admin/invoice-layout/pdf-preview'));
+            ->assertSet('pdfPreviewUrl', fn (?string $url): bool => str_contains($url ?? '', '/admin/pdf-layouts/pdf-preview'));
 
         $this->actingAs($user)
-            ->withSession(['invoice-layout-preview' => [
+            ->withSession(['pdf-layout-preview' => [
+                'type' => 'invoice',
                 'html' => '<h1>{{ invoice.number }}</h1>',
                 'css' => 'h1 { color: red; }',
             ]])
-            ->get(route('invoice-layout.pdf-preview'))
+            ->get(route('pdf-layouts.pdf-preview'))
             ->assertOk()
             ->assertHeader('content-type', 'application/pdf');
     }

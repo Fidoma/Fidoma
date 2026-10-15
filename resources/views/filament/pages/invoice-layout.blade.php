@@ -1,6 +1,33 @@
 <x-filament-panels::page>
     @vite('resources/js/invoice-layout-editor.js')
 
+    <x-filament::tabs label="Belegart">
+        <x-filament::tabs.item
+            tag="a"
+            :href="\App\Filament\Pages\InvoiceLayout::getUrl(['type' => 'invoice'])"
+            :active="$activeType === 'invoice'"
+            icon="heroicon-o-document-text"
+        >
+            Rechnungen
+        </x-filament::tabs.item>
+        <x-filament::tabs.item
+            tag="a"
+            :href="\App\Filament\Pages\InvoiceLayout::getUrl(['type' => 'quote'])"
+            :active="$activeType === 'quote'"
+            icon="heroicon-o-document-duplicate"
+        >
+            Angebote
+        </x-filament::tabs.item>
+        <x-filament::tabs.item
+            tag="a"
+            :href="\App\Filament\Pages\InvoiceLayout::getUrl(['type' => 'reservation'])"
+            :active="$activeType === 'reservation'"
+            icon="heroicon-o-calendar-days"
+        >
+            Reservierungen
+        </x-filament::tabs.item>
+    </x-filament::tabs>
+
     <div
         class="invoice-layout-grid"
     >
@@ -28,28 +55,6 @@
             <div class="invoice-layout-editor">
                 <div x-show="activeTab === 'html'" x-ref="htmlEditor"></div>
                 <div x-show="activeTab === 'css'" x-ref="cssEditor"></div>
-            </div>
-
-            <div class="invoice-layout-help">
-                <div class="invoice-layout-help-title">Verfügbare Platzhalter</div>
-                <div class="invoice-layout-placeholder-table-wrap">
-                    <table class="invoice-layout-placeholder-table">
-                        <thead>
-                            <tr>
-                                <th>Platzhalter</th>
-                                <th>Beispielwert</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($placeholders as $placeholder)
-                                <tr>
-                                    <td><code>{{ '{'.'{ '.$placeholder['key'].' }'.'}' }}</code></td>
-                                    <td>{{ $placeholder['value'] }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
             </div>
         </section>
 
@@ -80,4 +85,35 @@
             ></iframe>
         </section>
     </div>
+
+    <x-filament::section heading="Verfügbare Platzhalter" class="invoice-layout-placeholder-panel">
+        <div class="invoice-layout-placeholder-table-wrap">
+            <table class="invoice-layout-placeholder-table">
+                <thead>
+                    <tr>
+                        <th class="invoice-layout-placeholder-copy-column"><span class="sr-only">Kopieren</span></th>
+                        <th>Platzhalter</th>
+                        <th>Beispielwert</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($placeholders as $placeholder)
+                        <tr>
+                            <td class="invoice-layout-placeholder-copy-column">
+                                <x-filament::icon-button
+                                    icon="heroicon-o-clipboard-document"
+                                    color="gray"
+                                    size="sm"
+                                    label="Platzhalter kopieren"
+                                    x-on:click="navigator.clipboard.writeText({{ \Illuminate\Support\Js::from('{'.'{ '.$placeholder['key'].' }'.'}') }})"
+                                />
+                            </td>
+                            <td><code>{{ '{'.'{ '.$placeholder['key'].' }'.'}' }}</code></td>
+                            <td>{{ $placeholder['value'] }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </x-filament::section>
 </x-filament-panels::page>

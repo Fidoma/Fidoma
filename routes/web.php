@@ -17,5 +17,5 @@ Route::middleware('auth')->prefix('admin/invoices/{invoice}')->group(function ()
         ->name('invoices.xrechnung');
 });
 
-Route::middleware('auth')->get('admin/invoice-layout/pdf-preview', InvoiceLayoutPreviewController::class)
-    ->name('invoice-layout.pdf-preview');
+Route::middleware('auth')->get('admin/pdf-layouts/pdf-preview', InvoiceLayoutPreviewController::class)
+    ->name('pdf-layouts.pdf-preview');

@@ -11,10 +11,14 @@ final class InvoiceLayoutPreviewController
 {
     public function __invoke(InvoiceTemplateRenderer $renderer, InvoiceTemplateData $data): Response
     {
-        $draft = session('invoice-layout-preview');
+        $draft = session('pdf-layout-preview');
         abort_unless(is_array($draft) && isset($draft['html'], $draft['css']), 404);
 
-        return Pdf::loadHTML($renderer->render($draft['html'], $draft['css'], $data->sample()))
+        $type = in_array($draft['type'] ?? null, ['invoice', 'quote', 'reservation'], true)
+            ? $draft['type']
+            : 'invoice';
+
+        return Pdf::loadHTML($renderer->render($draft['html'], $draft['css'], $data->sample($type)))
             ->setPaper('a4')
             ->stream('rechnungslayout-vorschau.pdf');
     }

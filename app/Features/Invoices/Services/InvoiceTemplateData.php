@@ -7,9 +7,9 @@ use App\Features\Invoices\Models\Invoice;
 final class InvoiceTemplateData
 {
     /** @return array<string, mixed> */
-    public function sample(): array
+    public function sample(string $type = 'invoice'): array
     {
-        return [
+        $data = [
             'invoice' => ['number' => 'RE-2026-1042', 'date' => '15.10.2026', 'due_date' => '29.10.2026', 'terms' => 'Bitte überweisen Sie den Rechnungsbetrag innerhalb von 14 Tagen.'],
             'client' => ['number' => 'K-1048', 'company' => 'Musterwerk GmbH', 'name' => 'Anna Schneider', 'address' => 'Hafenstraße 18', 'city' => '20457 Hamburg', 'email' => 'anna.schneider@musterwerk.de'],
             'issuer' => ['company' => config('app.name', 'Fidoma').' GmbH', 'name' => 'Arianit Mustermann', 'address' => 'Beispielweg 12', 'city' => '10115 Berlin', 'email' => 'rechnung@fidoma.de', 'vat_id' => 'DE123456789', 'iban' => 'DE89 3704 0044 0532 0130 00'],
@@ -24,6 +24,29 @@ final class InvoiceTemplateData
             ],
             'totals' => ['subtotal' => 1869, 'tax' => 349.23, 'total' => 2218.23],
         ];
+
+        if ($type === 'quote') {
+            $data['quote'] = [
+                'number' => 'AN-2026-0187',
+                'date' => '15.10.2026',
+                'due_date' => '29.10.2026',
+                'terms' => 'Dieses Angebot ist 14 Tage gültig.',
+            ];
+            unset($data['invoice']);
+        }
+
+        if ($type === 'reservation') {
+            $data['reservation'] = [
+                'number' => 'RES-2026-0412',
+                'date' => '15.10.2026',
+                'arrival_date' => '20.10.2026',
+                'departure_date' => '24.10.2026',
+                'terms' => 'Wir freuen uns auf Ihren Aufenthalt.',
+            ];
+            unset($data['invoice']);
+        }
+
+        return $data;
     }
 
     /** @return array<string, mixed> */

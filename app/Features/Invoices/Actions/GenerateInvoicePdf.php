@@ -21,7 +21,7 @@ final class GenerateInvoicePdf
 
     public function handle(Invoice $invoice): DomPdf
     {
-        if ($layout = InvoiceLayout::query()->first()) {
+        if ($layout = InvoiceLayout::query()->where('type', 'invoice')->first()) {
             return Pdf::loadHTML($this->templateRenderer->render(
                 $layout->html,
                 $layout->css,

@@ -21,7 +21,7 @@ final class InvoiceDocumentController
         InvoiceTemplateData $templateData,
         InvoiceTemplateRenderer $templateRenderer,
     ): View|Response {
-        if ($layout = InvoiceLayout::query()->first()) {
+        if ($layout = InvoiceLayout::query()->where('type', 'invoice')->first()) {
             return response($templateRenderer->render(
                 $layout->html,
                 $layout->css,

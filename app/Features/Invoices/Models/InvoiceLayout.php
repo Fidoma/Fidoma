@@ -6,5 +6,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class InvoiceLayout extends Model
 {
-    protected $fillable = ['html', 'css'];
+    protected $fillable = ['type', 'html', 'css'];
 }

@@ -16,9 +16,11 @@ use UnitEnum;
 
 class InvoiceLayout extends Page
 {
-    protected static ?string $title = 'Rechnungslayout';
+    protected static ?string $title = 'PDF-Layouts';
 
-    protected static ?string $navigationLabel = 'Rechnungslayout';
+    protected static ?string $navigationLabel = 'PDF-Layouts';
+
+    protected static ?string $slug = 'pdf-layouts';
 
     protected static string|UnitEnum|null $navigationGroup = 'Settings';
 
@@ -36,15 +38,20 @@ class InvoiceLayout extends Page
 
     public ?string $pdfPreviewUrl = null;
 
+    public string $activeType = 'invoice';
+
     /** @var array<int, array{key: string, value: string}> */
     public array $placeholders = [];
 
     public function mount(InvoiceLayoutDefaults $defaults, InvoiceTemplateData $templateData): void
     {
-        $layout = InvoiceLayoutModel::query()->first();
-        $this->html = $layout?->html ?? $defaults->html();
+        $this->activeType = in_array(request()->query('type'), ['invoice', 'quote', 'reservation'], true)
+            ? request()->query('type')
+            : 'invoice';
+        $layout = InvoiceLayoutModel::query()->where('type', $this->activeType)->first();
+        $this->html = $layout?->html ?? $defaults->html($this->activeType);
         $this->css = $layout?->css ?? $defaults->css();
-        $this->placeholders = $this->placeholderRows($templateData->sample());
+        $this->placeholders = $this->placeholderRows($templateData->sample($this->activeType));
         $this->refreshHtmlPreview();
     }
 
@@ -55,7 +62,7 @@ class InvoiceLayout extends Page
         $this->previewHtml = app(InvoiceTemplateRenderer::class)->render(
             $this->html,
             $this->css,
-            app(InvoiceTemplateData::class)->sample(),
+            app(InvoiceTemplateData::class)->sample($this->activeType),
         );
 
         $this->dispatch('invoice-layout-preview-updated', html: $this->previewHtml);
@@ -66,19 +73,23 @@ class InvoiceLayout extends Page
         $this->setDraft($html, $css);
 
         InvoiceLayoutModel::query()->updateOrCreate(
-            ['id' => InvoiceLayoutModel::query()->value('id') ?? 1],
+            ['type' => $this->activeType],
             ['html' => $this->html, 'css' => $this->css],
         );
 
         $this->refreshHtmlPreview();
-        Notification::make()->title('Rechnungslayout gespeichert')->success()->send();
+        Notification::make()->title('PDF-Layout gespeichert')->success()->send();
     }
 
     public function showPdfPreview(string $html, string $css): void
     {
         $this->setDraft($html, $css);
-        session()->put('invoice-layout-preview', ['html' => $this->html, 'css' => $this->css]);
-        $this->pdfPreviewUrl = route('invoice-layout.pdf-preview', ['v' => now()->getTimestampMs()]);
+        session()->put('pdf-layout-preview', [
+            'type' => $this->activeType,
+            'html' => $this->html,
+            'css' => $this->css,
+        ]);
+        $this->pdfPreviewUrl = route('pdf-layouts.pdf-preview', ['v' => now()->getTimestampMs()]);
     }
 
     private function setDraft(string $html, string $css): void
@@ -98,7 +109,7 @@ class InvoiceLayout extends Page
         $this->previewHtml = app(InvoiceTemplateRenderer::class)->render(
             $this->html,
             $this->css,
-            app(InvoiceTemplateData::class)->sample(),
+            app(InvoiceTemplateData::class)->sample($this->activeType),
         );
     }
 
@@ -115,10 +126,6 @@ class InvoiceLayout extends Page
             'client.email' => $data['client']['email'],
             'client.name' => $data['client']['name'],
             'client.number' => $data['client']['number'],
-            'invoice.date' => $data['invoice']['date'],
-            'invoice.due_date' => $data['invoice']['due_date'],
-            'invoice.number' => $data['invoice']['number'],
-            'invoice.terms' => $data['invoice']['terms'],
             'issuer.address' => $data['issuer']['address'],
             'issuer.city' => $data['issuer']['city'],
             'issuer.company' => $data['issuer']['company'],
@@ -132,6 +139,12 @@ class InvoiceLayout extends Page
             'totals.tax' => $this->formatMoney($data['totals']['tax']),
             'totals.total' => $this->formatMoney($data['totals']['total']),
         ];
+
+        $documentData = $data[$this->activeType];
+
+        foreach ($documentData as $key => $value) {
+            $values[$this->activeType.'.'.$key] = $value;
+        }
 
         ksort($values, SORT_NATURAL | SORT_FLAG_CASE);
 

@@ -4,9 +4,9 @@ namespace App\Features\Invoices\Services;
 
 final class InvoiceLayoutDefaults
 {
-    public function html(): string
+    public function html(string $type = 'invoice'): string
     {
-        return <<<'HTML'
+        $html = <<<'HTML'
 <main class="document">
     <table class="header">
         <tr>
@@ -79,6 +79,20 @@ final class InvoiceLayoutDefaults
     </footer>
 </main>
 HTML;
+
+        return match ($type) {
+            'quote' => str_replace(
+                ['Rechnungsempfänger', '<h1>Rechnung</h1>', 'Rechnungsnummer', 'Rechnungsdatum', 'Fällig am', '{{ invoice.'],
+                ['Angebotsempfänger', '<h1>Angebot</h1>', 'Angebotsnummer', 'Angebotsdatum', 'Gültig bis', '{{ quote.'],
+                $html,
+            ),
+            'reservation' => str_replace(
+                ['Rechnungsempfänger', '<h1>Rechnung</h1>', 'Rechnungsnummer', 'Rechnungsdatum', 'Fällig am', '{{ invoice.number }}', '{{ invoice.date }}', '{{ invoice.due_date }}', '{{ invoice.terms }}'],
+                ['Reservierung für', '<h1>Reservierung</h1>', 'Reservierungsnummer', 'Reservierungsdatum', 'Abreise', '{{ reservation.number }}', '{{ reservation.date }}', '{{ reservation.departure_date }}', '{{ reservation.terms }}'],
+                $html,
+            ),
+            default => $html,
+        };
     }
 
     public function css(): string
