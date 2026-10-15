@@ -23,6 +23,108 @@
     }
 }
 
+.reports-toolbar,
+.reports-period-filter,
+.reports-table-header,
+.reports-secondary-filters,
+.reports-export-actions {
+    display: flex;
+    align-items: end;
+    gap: 0.75rem;
+}
+
+.reports-toolbar,
+.reports-table-header {
+    justify-content: space-between;
+}
+
+.reports-filter-field {
+    min-width: 10.5rem;
+}
+
+.reports-filter-field > label {
+    display: block;
+    margin-bottom: 0.25rem;
+    color: rgb(75 85 99);
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.dark .reports-filter-field > label { color: rgb(161 161 170); }
+
+.reports-period-select { min-width: 12rem; }
+
+.reports-kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    gap: 1rem;
+}
+
+.reports-kpis span,
+.reports-kpis strong {
+    display: block;
+}
+
+.reports-kpis span {
+    color: rgb(107 114 128);
+    font-size: 0.8rem;
+}
+
+.reports-kpis strong {
+    margin-top: 0.35rem;
+    color: rgb(17 24 39);
+    font-size: 1.35rem;
+    font-weight: 650;
+}
+
+.dark .reports-kpis span { color: rgb(161 161 170); }
+.dark .reports-kpis strong { color: white; }
+.reports-kpis .reports-positive { color: rgb(22 163 74); }
+.reports-kpis .reports-negative { color: rgb(220 38 38); }
+.reports-kpis .reports-warning { color: rgb(217 119 6); }
+.reports-kpis .reports-muted { color: rgb(107 114 128); font-size: 1rem; }
+
+.reports-table-header {
+    margin-bottom: 1rem;
+}
+
+.reports-tax-total {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1.5rem;
+    margin-top: 1rem;
+    border-top: 1px solid rgb(229 231 235);
+    padding-top: 1rem;
+    font-size: 0.875rem;
+}
+
+.dark .reports-tax-total { border-color: rgb(255 255 255 / 0.1); }
+
+@media (max-width: 63.999rem) {
+    .reports-toolbar,
+    .reports-table-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .reports-period-filter,
+    .reports-secondary-filters {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 39.999rem) {
+    .reports-period-filter,
+    .reports-secondary-filters,
+    .reports-tax-total {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .reports-filter-field { width: 100%; }
+    .reports-export-actions { justify-content: flex-end; }
+}
+
 .fi-fo-summary-actions {
     @apply flex min-w-0 items-start;
 }
