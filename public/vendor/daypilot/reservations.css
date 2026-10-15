@@ -3,6 +3,7 @@
     border: 1px solid rgb(229 231 235);
     border-radius: .75rem;
     background: white;
+    box-shadow: 0 1px 2px rgb(0 0 0 / .04);
 }
 
 .dark .reservation-scheduler-card {
@@ -10,9 +11,149 @@
     background: rgb(17 24 39);
 }
 
-.reservation-billing-legend { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; font-size: .8rem; color: rgb(100 116 139); }
-.reservation-legend { border-radius: 9999px; padding: .2rem .6rem; color: rgb(30 41 59); background: rgb(241 245 249); border-top: 4px solid; }
-.reservation-billing-none, .reservation-billing-stripe-none { border-color: #94a3b8; background-color: #94a3b8; }
-.reservation-billing-draft, .reservation-billing-stripe-draft { border-color: #f59e0b; background-color: #f59e0b; }
-.reservation-billing-sent, .reservation-billing-stripe-sent { border-color: #3b82f6; background-color: #3b82f6; }
-.reservation-billing-paid, .reservation-billing-stripe-paid { border-color: #22c55e; background-color: #22c55e; }
+.reservation-scheduler-card .scheduler_default_main {
+    border: 0;
+    font-family: inherit;
+}
+
+.reservation-scheduler-card .scheduler_default_corner,
+.reservation-scheduler-card .scheduler_default_timeheadergroup,
+.reservation-scheduler-card .scheduler_default_timeheadercol {
+    border-color: rgb(229 231 235);
+    background: rgb(249 250 251);
+    color: rgb(55 65 81);
+}
+
+.reservation-scheduler-card .scheduler_default_timeheadergroup_inner {
+    padding: .65rem .75rem;
+    font-size: .75rem;
+    font-weight: 600;
+    letter-spacing: .025em;
+    text-transform: uppercase;
+}
+
+.reservation-scheduler-card .scheduler_default_timeheadercol_inner {
+    padding: .55rem .5rem;
+    font-size: .75rem;
+    font-weight: 500;
+}
+
+.reservation-scheduler-card .scheduler_default_rowheader {
+    border-color: rgb(229 231 235);
+    background: white;
+    color: rgb(31 41 55);
+}
+
+.reservation-scheduler-card .scheduler_default_rowheader_inner {
+    padding: 0 1rem;
+    border-color: rgb(229 231 235);
+    font-size: .875rem;
+    font-weight: 600;
+}
+
+.reservation-scheduler-card .scheduler_default_cell {
+    border-color: rgb(243 244 246);
+    background: white;
+}
+
+.reservation-scheduler-card .reservation-scheduler-weekend {
+    background: rgb(249 250 251);
+}
+
+.reservation-scheduler-card .scheduler_default_event {
+    border-radius: .5rem;
+}
+
+.reservation-scheduler-card .scheduler_default_event_inner {
+    padding: .65rem .75rem;
+    border-width: 0 0 0 4px;
+    border-radius: .5rem;
+    box-shadow: 0 1px 2px rgb(0 0 0 / .08);
+    transition: box-shadow .15s ease, transform .15s ease;
+}
+
+.reservation-scheduler-card .scheduler_default_event_inner:hover {
+    box-shadow: 0 4px 10px rgb(0 0 0 / .12);
+    transform: translateY(-1px);
+}
+
+.reservation-event-content {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: .15rem;
+    line-height: 1.2;
+}
+
+.reservation-event-content strong,
+.reservation-event-content span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.reservation-event-content strong { font-size: .8rem; }
+.reservation-event-content span { color: rgb(100 116 139); font-size: .7rem; }
+
+.reservation-billing-legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .5rem;
+    color: rgb(100 116 139);
+    font-size: .8rem;
+}
+
+.reservation-legend {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .25rem .6rem;
+    border: 1px solid rgb(229 231 235);
+    border-radius: 9999px;
+    background: white;
+    color: rgb(55 65 81);
+}
+
+.reservation-legend::before {
+    width: .5rem;
+    height: .5rem;
+    border-radius: 9999px;
+    background: var(--reservation-status-color);
+    content: '';
+}
+
+.reservation-billing-none { --reservation-status-color: #94a3b8; }
+.reservation-billing-draft { --reservation-status-color: #f59e0b; }
+.reservation-billing-sent { --reservation-status-color: #3b82f6; }
+.reservation-billing-paid { --reservation-status-color: #22c55e; }
+.reservation-billing-stripe-none { background-color: #94a3b8; }
+.reservation-billing-stripe-draft { background-color: #f59e0b; }
+.reservation-billing-stripe-sent { background-color: #3b82f6; }
+.reservation-billing-stripe-paid { background-color: #22c55e; }
+
+.dark .reservation-scheduler-card .scheduler_default_corner,
+.dark .reservation-scheduler-card .scheduler_default_timeheadergroup,
+.dark .reservation-scheduler-card .scheduler_default_timeheadercol,
+.dark .reservation-scheduler-card .reservation-scheduler-weekend {
+    border-color: rgb(55 65 81);
+    background: rgb(31 41 55);
+    color: rgb(209 213 219);
+}
+
+.dark .reservation-scheduler-card .scheduler_default_rowheader,
+.dark .reservation-scheduler-card .scheduler_default_cell {
+    border-color: rgb(55 65 81);
+    background: rgb(17 24 39);
+    color: rgb(229 231 235);
+}
+
+.dark .reservation-scheduler-card .scheduler_default_rowheader_inner {
+    border-color: rgb(55 65 81);
+}
+
+.dark .reservation-legend {
+    border-color: rgb(55 65 81);
+    background: rgb(17 24 39);
+    color: rgb(209 213 219);
+}
