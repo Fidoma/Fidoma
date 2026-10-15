@@ -7,7 +7,7 @@ final class QuoteAmountCalculator
     /**
      * @param  array<int|string, array{quantity?: mixed, price?: mixed, tax_percent?: mixed, tax_included?: mixed, discount_amount?: mixed}>  $items
      * @param  array<int|string, array{tax_percent?: mixed, include_item_tax?: mixed}>  $quoteTaxes
-     * @return array{items: array<int|string, array{subtotal: float, discount: float, tax: float, total: float}>, originalSubtotal: float, discount: float, subtotal: float, itemTax: float, quoteTax: float, total: float}
+     * @return array{items: array<int|string, array{subtotal: float, discount: float, tax: float, total: float}>, originalSubtotal: float, discount: float, subtotal: float, itemTax: float, quoteTax: float, taxBreakdown: array<int|string, float>, total: float}
      */
     public function calculate(
         array $items,
@@ -43,6 +43,7 @@ final class QuoteAmountCalculator
         $discountTotal = 0.0;
         $subtotal = 0.0;
         $itemTaxTotal = 0.0;
+        $taxBreakdown = [];
 
         foreach ($preparedItems as $key => $item) {
             $globalDiscount = 0.0;
@@ -67,6 +68,8 @@ final class QuoteAmountCalculator
             $discountTotal += $discount;
             $subtotal += $net;
             $itemTaxTotal += $tax;
+            $taxRateKey = self::taxRateKey($item['tax_percent']);
+            $taxBreakdown[$taxRateKey] = ($taxBreakdown[$taxRateKey] ?? 0) + $tax;
         }
 
         $subtotal = round($subtotal, 2);
@@ -75,10 +78,27 @@ final class QuoteAmountCalculator
 
         foreach ($quoteTaxes as $quoteTax) {
             $base = $subtotal + (! empty($quoteTax['include_item_tax']) ? $itemTaxTotal : 0);
-            $quoteTaxTotal += $base * max(0, (float) ($quoteTax['tax_percent'] ?? 0)) / 100;
+            $taxPercent = max(0, (float) ($quoteTax['tax_percent'] ?? 0));
+            $tax = $base * $taxPercent / 100;
+            $quoteTaxTotal += $tax;
+            $taxRateKey = self::taxRateKey($taxPercent);
+            $taxBreakdown[$taxRateKey] = ($taxBreakdown[$taxRateKey] ?? 0) + $tax;
         }
 
         $quoteTaxTotal = round($quoteTaxTotal, 2);
+        uksort($taxBreakdown, fn (int|string $left, int|string $right): int => (float) $left <=> (float) $right);
+        $taxBreakdown = collect($taxBreakdown)
+            ->map(fn (float $tax): float => round($tax, 2) * $sign)
+            ->all();
+        $taxDifference = round(
+            (($itemTaxTotal + $quoteTaxTotal) * $sign) - array_sum($taxBreakdown),
+            2,
+        );
+
+        if ($taxDifference !== 0.0 && $taxBreakdown !== []) {
+            $lastTaxRate = array_key_last($taxBreakdown);
+            $taxBreakdown[$lastTaxRate] = round($taxBreakdown[$lastTaxRate] + $taxDifference, 2);
+        }
 
         return [
             'items' => collect($calculatedItems)->map(fn (array $item): array => [
@@ -92,7 +112,15 @@ final class QuoteAmountCalculator
             'subtotal' => $subtotal * $sign,
             'itemTax' => $itemTaxTotal * $sign,
             'quoteTax' => $quoteTaxTotal * $sign,
+            'taxBreakdown' => $taxBreakdown,
             'total' => round($subtotal + $itemTaxTotal + $quoteTaxTotal, 2) * $sign,
         ];
+    }
+
+    private static function taxRateKey(float $taxPercent): int|string
+    {
+        $key = rtrim(rtrim(number_format($taxPercent, 4, '.', ''), '0'), '.');
+
+        return str_contains($key, '.') ? $key : (int) $key;
     }
 }
