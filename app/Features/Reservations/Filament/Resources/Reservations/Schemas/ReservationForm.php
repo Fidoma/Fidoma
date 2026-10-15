@@ -177,10 +177,16 @@ class ReservationForm
                             ])
                             ->summaryRows(function (Get $get): array {
                                 $totals = self::calculateTotals($get);
+                                $taxRows = collect($totals['taxBreakdown'])
+                                    ->mapWithKeys(fn (float $amount, int|string $taxRate): array => [
+                                        'Steuer '.self::formatTaxRate((float) $taxRate).' %' => self::formatAmount($amount),
+                                    ])
+                                    ->all();
 
                                 return [
                                     'Zwischensumme' => self::formatAmount($totals['subtotal']),
-                                    'Steuer' => self::formatAmount($totals['itemTax']),
+                                    ...$taxRows,
+                                    'Steuer gesamt' => self::formatAmount($totals['itemTax']),
                                     'Gesamtsumme' => self::formatAmount($totals['total']),
                                 ];
                             }),
@@ -188,7 +194,7 @@ class ReservationForm
             ]);
     }
 
-    /** @return array{originalSubtotal: float, discount: float, subtotal: float, itemTax: float, quoteTax: float, total: float} */
+    /** @return array<string, mixed> */
     private static function calculateTotals(Get $get): array
     {
         $items = collect($get('items') ?? []);
@@ -228,6 +234,11 @@ class ReservationForm
     private static function formatAmount(float $amount): string
     {
         return number_format($amount, 2, ',', '.').' €';
+    }
+
+    private static function formatTaxRate(float $taxRate): string
+    {
+        return rtrim(rtrim(number_format($taxRate, 2, ',', ''), '0'), ',');
     }
 
     private static function deleteItem(Component $component): void
