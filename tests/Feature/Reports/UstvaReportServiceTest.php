@@ -62,6 +62,7 @@ class UstvaReportServiceTest extends TestCase
         $this->assertSame(19.0, $this->row($report, '81')['tax']);
         $this->assertSame(200.0, $this->row($report, '86')['net']);
         $this->assertSame(14.0, $this->row($report, '86')['tax']);
+        $this->assertSame(300.0, $report['net']);
         $this->assertSame(33.0, $report['output_tax']);
 
         Livewire::actingAs($this->user)

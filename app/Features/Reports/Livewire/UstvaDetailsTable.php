@@ -69,15 +69,6 @@ class UstvaDetailsTable extends Component implements HasActions, HasSchemas, Has
                     ->label('Rechnungsdatum')
                     ->date('d.m.Y')
                     ->sortable(),
-                TextColumn::make('item_date')
-                    ->label('Leistungsdatum')
-                    ->date('d.m.Y')
-                    ->placeholder('–')
-                    ->sortable(),
-                TextColumn::make('tax_relevant_date')
-                    ->label('Steuerlich relevantes Datum')
-                    ->state(fn (InvoiceItem $record): string => (string) $this->detail($record)['tax_period'])
-                    ->placeholder('–'),
                 TextColumn::make('net')
                     ->label('Netto')
                     ->state(fn (InvoiceItem $record): float => $this->detail($record)['net'])
@@ -90,14 +81,6 @@ class UstvaDetailsTable extends Component implements HasActions, HasSchemas, Has
                     ->label('Brutto')
                     ->state(fn (InvoiceItem $record): float => $this->detail($record)['gross'])
                     ->money('EUR', locale: 'de'),
-                TextColumn::make('taxRate.tax_rate_percent')
-                    ->label('Steuersatz')
-                    ->formatStateUsing(fn ($state): string => rtrim(rtrim(number_format((float) $state, 2, ',', ''), '0'), ',').' %')
-                    ->sortable(),
-                TextColumn::make('elster_code')
-                    ->label('ELSTER-Kz.')
-                    ->state(fn (): string => $this->code)
-                    ->badge(),
             ])
             ->recordUrl(fn (InvoiceItem $record): string => InvoiceResource::getUrl('edit', ['record' => $record->invoice_id]))
             ->openRecordUrlInNewTab()

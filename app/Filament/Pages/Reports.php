@@ -56,16 +56,6 @@ class Reports extends Page implements HasTable
 
     public string $activeTab = 'tax';
 
-    public string $taxView = 'overview';
-
-    public string $ustvaFrequency = 'month';
-
-    public int $ustvaYear;
-
-    public int $ustvaMonth;
-
-    public int $ustvaQuarter;
-
     public string $taxationType = 'soll';
 
     public ?string $startDate = null;
@@ -82,11 +72,6 @@ class Reports extends Page implements HasTable
 
     public function mount(): void
     {
-        $today = CarbonImmutable::today();
-        $supportedYears = app(UstvaReportService::class)->supportedYears();
-        $this->ustvaYear = in_array($today->year, $supportedYears, true) ? $today->year : max($supportedYears);
-        $this->ustvaMonth = $today->month;
-        $this->ustvaQuarter = $today->quarter;
         $this->resetTable();
     }
 
@@ -101,13 +86,6 @@ class Reports extends Page implements HasTable
 
         $this->activeTab = $tab;
         $this->resetTable();
-    }
-
-    public function setTaxView(string $view): void
-    {
-        abort_unless(in_array($view, ['overview', 'ustva'], true), 404);
-
-        $this->taxView = $view;
     }
 
     public function applyPeriod(): void
@@ -126,6 +104,13 @@ class Reports extends Page implements HasTable
         $this->endDate = null;
         $this->resetValidation(['startDate', 'endDate']);
         $this->resetTable();
+    }
+
+    public function setTaxationType(string $type): void
+    {
+        abort_unless(in_array($type, ['soll', 'ist'], true), 404);
+
+        $this->taxationType = $type;
     }
 
     public function updatedPaymentDirection(): void
@@ -176,15 +161,11 @@ class Reports extends Page implements HasTable
     /** @return array<string, mixed> */
     public function ustvaReport(): array
     {
-        [$start, $end] = $this->ustvaDates();
+        [$start, $end] = $this->dates();
+        $supportedYears = app(UstvaReportService::class)->supportedYears();
+        $year = in_array($start->year, $supportedYears, true) ? $start->year : max($supportedYears);
 
-        return app(UstvaReportService::class)->report($start, $end, $this->taxationType, $this->ustvaYear);
-    }
-
-    /** @return list<int> */
-    public function ustvaYears(): array
-    {
-        return app(UstvaReportService::class)->supportedYears();
+        return app(UstvaReportService::class)->report($start, $end, $this->taxationType, $year);
     }
 
     public function viewUstvaDetailsAction(): Action
@@ -192,7 +173,7 @@ class Reports extends Page implements HasTable
         return Action::make('viewUstvaDetails')
             ->modalHeading(fn (array $arguments): string => 'UStVA Kz. '.($arguments['code'] ?? ''))
             ->modalContent(function (array $arguments): View {
-                [$start, $end] = $this->ustvaDates();
+                [$start, $end] = $this->dates();
                 $row = collect($this->ustvaReport()['rows'])
                     ->firstWhere('code', (string) ($arguments['code'] ?? ''));
 
@@ -238,7 +219,7 @@ class Reports extends Page implements HasTable
 
     public function exportUstvaPdf(): BinaryFileResponse
     {
-        [$start, $end] = $this->ustvaDates();
+        [$start, $end] = $this->dates();
         $path = tempnam(sys_get_temp_dir(), 'fidoma-ustva-');
 
         Pdf::loadView('filament.pages.reports-ustva-pdf', [
@@ -346,26 +327,12 @@ class Reports extends Page implements HasTable
         ];
     }
 
-    /** @return array{CarbonImmutable, CarbonImmutable} */
-    private function ustvaDates(): array
-    {
-        if ($this->ustvaFrequency === 'quarter') {
-            $start = CarbonImmutable::create($this->ustvaYear, (($this->ustvaQuarter - 1) * 3) + 1, 1)->startOfQuarter();
-
-            return [$start, $start->endOfQuarter()];
-        }
-
-        $start = CarbonImmutable::create($this->ustvaYear, $this->ustvaMonth, 1)->startOfMonth();
-
-        return [$start, $start->endOfMonth()];
-    }
-
     /** @return array{list<string>, iterable<list<bool|float|int|string|null>>} */
     private function exportData(): array
     {
-        if ($this->activeTab === 'tax' && $this->taxView === 'ustva') {
+        if ($this->activeTab === 'tax') {
             $report = $this->ustvaReport();
-            [$start, $end] = $this->ustvaDates();
+            [$start, $end] = $this->dates();
             $period = $start->format('d.m.Y').'–'.$end->format('d.m.Y');
             $taxationType = $this->taxationType === 'soll' ? 'Sollversteuerung' : 'Istversteuerung';
             $rows = collect($report['rows'])->map(fn (array $row): array => [
@@ -411,8 +378,12 @@ class Reports extends Page implements HasTable
 
     private function exportFilename(): string
     {
-        if ($this->activeTab === 'tax' && $this->taxView === 'ustva') {
-            [$start, $end] = $this->ustvaDates();
+        if ($this->activeTab === 'tax') {
+            if (blank($this->startDate) || blank($this->endDate)) {
+                return 'fidoma-ustva-alle-zeitraeume';
+            }
+
+            [$start, $end] = $this->dates();
 
             return 'fidoma-ustva-'.$start->format('Y-m-d').'-'.$end->format('Y-m-d');
         }

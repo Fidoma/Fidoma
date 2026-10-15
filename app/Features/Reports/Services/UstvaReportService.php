@@ -17,7 +17,7 @@ final class UstvaReportService
     /**
      * @return array{
      *   year: int, taxation_type: string, rows: list<array<string, mixed>>,
-     *   output_tax: float, input_tax: null, adjustments: null, liability: null,
+     *   net: float, output_tax: float, input_tax: null, adjustments: null, liability: null,
      *   complete: bool, warnings: list<string>
      * }
      */
@@ -54,11 +54,13 @@ final class UstvaReportService
         }
 
         $outputTax = $this->sumMoney(collect($rows)->where('supported', true), 'tax');
+        $net = $this->sumMoney($details->flatten(1), 'net');
 
         return [
             'year' => $year,
             'taxation_type' => $taxationType,
             'rows' => $rows,
+            'net' => $net,
             'output_tax' => $outputTax,
             'input_tax' => null,
             'adjustments' => null,

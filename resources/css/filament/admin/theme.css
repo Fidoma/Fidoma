@@ -50,6 +50,11 @@
     margin-left: auto;
 }
 
+.reports-taxation-tabs {
+    display: flex;
+    justify-content: center;
+}
+
 .reports-filter-field {
     min-width: 10.5rem;
 }
@@ -541,10 +546,6 @@
     color: rgb(220 38 38);
     font-size: 0.7rem;
     white-space: nowrap;
-}
-
-.reports-tax-tabs {
-    align-self: flex-start;
 }
 
 .ustva-report {

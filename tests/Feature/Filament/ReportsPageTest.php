@@ -28,7 +28,7 @@ class ReportsPageTest extends TestCase
         $this->get('/admin/reports')->assertRedirect('/admin/login');
     }
 
-    public function test_reports_page_shows_all_report_tabs_and_custom_date_filter(): void
+    public function test_reports_page_opens_the_ustva_directly_without_a_secondary_tab_bar(): void
     {
         CarbonImmutable::setTestNow('2026-10-15');
 
@@ -38,10 +38,17 @@ class ReportsPageTest extends TestCase
             ->assertSee('Umsatzsteuer')
             ->assertSee('Zahlungen')
             ->assertSee('Rechnungen')
+            ->assertSee('Gesamter Nettoumsatz')
+            ->assertSee('Gesamte Umsatzsteuer')
+            ->assertSee('Abziehbare Vorsteuer')
+            ->assertSee('Umsatzsteuerdifferenz')
             ->assertSee('Von')
             ->assertSee('Bis')
-            ->assertDontSee('2026-10-01')
-            ->assertDontSee('Aktueller Monat');
+            ->assertSee('Soll-Versteuerung')
+            ->assertSee('Ist-Versteuerung')
+            ->assertDontSee('Übersicht')
+            ->assertDontSee('UStVA-Vorschau')
+            ->assertDontSee('Quartal');
     }
 
     public function test_report_tabs_can_be_changed(): void
@@ -64,9 +71,8 @@ class ReportsPageTest extends TestCase
 
         Livewire::actingAs(User::factory()->create())
             ->test(Reports::class)
-            ->call('setTaxView', 'ustva')
-            ->assertSet('taxView', 'ustva')
-            ->assertSee('UStVA-Vorschau')
+            ->set('startDate', '2026-10-01')
+            ->set('endDate', '2026-10-31')
             ->assertSee('Steuerpflichtige Umsätze zum Steuersatz von 19 %')
             ->assertSee('Weitere steuerliche Sachverhalte')
             ->assertSee('Auswertung unvollständig')
@@ -80,25 +86,33 @@ class ReportsPageTest extends TestCase
 
         Livewire::actingAs(User::factory()->create())
             ->test(Reports::class)
-            ->call('setTaxView', 'ustva')
             ->mountAction('viewUstvaDetails', ['code' => '86'])
             ->assertActionMounted('viewUstvaDetails')
             ->assertSee('Steuerpflichtige Umsätze zum Steuersatz von 7 %');
     }
 
-    public function test_ustva_quarter_can_be_exported_as_excel_and_pdf(): void
+    public function test_ustva_custom_period_can_be_exported_as_excel_and_pdf(): void
     {
         CarbonImmutable::setTestNow('2026-10-15');
 
         Livewire::actingAs(User::factory()->create())
             ->test(Reports::class)
-            ->call('setTaxView', 'ustva')
-            ->set('ustvaFrequency', 'quarter')
-            ->set('ustvaQuarter', 2)
+            ->set('startDate', '2026-04-01')
+            ->set('endDate', '2026-06-30')
             ->call('exportExcel')
             ->assertFileDownloaded('fidoma-ustva-2026-04-01-2026-06-30.xlsx')
             ->call('exportUstvaPdf')
             ->assertFileDownloaded('fidoma-ustva-2026-04-01-2026-06-30.pdf');
+    }
+
+    public function test_taxation_type_can_be_switched_with_tabs(): void
+    {
+        Livewire::actingAs(User::factory()->create())
+            ->test(Reports::class)
+            ->call('setTaxationType', 'ist')
+            ->assertSet('taxationType', 'ist')
+            ->call('setTaxationType', 'soll')
+            ->assertSet('taxationType', 'soll');
     }
 
     public function test_date_filter_can_be_cleared(): void

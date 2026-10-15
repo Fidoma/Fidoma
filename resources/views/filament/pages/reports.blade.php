@@ -12,43 +12,6 @@
             </x-filament::tabs.item>
         </x-filament::tabs>
 
-        @if ($activeTab === 'tax' && $taxView === 'ustva')
-            <div class="reports-period-filter">
-                <div class="reports-filter-field">
-                    <label for="ustva-frequency">Zeitraum</label>
-                    <x-filament::input.wrapper><x-filament::input.select id="ustva-frequency" wire:model.live="ustvaFrequency">
-                        <option value="month">Monat</option><option value="quarter">Quartal</option>
-                    </x-filament::input.select></x-filament::input.wrapper>
-                </div>
-                <div class="reports-filter-field">
-                    <label for="ustva-year">Jahr</label>
-                    <x-filament::input.wrapper><x-filament::input.select id="ustva-year" wire:model.live="ustvaYear">
-                        @foreach ($this->ustvaYears() as $year)<option value="{{ $year }}">{{ $year }}</option>@endforeach
-                    </x-filament::input.select></x-filament::input.wrapper>
-                </div>
-                @if ($ustvaFrequency === 'month')
-                    <div class="reports-filter-field">
-                        <label for="ustva-month">Monat</label>
-                        <x-filament::input.wrapper><x-filament::input.select id="ustva-month" wire:model.live="ustvaMonth">
-                            @foreach (range(1, 12) as $month)<option value="{{ $month }}">{{ \Carbon\CarbonImmutable::create(2026, $month, 1)->translatedFormat('F') }}</option>@endforeach
-                        </x-filament::input.select></x-filament::input.wrapper>
-                    </div>
-                @else
-                    <div class="reports-filter-field">
-                        <label for="ustva-quarter">Quartal</label>
-                        <x-filament::input.wrapper><x-filament::input.select id="ustva-quarter" wire:model.live="ustvaQuarter">
-                            @foreach (range(1, 4) as $quarter)<option value="{{ $quarter }}">Q{{ $quarter }}</option>@endforeach
-                        </x-filament::input.select></x-filament::input.wrapper>
-                    </div>
-                @endif
-                <div class="reports-filter-field">
-                    <label for="taxation-type">Versteuerung</label>
-                    <x-filament::input.wrapper><x-filament::input.select id="taxation-type" wire:model.live="taxationType">
-                        <option value="soll">Sollversteuerung</option><option value="ist">Istversteuerung</option>
-                    </x-filament::input.select></x-filament::input.wrapper>
-                </div>
-            </div>
-        @else
         <form wire:submit="applyPeriod" class="reports-period-filter">
             <x-filament::button
                 type="button"
@@ -72,23 +35,24 @@
             </div>
             <x-filament::button type="submit" icon="heroicon-m-magnifying-glass">Auswerten</x-filament::button>
         </form>
-        @endif
     </div>
 
     @if ($activeTab === 'tax')
-        <x-filament::tabs label="Umsatzsteueransicht" class="reports-tax-tabs">
-            <x-filament::tabs.item wire:click="setTaxView('overview')" :active="$taxView === 'overview'">Übersicht</x-filament::tabs.item>
-            <x-filament::tabs.item wire:click="setTaxView('ustva')" :active="$taxView === 'ustva'">UStVA-Vorschau</x-filament::tabs.item>
-        </x-filament::tabs>
+        <div class="reports-taxation-tabs">
+            <x-filament::tabs label="Versteuerungsart">
+                <x-filament::tabs.item wire:click="setTaxationType('soll')" :active="$taxationType === 'soll'">Soll-Versteuerung</x-filament::tabs.item>
+                <x-filament::tabs.item wire:click="setTaxationType('ist')" :active="$taxationType === 'ist'">Ist-Versteuerung</x-filament::tabs.item>
+            </x-filament::tabs>
+        </div>
     @endif
 
-    @php($summary = $activeTab === 'tax' && $taxView === 'ustva' ? null : $this->summary())
+    @php($ustvaReport = $activeTab === 'tax' ? $this->ustvaReport() : null)
+    @php($summary = $activeTab === 'tax' ? null : $this->summary())
 
-    @if (! ($activeTab === 'tax' && $taxView === 'ustva'))
     <div class="reports-kpis">
         @if ($activeTab === 'tax')
-            <x-filament::section compact><span>Gesamter Nettoumsatz</span><strong>{{ number_format($summary['net'], 2, ',', '.') }} €</strong></x-filament::section>
-            <x-filament::section compact><span>Gesamte Umsatzsteuer</span><strong>{{ number_format($summary['tax'], 2, ',', '.') }} €</strong></x-filament::section>
+            <x-filament::section compact><span>Gesamter Nettoumsatz</span><strong>{{ number_format($ustvaReport['net'], 2, ',', '.') }} €</strong></x-filament::section>
+            <x-filament::section compact><span>Gesamte Umsatzsteuer</span><strong>{{ number_format($ustvaReport['output_tax'], 2, ',', '.') }} €</strong></x-filament::section>
             <x-filament::section compact><span>Abziehbare Vorsteuer</span><strong class="reports-muted">Nicht verfügbar</strong></x-filament::section>
             <x-filament::section compact><span>Umsatzsteuerdifferenz</span><strong class="reports-muted">Nicht berechenbar</strong></x-filament::section>
         @elseif ($activeTab === 'payments')
@@ -103,7 +67,6 @@
             <x-filament::section compact><span>Gesamtbetrag</span><strong>{{ number_format($summary['total'], 2, ',', '.') }} €</strong></x-filament::section>
         @endif
     </div>
-    @endif
 
     <x-filament::section>
         <div class="reports-table-header">
@@ -151,7 +114,7 @@
             </div>
 
             <div class="reports-export-actions">
-                @if ($activeTab === 'tax' && $taxView === 'ustva')
+                @if ($activeTab === 'tax')
                     <x-filament::button color="gray" size="sm" icon="heroicon-o-document-arrow-down" wire:click="exportUstvaPdf">PDF</x-filament::button>
                 @endif
                 <x-filament::button color="gray" size="sm" icon="heroicon-o-document-text" wire:click="exportCsv">CSV</x-filament::button>
@@ -159,19 +122,10 @@
             </div>
         </div>
 
-        @if ($activeTab === 'tax' && $taxView === 'ustva')
-            @include('filament.pages.reports-ustva', ['report' => $this->ustvaReport()])
+        @if ($activeTab === 'tax')
+            @include('filament.pages.reports-ustva', ['report' => $ustvaReport])
         @else
             {{ $this->table }}
-        @endif
-
-        @if ($activeTab === 'tax' && $taxView === 'overview')
-            <div class="reports-tax-total">
-                <strong>Gesamt</strong>
-                <span>{{ number_format($summary['net'], 2, ',', '.') }} € netto</span>
-                <span>{{ number_format($summary['tax'], 2, ',', '.') }} € Umsatzsteuer</span>
-                <span>{{ number_format($summary['gross'], 2, ',', '.') }} € brutto</span>
-            </div>
         @endif
     </x-filament::section>
 
