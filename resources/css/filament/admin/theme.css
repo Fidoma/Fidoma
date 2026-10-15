@@ -51,3 +51,140 @@
 .fi-fo-summary-table td {
     @apply w-3/5;
 }
+
+.invoice-layout-grid {
+    display: grid;
+    min-height: calc(100vh - 12rem);
+    gap: 1rem;
+}
+
+.invoice-layout-panel {
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid rgb(229 231 235);
+    border-radius: 0.75rem;
+    background: white;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
+}
+
+.dark .invoice-layout-panel {
+    border-color: rgb(255 255 255 / 0.1);
+    background: rgb(24 24 27);
+}
+
+.invoice-layout-toolbar,
+.invoice-layout-preview-title {
+    display: flex;
+    min-height: 3.5rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    border-bottom: 1px solid rgb(229 231 235);
+    padding: 0.625rem 0.75rem;
+}
+
+.dark .invoice-layout-toolbar,
+.dark .invoice-layout-preview-title {
+    border-color: rgb(255 255 255 / 0.1);
+}
+
+.invoice-layout-tabs,
+.invoice-layout-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.invoice-layout-tabs button {
+    border-radius: 0.5rem;
+    padding: 0.4rem 0.75rem;
+    color: rgb(107 114 128);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.invoice-layout-tabs button.is-active {
+    background: rgb(245 158 11 / 0.12);
+    color: rgb(180 83 9);
+}
+
+.invoice-layout-editor {
+    height: calc(100vh - 19rem);
+    min-height: 32rem;
+    background: #111827;
+}
+
+.invoice-layout-editor > div {
+    height: 100%;
+}
+
+.invoice-layout-help {
+    border-top: 1px solid rgb(229 231 235);
+    padding: 0.75rem 1rem;
+    color: rgb(75 85 99);
+    font-size: 0.8rem;
+}
+
+.dark .invoice-layout-help {
+    border-color: rgb(255 255 255 / 0.1);
+    color: rgb(161 161 170);
+}
+
+.invoice-layout-help summary {
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.invoice-layout-help p {
+    margin-top: 0.5rem;
+    line-height: 1.6;
+}
+
+.invoice-layout-help code {
+    border-radius: 0.25rem;
+    background: rgb(243 244 246);
+    padding: 0.1rem 0.25rem;
+}
+
+.dark .invoice-layout-help code {
+    background: rgb(39 39 42);
+}
+
+.invoice-layout-preview-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.invoice-layout-live {
+    border-radius: 9999px;
+    background: rgb(220 252 231);
+    padding: 0.2rem 0.55rem;
+    color: rgb(21 128 61);
+    font-size: 0.7rem;
+}
+
+.invoice-layout-preview iframe {
+    display: block;
+    width: 100%;
+    height: calc(100vh - 15.5rem);
+    min-height: 36rem;
+    border: 0;
+    background: white;
+}
+
+@media (min-width: 64rem) {
+    .invoice-layout-grid {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 40rem) {
+    .invoice-layout-toolbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .invoice-layout-actions {
+        flex-wrap: wrap;
+    }
+}
