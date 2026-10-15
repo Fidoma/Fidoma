@@ -63,7 +63,8 @@ final class InvoiceLayoutDefaults
     <div class="summary-wrap">
         <table class="summary">
             <tr><td>Zwischensumme</td><td>{{ totals.subtotal }}</td></tr>
-            <tr><td>Steuer</td><td>{{ totals.tax }}</td></tr>
+            {{ tax_rows }}
+            <tr><td>Steuer gesamt</td><td>{{ totals.tax }}</td></tr>
             <tr class="total"><td>Gesamt</td><td>{{ totals.total }}</td></tr>
         </table>
     </div>

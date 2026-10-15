@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Features\Invoices\Models\InvoiceLayout;
 use App\Features\Invoices\Services\InvoiceTemplateRenderer;
 use App\Filament\Pages\InvoiceLayout as InvoiceLayoutPage;
 use App\Models\User;
@@ -50,6 +51,20 @@ class InvoiceLayoutPageTest extends TestCase
             ->assertSet('css', $css);
     }
 
+    public function test_live_preview_does_not_save_the_draft(): void
+    {
+        $user = User::factory()->create();
+        InvoiceLayout::query()->create(['html' => '<h1>Gespeichert</h1>', 'css' => '']);
+
+        Livewire::actingAs($user)
+            ->test(InvoiceLayoutPage::class)
+            ->call('updatePreview', '<h1>{{ invoice.number }}</h1>', 'h1 { color: red; }')
+            ->assertDispatched('invoice-layout-preview-updated');
+
+        $this->assertDatabaseHas('invoice_layouts', ['html' => '<h1>Gespeichert</h1>', 'css' => '']);
+        $this->assertDatabaseMissing('invoice_layouts', ['html' => '<h1>{{ invoice.number }}</h1>']);
+    }
+
     public function test_pdf_preview_uses_the_current_unsaved_draft(): void
     {
         $user = User::factory()->create();
@@ -96,5 +111,54 @@ class InvoiceLayoutPageTest extends TestCase
         );
 
         $this->assertMatchesRegularExpression('/100,00 €<\/td><td class="number">200,00 €<\/td><td class="number">19,00 %/', $rendered);
+    }
+
+    public function test_tax_rows_are_rendered_separately_by_rate(): void
+    {
+        $rendered = app(InvoiceTemplateRenderer::class)->render(
+            '<table><tbody>{{ tax_rows }}</tbody></table>',
+            '',
+            ['items' => [], 'tax_rows' => [
+                ['name' => 'Umsatzsteuer', 'rate' => 7, 'amount' => 7],
+                ['name' => 'Umsatzsteuer', 'rate' => 19, 'amount' => 38],
+            ], 'totals' => ['tax' => 45]],
+        );
+
+        $this->assertStringContainsString('<td>Umsatzsteuer 7 %</td><td>7,00 €</td>', $rendered);
+        $this->assertStringContainsString('<td>Umsatzsteuer 19 %</td><td>38,00 €</td>', $rendered);
+    }
+
+    public function test_tax_rate_is_not_duplicated_when_the_tax_name_already_contains_it(): void
+    {
+        $rendered = app(InvoiceTemplateRenderer::class)->render(
+            '<table><tbody>{{ tax_rows }}</tbody></table>',
+            '',
+            ['items' => [], 'tax_rows' => [
+                ['name' => '7%', 'rate' => 7, 'amount' => 7],
+                ['name' => '19 %', 'rate' => 19, 'amount' => 38],
+            ], 'totals' => ['tax' => 45]],
+        );
+
+        $this->assertStringContainsString('<td>Steuer 7 %</td>', $rendered);
+        $this->assertStringContainsString('<td>Steuer 19 %</td>', $rendered);
+        $this->assertStringNotContainsString('7% 7 %', $rendered);
+        $this->assertStringNotContainsString('19 % 19 %', $rendered);
+    }
+
+    public function test_single_tax_rate_replaces_the_redundant_total_tax_row(): void
+    {
+        $rendered = app(InvoiceTemplateRenderer::class)->render(
+            '<table><tbody>{{ tax_rows }}<tr><td>Umsatzsteuer</td><td>{{ totals.tax }}</td></tr></tbody></table>',
+            '',
+            [
+                'items' => [],
+                'tax_rows' => [['name' => '7%', 'rate' => 7, 'amount' => 586.25]],
+                'totals' => ['tax' => 586.25],
+            ],
+        );
+
+        $this->assertStringContainsString('Steuer 7 %', $rendered);
+        $this->assertStringNotContainsString('Umsatzsteuer</td>', $rendered);
+        $this->assertSame(1, substr_count($rendered, '586,25 €'));
     }
 }

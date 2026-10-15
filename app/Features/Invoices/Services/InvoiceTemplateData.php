@@ -16,9 +16,13 @@ final class InvoiceTemplateData
             'items' => [
                 ['name' => 'Beratung und Konzeption', 'description' => 'Workshop und technische Konzeption', 'quantity' => 4, 'unit' => 'Std.', 'price' => 125, 'net_total' => 500, 'tax' => 19, 'total' => 595],
                 ['name' => 'Implementierung', 'description' => 'Umsetzung der vereinbarten Funktionen', 'quantity' => 12, 'unit' => 'Std.', 'price' => 110, 'net_total' => 1320, 'tax' => 19, 'total' => 1570.80],
-                ['name' => 'Hosting', 'description' => 'Hosting für Oktober 2026', 'quantity' => 1, 'unit' => 'Monat', 'price' => 49, 'net_total' => 49, 'tax' => 19, 'total' => 58.31],
+                ['name' => 'Hosting', 'description' => 'Hosting für Oktober 2026', 'quantity' => 1, 'unit' => 'Monat', 'price' => 49, 'net_total' => 49, 'tax' => 7, 'total' => 52.43],
             ],
-            'totals' => ['subtotal' => 1869, 'tax' => 355.11, 'total' => 2224.11],
+            'tax_rows' => [
+                ['name' => 'Umsatzsteuer', 'rate' => 7, 'amount' => 3.43],
+                ['name' => 'Umsatzsteuer', 'rate' => 19, 'amount' => 345.80],
+            ],
+            'totals' => ['subtotal' => 1869, 'tax' => 349.23, 'total' => 2218.23],
         ];
     }
 
@@ -63,11 +67,52 @@ final class InvoiceTemplateData
                 'tax' => (float) ($item->taxRate?->tax_rate_percent ?? 0),
                 'total' => (float) ($item->amount?->item_total ?? 0),
             ])->all(),
+            'tax_rows' => $this->taxRows($invoice),
             'totals' => [
                 'subtotal' => (float) ($invoice->amount?->invoice_item_subtotal ?? 0),
                 'tax' => (float) (($invoice->amount?->invoice_item_tax_total ?? 0) + ($invoice->amount?->invoice_tax_total ?? 0)),
                 'total' => (float) ($invoice->amount?->invoice_total ?? 0),
             ],
         ];
+    }
+
+    /** @return array<int, array{name: string, rate: float, amount: float}> */
+    private function taxRows(Invoice $invoice): array
+    {
+        $rows = [];
+
+        foreach ($invoice->items as $item) {
+            $rate = (float) ($item->taxRate?->tax_rate_percent ?? 0);
+            $key = $this->taxRateKey($rate);
+            $rows[$key] ??= [
+                'name' => $item->taxRate?->tax_rate_name ?: 'Umsatzsteuer',
+                'rate' => $rate,
+                'amount' => 0.0,
+            ];
+            $rows[$key]['amount'] += (float) ($item->amount?->item_tax_total ?? 0);
+        }
+
+        foreach ($invoice->invoiceTaxRates as $invoiceTaxRate) {
+            $rate = (float) ($invoiceTaxRate->taxRate?->tax_rate_percent ?? 0);
+            $key = $this->taxRateKey($rate);
+            $rows[$key] ??= [
+                'name' => $invoiceTaxRate->taxRate?->tax_rate_name ?: 'Umsatzsteuer',
+                'rate' => $rate,
+                'amount' => 0.0,
+            ];
+            $rows[$key]['amount'] += (float) $invoiceTaxRate->invoice_tax_rate_amount;
+        }
+
+        uasort($rows, fn (array $left, array $right): int => $left['rate'] <=> $right['rate']);
+
+        return array_values(array_map(fn (array $row): array => [
+            ...$row,
+            'amount' => round($row['amount'], 2),
+        ], $rows));
+    }
+
+    private function taxRateKey(float $rate): string
+    {
+        return number_format($rate, 4, '.', '');
     }
 }

@@ -11,6 +11,7 @@ use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
+use Livewire\Attributes\Renderless;
 use UnitEnum;
 
 class InvoiceLayout extends Page
@@ -47,10 +48,17 @@ class InvoiceLayout extends Page
         $this->refreshHtmlPreview();
     }
 
+    #[Renderless]
     public function updatePreview(string $html, string $css): void
     {
         $this->setDraft($html, $css);
-        $this->refreshHtmlPreview();
+        $this->previewHtml = app(InvoiceTemplateRenderer::class)->render(
+            $this->html,
+            $this->css,
+            app(InvoiceTemplateData::class)->sample(),
+        );
+
+        $this->dispatch('invoice-layout-preview-updated', html: $this->previewHtml);
     }
 
     public function saveTemplate(string $html, string $css): void
@@ -119,6 +127,7 @@ class InvoiceLayout extends Page
             'issuer.name' => $data['issuer']['name'],
             'issuer.vat_id' => $data['issuer']['vat_id'],
             'items' => count($data['items']).' Beispielpositionen',
+            'tax_rows' => count($data['tax_rows']).' Steuerzeilen',
             'totals.subtotal' => $this->formatMoney($data['totals']['subtotal']),
             'totals.tax' => $this->formatMoney($data['totals']['tax']),
             'totals.total' => $this->formatMoney($data['totals']['total']),

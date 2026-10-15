@@ -53,17 +53,31 @@
             </div>
         </section>
 
-        <section class="invoice-layout-panel invoice-layout-preview">
+        <section
+            class="invoice-layout-panel invoice-layout-preview"
+            x-data="{ previewMode: @js($pdfPreviewUrl ? 'pdf' : 'html') }"
+            x-on:invoice-layout-preview-updated.window="
+                $refs.previewFrame.removeAttribute('src');
+                $refs.previewFrame.setAttribute('sandbox', '');
+                $refs.previewFrame.srcdoc = $event.detail.html;
+                previewMode = 'html';
+            "
+        >
             <div class="invoice-layout-preview-title">
-                <span x-text="$wire.pdfPreviewUrl ? 'PDF-Vorschau' : 'HTML-Vorschau'"></span>
-                <span class="invoice-layout-live" x-show="! $wire.pdfPreviewUrl">Live</span>
+                <span x-text="previewMode === 'pdf' ? 'PDF-Vorschau' : 'HTML-Vorschau'"></span>
+                <span class="invoice-layout-live" x-show="previewMode === 'html'">Live</span>
             </div>
 
-            @if ($pdfPreviewUrl)
-                <iframe title="PDF-Vorschau" src="{{ $pdfPreviewUrl }}"></iframe>
-            @else
-                <iframe title="HTML-Vorschau" sandbox srcdoc="{{ $previewHtml }}"></iframe>
-            @endif
+            <iframe
+                x-ref="previewFrame"
+                title="Rechnungsvorschau"
+                @if ($pdfPreviewUrl)
+                    src="{{ $pdfPreviewUrl }}"
+                @else
+                    sandbox
+                    srcdoc="{{ $previewHtml }}"
+                @endif
+            ></iframe>
         </section>
     </div>
 </x-filament-panels::page>
