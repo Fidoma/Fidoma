@@ -19,7 +19,7 @@
 
 @media (min-width: 64rem) {
     .fi-fo-summary-layout {
-        grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+        grid-template-columns: minmax(0, 1fr) 26rem;
     }
 }
 
@@ -41,7 +41,7 @@
 
 .fi-fo-summary-table th,
 .fi-fo-summary-table td {
-    @apply border border-gray-200 px-3 py-2 align-middle dark:border-white/10;
+    @apply border border-gray-200 px-3 py-1 align-middle dark:border-white/10;
 }
 
 .fi-fo-summary-table th {
