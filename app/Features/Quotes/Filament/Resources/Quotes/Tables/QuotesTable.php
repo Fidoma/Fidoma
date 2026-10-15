@@ -2,6 +2,7 @@
 
 namespace App\Features\Quotes\Filament\Resources\Quotes\Tables;
 
+use App\Features\Clients\Filament\Resources\Clients\ClientResource;
 use App\Features\Quotes\Actions\ArchiveQuote;
 use App\Features\Quotes\Enums\QuoteStatus;
 use App\Features\Quotes\Filament\Resources\Quotes\QuoteResource;
@@ -24,10 +25,12 @@ class QuotesTable
             ->columns([
                 TextColumn::make('quote_number')
                     ->label('Angebotsnummer')
+                    ->url(fn (Quote $record): string => QuoteResource::getUrl('edit', ['record' => $record]))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('client.client_name')
                     ->label('Kunde')
+                    ->url(fn (Quote $record): string => ClientResource::getUrl('view', ['record' => $record->client_id]))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('quote_date_created')
@@ -52,6 +55,7 @@ class QuotesTable
                     ->money('EUR', locale: 'de')
                     ->sortable(),
             ])
+            ->recordUrl(null)
             ->toolbarActions([
                 CreateAction::make()
                     ->label('Angebot')

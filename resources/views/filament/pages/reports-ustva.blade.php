@@ -26,7 +26,13 @@
                             <td>{{ $row['description'] }}</td>
                             <td>{{ $row['supported'] && $row['basis'] ? number_format($row['net'], 2, ',', '.').' €' : '–' }}</td>
                             <td>{{ $row['supported'] && $row['tax'] ? number_format($row['tax'], 2, ',', '.').' €' : '–' }}</td>
-                            <td><x-filament::badge :color="$row['supported'] ? 'success' : 'gray'">{{ $row['supported'] ? 'Berechnet' : 'Nicht verfügbar' }}</x-filament::badge></td>
+                            <td>
+                                @if ($row['excluded_draft_count'] > 0)
+                                    <x-filament::badge color="warning">{{ $row['excluded_draft_count'] }} Entwürfe ausgeschlossen</x-filament::badge>
+                                @else
+                                    <x-filament::badge :color="$row['supported'] ? 'success' : 'gray'">{{ $row['supported'] ? 'Berechnet' : 'Nicht verfügbar' }}</x-filament::badge>
+                                @endif
+                            </td>
                         </tr>
                     @empty
                         <tr><td colspan="5" class="ustva-empty-section">Noch keine eindeutig ableitbaren Sachverhalte verfügbar.</td></tr>

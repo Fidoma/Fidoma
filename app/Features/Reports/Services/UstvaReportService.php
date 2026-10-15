@@ -24,6 +24,7 @@ final class UstvaReportService
     public function report(CarbonInterface $start, CarbonInterface $end, string $taxationType, int $year): array
     {
         $details = $this->details($start, $end, $taxationType);
+        $excludedDrafts = $this->excludedDraftCounts($start, $end, $taxationType);
         $definitions = $this->definitions($year);
         $rows = [];
 
@@ -33,6 +34,7 @@ final class UstvaReportService
             $rows[] = [
                 ...$definition,
                 'supported' => $supported,
+                'excluded_draft_count' => (int) ($excludedDrafts[$definition['code']] ?? 0),
                 'net' => $supported ? $this->sumMoney($rowDetails, 'net') : null,
                 'tax' => $supported ? $this->sumMoney($rowDetails, 'tax') : null,
                 'details' => $rowDetails->values()->all(),
@@ -47,6 +49,10 @@ final class UstvaReportService
 
         if ($unknown->isNotEmpty()) {
             $warnings[] = $unknown->count().' Rechnungsposition(en) konnten keiner UStVA-Kennzahl eindeutig zugeordnet werden.';
+        }
+
+        if ($excludedDrafts->sum() > 0) {
+            $warnings[] = $excludedDrafts->sum().' steuerrelevante Rechnungsposition(en) wurden ausgeschlossen, weil die zugehörigen Rechnungen noch den Status „Entwurf“ haben.';
         }
 
         if ($taxationType === 'ist') {
@@ -111,6 +117,31 @@ final class UstvaReportService
                 'invoice.amount',
                 'invoice.payments' => fn ($query) => $query->whereBetween('payment_date', [$start, $end]),
             ]);
+    }
+
+    /** @return Collection<string, int> */
+    private function excludedDraftCounts(CarbonInterface $start, CarbonInterface $end, string $taxationType): Collection
+    {
+        return InvoiceItem::query()
+            ->whereHas('invoice', fn (Builder $query): Builder => $query
+                ->where('invoice_status_id', InvoiceStatus::Draft->value)
+                ->where('is_archived', false)
+                ->when(
+                    $taxationType === 'soll',
+                    fn (Builder $invoiceQuery): Builder => $invoiceQuery->whereBetween('invoice_date_created', [$start, $end]),
+                    fn (Builder $invoiceQuery): Builder => $invoiceQuery->whereHas(
+                        'payments',
+                        fn (Builder $paymentQuery): Builder => $paymentQuery->whereBetween('payment_date', [$start, $end]),
+                    ),
+                ))
+            ->with('taxRate')
+            ->get()
+            ->map(fn (InvoiceItem $item): string => match ((float) ($item->taxRate?->tax_rate_percent ?? 0)) {
+                19.0 => '81',
+                7.0 => '86',
+                default => (float) ($item->taxRate?->tax_rate_percent ?? 0) > 0 ? '87' : 'unknown',
+            })
+            ->countBy();
     }
 
     /** @return array<string, mixed> */

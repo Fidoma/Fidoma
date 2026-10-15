@@ -180,6 +180,7 @@ class Reports extends Page implements HasTable
                 return view('filament.pages.reports-ustva-details', [
                     'code' => (string) ($row['code'] ?? ''),
                     'description' => (string) ($row['description'] ?? 'Keine Beschreibung verfügbar.'),
+                    'excludedDraftCount' => (int) ($row['excluded_draft_count'] ?? 0),
                     'startDate' => $start->toDateString(),
                     'endDate' => $end->toDateString(),
                     'taxationType' => $this->taxationType,
@@ -337,7 +338,10 @@ class Reports extends Page implements HasTable
             $taxationType = $this->taxationType === 'soll' ? 'Sollversteuerung' : 'Istversteuerung';
             $rows = collect($report['rows'])->map(fn (array $row): array => [
                 $row['code'], $row['section'], $row['description'], $row['net'], $row['tax'],
-                $row['supported'] ? 'Berechnet' : 'Nicht verfügbar', $period, $taxationType, null,
+                $row['excluded_draft_count'] > 0
+                    ? $row['excluded_draft_count'].' Entwürfe ausgeschlossen'
+                    : ($row['supported'] ? 'Berechnet' : 'Nicht verfügbar'),
+                $period, $taxationType, null,
             ])->concat(collect($report['warnings'])->map(fn (string $warning): array => [
                 null, null, null, null, null, 'Hinweis', $period, $taxationType, $warning,
             ]));

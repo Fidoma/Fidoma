@@ -8,6 +8,7 @@ use App\Features\Invoices\Filament\Actions\InvoiceEmailAction;
 use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
 use App\Filament\Concerns\WithoutPageHeading;
 use Filament\Actions\Action;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
@@ -35,6 +36,29 @@ class EditInvoice extends EditRecord
     protected function beforeSave(): void
     {
         abort_unless($this->isDraft(), 403, 'Nur Rechnungen im Status Entwurf können bearbeitet werden.');
+    }
+
+    public function markAsSent(): void
+    {
+        abort_unless($this->isDraft(), 422, 'Nur Rechnungen im Status Entwurf können auf Versendet gesetzt werden.');
+
+        $this->save(shouldRedirect: false, shouldSendSavedNotification: false);
+        $this->record->refresh();
+
+        if ($this->record->invoice_status_id === InvoiceStatus::Draft) {
+            $this->record->update([
+                'invoice_status_id' => InvoiceStatus::Sent,
+                'is_read_only' => true,
+            ]);
+        } else {
+            $this->record->update(['is_read_only' => true]);
+        }
+
+        Notification::make()
+            ->success()
+            ->title('Rechnung wurde als versendet markiert.')
+            ->body('Die Rechnung ist jetzt schreibgeschützt.')
+            ->send();
     }
 
     /** @return array<Action> */

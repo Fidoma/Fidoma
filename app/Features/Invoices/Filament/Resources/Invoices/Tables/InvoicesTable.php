@@ -2,6 +2,7 @@
 
 namespace App\Features\Invoices\Filament\Resources\Invoices\Tables;
 
+use App\Features\Clients\Filament\Resources\Clients\ClientResource;
 use App\Features\Invoices\Actions\ArchiveInvoice;
 use App\Features\Invoices\Actions\CreateInvoiceCounterpart;
 use App\Features\Invoices\Actions\RecordInvoicePayment;
@@ -30,11 +31,18 @@ class InvoicesTable
         return $table
             ->defaultSort('invoice_date_created', 'desc')
             ->columns([
-                TextColumn::make('invoice_number')->label('Rechnungsnummer')->searchable()->sortable(),
-                TextColumn::make('invoice_type')->label('Belegart')->badge()
-                    ->formatStateUsing(fn (InvoiceType $state): string => $state->label())
-                    ->color(fn (InvoiceType $state): string => $state->color()),
-                TextColumn::make('client.client_name')->label('Kunde')->searchable()->sortable(),
+                TextColumn::make('invoice_number')
+                    ->label('Rechnung')
+                    ->badge()
+                    ->color(fn (Invoice $record): string => $record->invoice_type->color())
+                    ->url(fn (Invoice $record): string => InvoiceResource::getUrl('edit', ['record' => $record]))
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('client.client_name')
+                    ->label('Kunde')
+                    ->url(fn (Invoice $record): string => ClientResource::getUrl('view', ['record' => $record->client_id]))
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('invoice_date_created')->label('Datum')->date('d.m.Y')->sortable(),
                 TextColumn::make('invoice_date_due')->label('Fällig am')->date('d.m.Y')->sortable()
                     ->color(fn (Invoice $record): ?string => $record->isOverdue() ? 'danger' : null),
@@ -45,6 +53,7 @@ class InvoicesTable
                 TextColumn::make('amount.invoice_paid')->label('Bezahlt')->money('EUR', locale: 'de'),
                 TextColumn::make('amount.invoice_balance')->label('Offen')->money('EUR', locale: 'de')->sortable(),
             ])
+            ->recordUrl(null)
             ->toolbarActions([
                 CreateAction::make()
                     ->label('Rechnung')

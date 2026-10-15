@@ -3,8 +3,10 @@
 namespace App\Features\Invoices\Filament\Resources\Invoices\Schemas;
 
 use App\Features\Clients\Actions\CreateClient;
+use App\Features\Invoices\Enums\InvoiceStatus;
 use App\Features\Invoices\Enums\InvoiceType;
 use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
+use App\Features\Invoices\Filament\Resources\Invoices\Pages\EditInvoice;
 use App\Features\Invoices\Models\Invoice;
 use App\Features\Invoices\Services\InvoiceDefaults;
 use App\Features\Products\Models\Product;
@@ -73,6 +75,19 @@ class InvoiceForm
             Section::make(fn (?Invoice $record): string => filled($record?->invoice_number)
                 ? 'Rechnung - '.$record->invoice_number
                 : 'Rechnung')
+                ->afterHeader([
+                    Toggle::make('mark_as_sent')
+                        ->label('Versendet')
+                        ->default(fn (?Invoice $record): bool => $record !== null && $record->invoice_status_id !== InvoiceStatus::Draft)
+                        ->dehydrated(false)
+                        ->live()
+                        ->afterStateUpdated(function (bool $state, EditInvoice $livewire): void {
+                            if ($state) {
+                                $livewire->markAsSent();
+                            }
+                        })
+                        ->visible(fn (?Invoice $record): bool => $record !== null && ! $record->is_archived),
+                ])
                 ->columns(['default' => 1, 'md' => 2, 'xl' => 12])
                 ->columnSpan(['default' => 12])
                 ->schema([

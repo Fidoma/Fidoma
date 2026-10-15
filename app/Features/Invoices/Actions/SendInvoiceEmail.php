@@ -54,7 +54,10 @@ final class SendInvoiceEmail
             });
 
             if ($invoice->invoice_status_id === InvoiceStatus::Draft) {
-                $invoice->update(['invoice_status_id' => InvoiceStatus::Sent]);
+                $invoice->update([
+                    'invoice_status_id' => InvoiceStatus::Sent,
+                    'is_read_only' => true,
+                ]);
             }
 
             $this->audit(

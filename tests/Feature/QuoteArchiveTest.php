@@ -2,12 +2,16 @@
 
 namespace Tests\Feature;
 
+use App\Features\Clients\Filament\Resources\Clients\ClientResource;
 use App\Features\Quotes\Actions\ArchiveQuote;
 use App\Features\Quotes\Enums\QuoteStatus;
+use App\Features\Quotes\Filament\Resources\Quotes\Pages\ListQuotes;
+use App\Features\Quotes\Filament\Resources\Quotes\QuoteResource;
 use App\Features\Quotes\Models\Quote;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class QuoteArchiveTest extends TestCase
@@ -38,6 +42,33 @@ class QuoteArchiveTest extends TestCase
             ->assertSeeText('Bearbeiten')
             ->assertSeeText('Archivieren')
             ->assertDontSeeText('Löschen');
+    }
+
+    public function test_only_quote_number_and_client_columns_are_linked(): void
+    {
+        $user = User::factory()->create();
+        $quote = $this->createQuote();
+
+        $component = Livewire::actingAs($user)
+            ->test(ListQuotes::class)
+            ->assertCanSeeTableRecords([$quote])
+            ->assertTableColumnExists(
+                'quote_number',
+                fn ($column): bool => $column->getUrl() === QuoteResource::getUrl('edit', ['record' => $quote]),
+                $quote,
+            )
+            ->assertTableColumnExists(
+                'client.client_name',
+                fn ($column): bool => $column->getUrl() === ClientResource::getUrl('view', ['record' => $quote->client_id]),
+                $quote,
+            )
+            ->assertTableColumnExists(
+                'quote_date_created',
+                fn ($column): bool => $column->getUrl() === null,
+                $quote,
+            );
+
+        $this->assertNull($component->instance()->getTable()->getRecordUrl($quote));
     }
 
     private function createQuote(): Quote

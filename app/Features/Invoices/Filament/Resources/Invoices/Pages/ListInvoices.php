@@ -3,6 +3,7 @@
 namespace App\Features\Invoices\Filament\Resources\Invoices\Pages;
 
 use App\Features\Invoices\Enums\InvoiceStatus;
+use App\Features\Invoices\Enums\InvoiceType;
 use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
 use App\Features\Invoices\Models\Invoice;
 use App\Filament\Concerns\WithoutPageHeading;
@@ -53,6 +54,20 @@ class ListInvoices extends ListRecords
             ->badge($overdueQuery(Invoice::query())->count())
             ->badgeColor('danger')
             ->modifyQueryUsing($overdueQuery);
+
+        foreach ([
+            [InvoiceType::Credit, 'Gutschrift'],
+            [InvoiceType::Cancellation, 'Storniert'],
+        ] as [$type, $label]) {
+            $typeQuery = fn (Builder $query): Builder => $query
+                ->where('is_archived', false)
+                ->where('invoice_type', $type);
+
+            $tabs[$type->value] = Tab::make($label)
+                ->badge($typeQuery(Invoice::query())->count())
+                ->badgeColor($type->color())
+                ->modifyQueryUsing($typeQuery);
+        }
 
         $tabs['archived'] = Tab::make('Archiviert')
             ->badge(Invoice::query()->where('is_archived', true)->count())

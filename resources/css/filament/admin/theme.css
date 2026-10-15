@@ -699,6 +699,21 @@
     gap: 0.75rem;
 }
 
+.ustva-detail-warning {
+    border: 1px solid rgb(253 186 116);
+    border-radius: 0.75rem;
+    background: rgb(255 247 237);
+    padding: 0.75rem 1rem;
+    color: rgb(194 65 12);
+    font-size: 0.8125rem;
+}
+
+.dark .ustva-detail-warning {
+    border-color: rgb(154 52 18);
+    background: rgb(124 45 18 / 0.2);
+    color: rgb(253 186 116);
+}
+
 .ustva-detail-card {
     display: grid;
     gap: 0.75rem;

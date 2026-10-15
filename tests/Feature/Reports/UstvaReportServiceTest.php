@@ -42,18 +42,18 @@ class UstvaReportServiceTest extends TestCase
     {
         $rate19 = $this->taxRate('Standard', 19);
         $rate7 = $this->taxRate('Ermäßigt', 7);
-        $invoice = $this->invoice('RE-100', InvoiceType::Invoice, InvoiceStatus::Sent);
+        $invoice = $this->invoice('RE-100', InvoiceType::Invoice, InvoiceStatus::Sent, '2030-10-10');
         $item19 = $this->item($invoice, $rate19, 100);
         $this->item($invoice, $rate7, 200, 2);
         app(RecalculateInvoice::class)->handle($invoice);
 
-        $draft = $this->invoice('RE-DRAFT', InvoiceType::Invoice, InvoiceStatus::Draft);
+        $draft = $this->invoice('RE-DRAFT', InvoiceType::Invoice, InvoiceStatus::Draft, '2030-10-10');
         $this->item($draft, $rate19, 500);
         app(RecalculateInvoice::class)->handle($draft);
 
         $report = app(UstvaReportService::class)->report(
-            CarbonImmutable::parse('2026-10-01'),
-            CarbonImmutable::parse('2026-10-31'),
+            CarbonImmutable::parse('2030-10-01'),
+            CarbonImmutable::parse('2030-10-31'),
             'soll',
             2026,
         );
@@ -64,12 +64,14 @@ class UstvaReportServiceTest extends TestCase
         $this->assertSame(14.0, $this->row($report, '86')['tax']);
         $this->assertSame(300.0, $report['net']);
         $this->assertSame(33.0, $report['output_tax']);
+        $this->assertSame(1, $this->row($report, '81')['excluded_draft_count']);
+        $this->assertStringContainsString('Status „Entwurf“', implode(' ', $report['warnings']));
 
         Livewire::actingAs($this->user)
             ->test(UstvaDetailsTable::class, [
                 'code' => '81',
-                'startDate' => '2026-10-01',
-                'endDate' => '2026-10-31',
+                'startDate' => '2030-10-01',
+                'endDate' => '2030-10-31',
                 'taxationType' => 'soll',
             ])
             ->assertCanSeeTableRecords([$item19])

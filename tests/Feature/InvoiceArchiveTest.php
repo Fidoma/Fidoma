@@ -2,13 +2,21 @@
 
 namespace Tests\Feature;
 
+use App\Features\Clients\Filament\Resources\Clients\ClientResource;
+use App\Features\Clients\Models\Client;
 use App\Features\Invoices\Actions\ArchiveInvoice;
 use App\Features\Invoices\Enums\InvoiceStatus;
 use App\Features\Invoices\Enums\InvoiceType;
+use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
+use App\Features\Invoices\Filament\Resources\Invoices\Pages\EditInvoice;
+use App\Features\Invoices\Filament\Resources\Invoices\Pages\ListInvoices;
 use App\Features\Invoices\Models\Invoice;
+use App\Features\Invoices\Models\InvoiceItem;
+use App\Features\TaxRates\Models\TaxRate;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class InvoiceArchiveTest extends TestCase
@@ -39,6 +47,95 @@ class InvoiceArchiveTest extends TestCase
             ->assertSeeText('Archiviert')
             ->assertSeeText('Archivieren')
             ->assertDontSeeText('Löschen');
+    }
+
+    public function test_draft_invoice_can_be_saved_as_sent_and_becomes_read_only(): void
+    {
+        $user = User::factory()->create();
+        $invoice = $this->createInvoice();
+        $client = Client::query()->create([
+            'client_name' => 'Testkunde',
+            'client_active' => true,
+        ]);
+        $taxRate = TaxRate::query()->create([
+            'tax_rate_name' => '19 %',
+            'tax_rate_percent' => 19,
+        ]);
+        $invoice->update([
+            'client_id' => $client->getKey(),
+            'invoice_date_created' => '2027-01-10',
+            'invoice_date_due' => '2027-02-10',
+        ]);
+        InvoiceItem::query()->create([
+            'invoice_id' => $invoice->getKey(),
+            'item_tax_rate_id' => $taxRate->getKey(),
+            'item_tax_included' => false,
+            'item_name' => 'Leistung',
+            'item_quantity' => 1,
+            'item_price' => 100,
+            'item_discount_amount' => 0,
+            'item_order' => 1,
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(EditInvoice::class, ['record' => $invoice->getRouteKey()])
+            ->assertSee('Versendet')
+            ->set('data.mark_as_sent', true)
+            ->assertHasNoErrors()
+            ->assertNotified('Rechnung wurde als versendet markiert.');
+
+        $invoice->refresh();
+
+        $this->assertSame(InvoiceStatus::Sent, $invoice->invoice_status_id);
+        $this->assertTrue($invoice->is_read_only);
+    }
+
+    public function test_invoice_list_uses_colored_numbers_and_filters_counterparts_by_type(): void
+    {
+        $user = User::factory()->create();
+        $invoice = $this->createInvoice();
+        $credit = $this->createInvoice();
+        $credit->update([
+            'invoice_number' => 'GU-TEST-1',
+            'invoice_type' => InvoiceType::Credit,
+        ]);
+        $cancellation = $this->createInvoice();
+        $cancellation->update([
+            'invoice_number' => 'ST-TEST-1',
+            'invoice_type' => InvoiceType::Cancellation,
+        ]);
+
+        $component = Livewire::actingAs($user)
+            ->test(ListInvoices::class)
+            ->assertSee('Gutschrift')
+            ->assertSee('Storniert')
+            ->assertDontSee('Belegart')
+            ->set('activeTab', InvoiceType::Credit->value)
+            ->assertCanSeeTableRecords([$credit])
+            ->assertCanNotSeeTableRecords([$invoice, $cancellation])
+            ->set('activeTab', InvoiceType::Cancellation->value)
+            ->assertCanSeeTableRecords([$cancellation])
+            ->assertCanNotSeeTableRecords([$invoice, $credit]);
+
+        $component
+            ->set('activeTab', 'all')
+            ->assertTableColumnExists(
+                'invoice_number',
+                fn ($column): bool => $column->getUrl() === InvoiceResource::getUrl('edit', ['record' => $invoice]),
+                $invoice,
+            )
+            ->assertTableColumnExists(
+                'client.client_name',
+                fn ($column): bool => $column->getUrl() === ClientResource::getUrl('view', ['record' => $invoice->client_id]),
+                $invoice,
+            )
+            ->assertTableColumnExists(
+                'invoice_date_created',
+                fn ($column): bool => $column->getUrl() === null,
+                $invoice,
+            );
+
+        $this->assertNull($component->instance()->getTable()->getRecordUrl($invoice));
     }
 
     private function createInvoice(): Invoice
