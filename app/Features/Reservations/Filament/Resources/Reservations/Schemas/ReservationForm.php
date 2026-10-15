@@ -7,6 +7,7 @@ use App\Features\Products\Models\Product;
 use App\Features\Quotes\Services\QuoteAmountCalculator;
 use App\Features\Reservations\Enums\ReservationStatus;
 use App\Features\Reservations\Filament\Resources\Reservations\Schemas\Components\ReservationItemsRepeater;
+use App\Features\Reservations\Models\Reservation;
 use App\Features\Reservations\Models\ReservationItem;
 use App\Features\Reservations\Models\Room;
 use App\Features\TaxRates\Models\TaxRate;
@@ -34,8 +35,10 @@ class ReservationForm
         return $schema
             ->columns(['default' => 12])
             ->components([
-                Section::make('Reservierung')
-                    ->columns(['default' => 1, 'md' => 2, 'xl' => 4])
+                Section::make(fn (?Reservation $record): string => filled($record?->reservation_number)
+                    ? 'Reservierung - '.$record->reservation_number
+                    : 'Reservierung')
+                    ->columns(['default' => 1, 'md' => 2, 'xl' => 12])
                     ->columnSpan(12)
                     ->schema([
                         Select::make('client_id')
@@ -49,20 +52,24 @@ class ReservationForm
                                 TextInput::make('client_email')->label('E-Mail')->email()->maxLength(100),
                                 TextInput::make('client_phone')->label('Telefon')->tel()->maxLength(30),
                             ])
-                            ->createOptionUsing(fn (array $data): int => app(CreateClient::class)->handle($data)->getKey()),
+                            ->createOptionUsing(fn (array $data): int => app(CreateClient::class)->handle($data)->getKey())
+                            ->columnSpan(['default' => 1, 'xl' => 4]),
                         TextInput::make('reservation_number')
                             ->label('Reservierungsnummer')
                             ->placeholder('Wird automatisch vergeben')
-                            ->maxLength(100),
+                            ->maxLength(100)
+                            ->columnSpan(['default' => 1, 'xl' => 2]),
                         DatePicker::make('reservation_date_created')
                             ->label('Reservierungsdatum')
                             ->default(now()->toDateString())
-                            ->required(),
+                            ->required()
+                            ->columnSpan(['default' => 1, 'xl' => 3]),
                         Select::make('reservation_status_id')
                             ->label('Status')
                             ->options(ReservationStatus::options())
                             ->default(ReservationStatus::Open->value)
-                            ->required(),
+                            ->required()
+                            ->columnSpan(['default' => 1, 'xl' => 3]),
                     ]),
                 Section::make('Positionen')
                     ->columnSpan(12)

@@ -5,6 +5,7 @@ namespace App\Features\Quotes\Filament\Resources\Quotes\Schemas;
 use App\Features\Clients\Actions\CreateClient;
 use App\Features\Products\Models\Product;
 use App\Features\Quotes\Enums\QuoteStatus;
+use App\Features\Quotes\Models\Quote;
 use App\Features\Quotes\Services\QuoteAmountCalculator;
 use App\Features\Quotes\Services\QuoteDefaults;
 use App\Features\TaxRates\Models\TaxRate;
@@ -48,13 +49,15 @@ class QuoteForm
                     ->dehydratedWhenHidden()
                     ->saveRelationshipsWhenHidden()
                     ->schema(self::quoteTaxRateFields()),
-                Section::make('Angebotskopf')
+                Section::make(fn (?Quote $record): string => filled($record?->quote_number)
+                    ? 'Angebot - '.$record->quote_number
+                    : 'Angebot')
                     ->columns([
                         'default' => 1,
                         'md' => 2,
-                        'xl' => 4,
+                        'xl' => 12,
                     ])
-                    ->columnSpan(['default' => 12])
+                    ->columnSpan(12)
                     ->schema([
                         Select::make('client_id')
                             ->label('Kunde')
@@ -78,30 +81,31 @@ class QuoteForm
                                     ->maxLength(20),
                             ])
                             ->createOptionUsing(fn (array $data): int => app(CreateClient::class)->handle($data)->getKey())
-                            ->columnSpan([
-                                'default' => 1,
-                                'md' => 2,
-                            ]),
+                            ->columnSpan(['default' => 1, 'xl' => 4]),
                         TextInput::make('quote_number')
                             ->label('Angebotsnummer')
                             ->placeholder('Wird automatisch vergeben')
-                            ->maxLength(20),
+                            ->maxLength(20)
+                            ->columnSpan(['default' => 1, 'xl' => 2]),
                         DatePicker::make('quote_date_created')
                             ->label('Angebotsdatum')
                             ->default(now()->toDateString())
-                            ->required(),
+                            ->required()
+                            ->columnSpan(['default' => 1, 'xl' => 2]),
                         DatePicker::make('quote_date_expires')
                             ->label('Gültig bis')
                             ->default(fn (): string => now()
                                 ->addDays(app(QuoteDefaults::class)->expirationDays())
                                 ->toDateString())
                             ->required()
-                            ->afterOrEqual('quote_date_created'),
+                            ->afterOrEqual('quote_date_created')
+                            ->columnSpan(['default' => 1, 'xl' => 2]),
                         Select::make('quote_status_id')
                             ->label('Status')
                             ->options(QuoteStatus::options())
                             ->default(QuoteStatus::Draft->value)
-                            ->required(),
+                            ->required()
+                            ->columnSpan(['default' => 1, 'xl' => 2]),
                     ]),
                 Section::make('Positionen')
                     ->columnSpan(['default' => 12])

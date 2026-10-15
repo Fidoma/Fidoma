@@ -71,9 +71,9 @@ class InvoiceForm
                     && filled($record?->creditinvoice_parent_id))
                 ->columnSpanFull(),
             Section::make(fn (?Invoice $record): string => filled($record?->invoice_number)
-                ? 'Rechnungsnummer: '.$record->invoice_number
-                : 'Rechnungsdetails')
-                ->columns(['default' => 1, 'md' => 2, 'xl' => 4])
+                ? 'Rechnung - '.$record->invoice_number
+                : 'Rechnung')
+                ->columns(['default' => 1, 'md' => 2, 'xl' => 12])
                 ->columnSpan(['default' => 12])
                 ->schema([
                     Select::make('client_id')
@@ -89,20 +89,23 @@ class InvoiceForm
                         ])
                         ->createOptionUsing(fn (array $data): int => app(CreateClient::class)->handle($data)->getKey())
                         ->disabled(fn (Get $get): bool => self::invoiceType($get) !== InvoiceType::Invoice)
-                        ->columnSpan(1),
+                        ->columnSpan(['default' => 1, 'xl' => 4]),
                     TextInput::make('invoice_number')
                         ->label('Rechnungsnummer')
                         ->placeholder('Wird automatisch vergeben')
-                        ->maxLength(20),
+                        ->maxLength(20)
+                        ->columnSpan(['default' => 1, 'xl' => 2]),
                     DatePicker::make('invoice_date_created')
                         ->label('Rechnungsdatum')
                         ->default(now()->toDateString())
-                        ->required(),
+                        ->required()
+                        ->columnSpan(['default' => 1, 'xl' => 3]),
                     DatePicker::make('invoice_date_due')
                         ->label('Fällig am')
                         ->default(fn (): string => now()->addDays(app(InvoiceDefaults::class)->dueDays())->toDateString())
                         ->afterOrEqual('invoice_date_created')
-                        ->required(),
+                        ->required()
+                        ->columnSpan(['default' => 1, 'xl' => 3]),
                 ]),
             Section::make('Positionen')
                 ->columnSpan(['default' => 12])
