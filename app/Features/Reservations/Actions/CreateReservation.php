@@ -6,6 +6,7 @@ use App\Features\InvoiceGroups\Actions\GenerateInvoiceGroupNumber;
 use App\Features\Reservations\Enums\ReservationStatus;
 use App\Features\Reservations\Models\Reservation;
 use App\Features\Reservations\Services\ReservationDefaults;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use LogicException;
@@ -39,6 +40,10 @@ final class CreateReservation
             'user_id' => $userId,
             'invoice_group_id' => $invoiceGroupId,
             'reservation_status_id' => $attributes['reservation_status_id'] ?? ReservationStatus::Open,
+            'reservation_date_expires' => $attributes['reservation_date_expires']
+                ?? CarbonImmutable::parse($attributes['reservation_date_created'] ?? now())
+                    ->addDays($this->defaults->expirationDays())
+                    ->toDateString(),
             'reservation_number' => $number !== '' ? $number : $this->generateNumber->handle($invoiceGroupId),
             'reservation_url_key' => Str::random(32),
         ]);

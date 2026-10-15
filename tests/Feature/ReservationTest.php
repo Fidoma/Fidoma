@@ -37,7 +37,6 @@ class ReservationTest extends TestCase
         $reservation = app(CreateReservation::class)->handle([
             'client_id' => $client->getKey(),
             'reservation_date_created' => '2026-10-14',
-            'reservation_date_expires' => '2026-11-13',
             'reservation_status_id' => ReservationStatus::Confirmed,
             'reservation_discount_amount' => 0,
             'reservation_discount_percent' => 0,
@@ -55,6 +54,7 @@ class ReservationTest extends TestCase
 
         $this->assertSame('300.00', $reservation->amount->reservation_item_subtotal);
         $this->assertSame('321.00', $reservation->amount->reservation_total);
+        $this->assertSame('2026-11-13', $reservation->reservation_date_expires->toDateString());
 
         $invoiceCountBeforeConversion = Invoice::query()->count();
         $firstInvoice = app(ConvertReservationToInvoice::class)->handle($reservation);
@@ -72,6 +72,13 @@ class ReservationTest extends TestCase
         $this->actingAs(User::factory()->create());
 
         $this->get('/admin/reservations')->assertOk();
+        $this->get('/admin/reservations/create')
+            ->assertOk()
+            ->assertSeeText('Kunde')
+            ->assertSeeText('Reservierungsnummer')
+            ->assertSeeText('Reservierungsdatum')
+            ->assertSeeText('Status')
+            ->assertDontSeeText('Gültig bis');
         $this->get('/admin/reservations/belegungsplan')->assertOk();
         $this->get('/admin/rooms')->assertOk();
     }

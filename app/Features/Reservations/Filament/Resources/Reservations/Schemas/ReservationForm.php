@@ -9,7 +9,6 @@ use App\Features\Reservations\Enums\ReservationStatus;
 use App\Features\Reservations\Filament\Resources\Reservations\Schemas\Components\ReservationItemsRepeater;
 use App\Features\Reservations\Models\ReservationItem;
 use App\Features\Reservations\Models\Room;
-use App\Features\Reservations\Services\ReservationDefaults;
 use App\Features\TaxRates\Models\TaxRate;
 use Carbon\CarbonImmutable;
 use Filament\Actions\Action;
@@ -37,7 +36,7 @@ class ReservationForm
             ->components([
                 Section::make('Reservierung')
                     ->columns(['default' => 1, 'md' => 2, 'xl' => 4])
-                    ->columnSpanFull()
+                    ->columnSpan(12)
                     ->schema([
                         Select::make('client_id')
                             ->label('Kunde')
@@ -50,8 +49,7 @@ class ReservationForm
                                 TextInput::make('client_email')->label('E-Mail')->email()->maxLength(100),
                                 TextInput::make('client_phone')->label('Telefon')->tel()->maxLength(30),
                             ])
-                            ->createOptionUsing(fn (array $data): int => app(CreateClient::class)->handle($data)->getKey())
-                            ->columnSpan(['default' => 1, 'md' => 2]),
+                            ->createOptionUsing(fn (array $data): int => app(CreateClient::class)->handle($data)->getKey()),
                         TextInput::make('reservation_number')
                             ->label('Reservierungsnummer')
                             ->placeholder('Wird automatisch vergeben')
@@ -59,11 +57,6 @@ class ReservationForm
                         DatePicker::make('reservation_date_created')
                             ->label('Reservierungsdatum')
                             ->default(now()->toDateString())
-                            ->required(),
-                        DatePicker::make('reservation_date_expires')
-                            ->label('Gültig bis')
-                            ->default(fn (): string => now()->addDays(app(ReservationDefaults::class)->expirationDays())->toDateString())
-                            ->afterOrEqual('reservation_date_created')
                             ->required(),
                         Select::make('reservation_status_id')
                             ->label('Status')
