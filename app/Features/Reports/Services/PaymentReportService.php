@@ -3,6 +3,7 @@
 namespace App\Features\Reports\Services;
 
 use App\Features\BankTransactions\Models\BankTransaction;
+use App\Features\PaymentMethods\Models\PaymentMethod;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -16,6 +17,10 @@ final class PaymentReportService
         ?int $paymentMethodId = null,
         ?string $bankAccount = null,
     ): Builder {
+        $paymentMethodName = $paymentMethodId
+            ? PaymentMethod::query()->whereKey($paymentMethodId)->value('payment_method_name')
+            : null;
+
         return BankTransaction::query()
             ->with(['mappings.payment.invoice.client', 'mappings.payment.paymentMethod'])
             ->where('pending', false)
@@ -23,10 +28,20 @@ final class PaymentReportService
             ->when($direction === 'incoming', fn (Builder $query): Builder => $query->where('amount', '>', 0))
             ->when($direction === 'outgoing', fn (Builder $query): Builder => $query->where('amount', '<', 0))
             ->when($bankAccount, fn (Builder $query, string $iban): Builder => $query->where('account_iban', $iban))
-            ->when($paymentMethodId, fn (Builder $query, int $id): Builder => $query->whereHas(
-                'mappings.payment',
-                fn (Builder $paymentQuery): Builder => $paymentQuery->where('payment_method_id', $id),
-            ));
+            ->when($paymentMethodId, fn (Builder $query, int $id): Builder => $query->where(function (Builder $filter) use ($id, $paymentMethodName): void {
+                $filter->whereHas(
+                    'mappings.payment',
+                    fn (Builder $paymentQuery): Builder => $paymentQuery->where('payment_method_id', $id),
+                );
+
+                if (filled($paymentMethodName)) {
+                    $filter->orWhere(function (Builder $fallback) use ($paymentMethodName): void {
+                        $fallback
+                            ->whereDoesntHave('mappings.payment.paymentMethod')
+                            ->where('booking_text', $paymentMethodName);
+                    });
+                }
+            }));
     }
 
     /** @return array{incoming: float, outgoing: float, balance: float} */

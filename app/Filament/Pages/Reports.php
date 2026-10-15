@@ -12,7 +12,10 @@ use App\Features\Reports\Services\InvoiceReportService;
 use App\Features\Reports\Services\PaymentReportService;
 use App\Features\Reports\Services\ReportExportService;
 use App\Features\Reports\Services\TaxReportService;
+use App\Features\Reports\Services\UstvaReportService;
+use App\Filament\Concerns\WithoutPageHeading;
 use BackedEnum;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\CarbonImmutable;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
@@ -23,6 +26,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
+use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -32,7 +36,7 @@ use ZipArchive;
 
 class Reports extends Page implements HasTable
 {
-    use InteractsWithTable;
+    use InteractsWithTable, WithoutPageHeading;
 
     protected static ?string $title = 'Berichte';
 
@@ -44,23 +48,33 @@ class Reports extends Page implements HasTable
 
     protected static string|UnitEnum|null $navigationGroup = 'Finanzen';
 
+    protected static ?int $navigationSort = 4;
+
     protected string $view = 'filament.pages.reports';
 
     protected Width|string|null $maxContentWidth = Width::Full;
 
     public string $activeTab = 'tax';
 
-    public string $period = 'current_month';
+    public string $taxView = 'overview';
 
-    public string $startDate = '';
+    public string $ustvaFrequency = 'month';
 
-    public string $endDate = '';
+    public int $ustvaYear;
+
+    public int $ustvaMonth;
+
+    public int $ustvaQuarter;
+
+    public string $taxationType = 'soll';
+
+    public ?string $startDate = null;
+
+    public ?string $endDate = null;
 
     public string $paymentDirection = 'all';
 
     public ?int $paymentMethodId = null;
-
-    public ?string $bankAccount = null;
 
     public ?int $invoiceStatus = null;
 
@@ -68,7 +82,12 @@ class Reports extends Page implements HasTable
 
     public function mount(): void
     {
-        $this->applyPeriod();
+        $today = CarbonImmutable::today();
+        $supportedYears = app(UstvaReportService::class)->supportedYears();
+        $this->ustvaYear = in_array($today->year, $supportedYears, true) ? $today->year : max($supportedYears);
+        $this->ustvaMonth = $today->month;
+        $this->ustvaQuarter = $today->quarter;
+        $this->resetTable();
     }
 
     public static function canAccess(): bool
@@ -84,27 +103,28 @@ class Reports extends Page implements HasTable
         $this->resetTable();
     }
 
+    public function setTaxView(string $view): void
+    {
+        abort_unless(in_array($view, ['overview', 'ustva'], true), 404);
+
+        $this->taxView = $view;
+    }
+
     public function applyPeriod(): void
     {
-        $today = CarbonImmutable::today();
+        $this->validate([
+            'startDate' => ['nullable', 'date', 'required_with:endDate'],
+            'endDate' => ['nullable', 'date', 'required_with:startDate', 'after_or_equal:startDate'],
+        ], ['endDate.after_or_equal' => 'Das Enddatum muss nach dem Startdatum liegen.']);
 
-        if ($this->period === 'custom') {
-            $this->validate([
-                'startDate' => ['required', 'date'],
-                'endDate' => ['required', 'date', 'after_or_equal:startDate'],
-            ], ['endDate.after_or_equal' => 'Das Enddatum muss nach dem Startdatum liegen.']);
-        } else {
-            [$start, $end] = match ($this->period) {
-                'last_month' => [$today->subMonthNoOverflow()->startOfMonth(), $today->subMonthNoOverflow()->endOfMonth()],
-                'current_quarter' => [$today->startOfQuarter(), $today->endOfQuarter()],
-                'current_year' => [$today->startOfYear(), $today->endOfYear()],
-                default => [$today->startOfMonth(), $today->endOfMonth()],
-            };
+        $this->resetTable();
+    }
 
-            $this->startDate = $start->toDateString();
-            $this->endDate = $end->toDateString();
-        }
-
+    public function clearDateFilter(): void
+    {
+        $this->startDate = null;
+        $this->endDate = null;
+        $this->resetValidation(['startDate', 'endDate']);
         $this->resetTable();
     }
 
@@ -114,11 +134,6 @@ class Reports extends Page implements HasTable
     }
 
     public function updatedPaymentMethodId(): void
-    {
-        $this->resetTable();
-    }
-
-    public function updatedBankAccount(): void
     {
         $this->resetTable();
     }
@@ -149,7 +164,7 @@ class Reports extends Page implements HasTable
 
         return match ($this->activeTab) {
             'payments' => app(PaymentReportService::class)->summary(
-                $start, $end, $this->paymentDirection, $this->paymentMethodId, $this->bankAccount,
+                $start, $end, $this->paymentDirection, $this->paymentMethodId,
             ),
             'invoices' => app(InvoiceReportService::class)->summary(
                 $start, $end, $this->invoiceStatus, $this->clientId,
@@ -158,17 +173,39 @@ class Reports extends Page implements HasTable
         };
     }
 
+    /** @return array<string, mixed> */
+    public function ustvaReport(): array
+    {
+        [$start, $end] = $this->ustvaDates();
+
+        return app(UstvaReportService::class)->report($start, $end, $this->taxationType, $this->ustvaYear);
+    }
+
+    /** @return list<int> */
+    public function ustvaYears(): array
+    {
+        return app(UstvaReportService::class)->supportedYears();
+    }
+
+    public function viewUstvaDetailsAction(): Action
+    {
+        return Action::make('viewUstvaDetails')
+            ->modalHeading(fn (array $arguments): string => 'UStVA Kz. '.($arguments['code'] ?? ''))
+            ->modalContent(function (array $arguments): View {
+                $row = collect($this->ustvaReport()['rows'])
+                    ->firstWhere('code', (string) ($arguments['code'] ?? ''));
+
+                return view('filament.pages.reports-ustva-details', ['row' => $row]);
+            })
+            ->modalSubmitAction(false)
+            ->modalCancelActionLabel('Schließen')
+            ->slideOver();
+    }
+
     /** @return array<int, string> */
     public function paymentMethods(): array
     {
         return PaymentMethod::query()->orderBy('payment_method_name')->pluck('payment_method_name', 'payment_method_id')->all();
-    }
-
-    /** @return array<string, string> */
-    public function bankAccounts(): array
-    {
-        return BankTransaction::query()->whereNotNull('account_iban')->distinct()->orderBy('account_iban')
-            ->pluck('account_iban', 'account_iban')->all();
     }
 
     /** @return array<int, string> */
@@ -189,6 +226,20 @@ class Reports extends Page implements HasTable
         [$headings, $rows] = $this->exportData();
 
         return app(ReportExportService::class)->xlsx($this->exportFilename(), $headings, $rows);
+    }
+
+    public function exportUstvaPdf(): BinaryFileResponse
+    {
+        [$start, $end] = $this->ustvaDates();
+        $path = tempnam(sys_get_temp_dir(), 'fidoma-ustva-');
+
+        Pdf::loadView('filament.pages.reports-ustva-pdf', [
+            'report' => $this->ustvaReport(),
+            'start' => $start,
+            'end' => $end,
+        ])->setPaper('a4')->save($path);
+
+        return response()->download($path, $this->exportFilename().'.pdf')->deleteFileAfterSend();
     }
 
     private function taxTable(Table $table): Table
@@ -214,7 +265,7 @@ class Reports extends Page implements HasTable
     {
         return $table
             ->query(fn (): Builder => app(PaymentReportService::class)->query(
-                ...[...$this->dates(), $this->paymentDirection, $this->paymentMethodId, $this->bankAccount],
+                ...[...$this->dates(), $this->paymentDirection, $this->paymentMethodId],
             ))
             ->columns([
                 TextColumn::make('booking_date')->label('Zahlungsdatum')->date('d.m.Y')->sortable(),
@@ -229,7 +280,7 @@ class Reports extends Page implements HasTable
                     ->state(fn (BankTransaction $record): ?string => app(PaymentReportService::class)->invoiceNumber($record)),
             ])
             ->defaultSort('booking_date', 'desc')
-            ->searchPlaceholder('Auftraggeber, Verwendungszweck oder Bankkonto')
+            ->searchable(false)
             ->paginated([10, 25, 50])
             ->defaultPaginationPageOption(25)
             ->emptyStateHeading('Keine Zahlungen gefunden')
@@ -270,7 +321,7 @@ class Reports extends Page implements HasTable
                     ->action(fn (Collection $records): BinaryFileResponse => $this->downloadInvoicePdfs($records)),
             ])
             ->defaultSort('invoice_date_created', 'desc')
-            ->searchPlaceholder('Rechnungsnummer oder Kunde')
+            ->searchable(false)
             ->paginated([10, 25, 50])
             ->defaultPaginationPageOption(25)
             ->emptyStateHeading('Keine Rechnungen gefunden')
@@ -281,12 +332,47 @@ class Reports extends Page implements HasTable
     /** @return array{CarbonImmutable, CarbonImmutable} */
     private function dates(): array
     {
-        return [CarbonImmutable::parse($this->startDate)->startOfDay(), CarbonImmutable::parse($this->endDate)->endOfDay()];
+        return [
+            filled($this->startDate) ? CarbonImmutable::parse($this->startDate)->startOfDay() : CarbonImmutable::create(1900, 1, 1)->startOfDay(),
+            filled($this->endDate) ? CarbonImmutable::parse($this->endDate)->endOfDay() : CarbonImmutable::create(9999, 12, 31)->endOfDay(),
+        ];
+    }
+
+    /** @return array{CarbonImmutable, CarbonImmutable} */
+    private function ustvaDates(): array
+    {
+        if ($this->ustvaFrequency === 'quarter') {
+            $start = CarbonImmutable::create($this->ustvaYear, (($this->ustvaQuarter - 1) * 3) + 1, 1)->startOfQuarter();
+
+            return [$start, $start->endOfQuarter()];
+        }
+
+        $start = CarbonImmutable::create($this->ustvaYear, $this->ustvaMonth, 1)->startOfMonth();
+
+        return [$start, $start->endOfMonth()];
     }
 
     /** @return array{list<string>, iterable<list<bool|float|int|string|null>>} */
     private function exportData(): array
     {
+        if ($this->activeTab === 'tax' && $this->taxView === 'ustva') {
+            $report = $this->ustvaReport();
+            [$start, $end] = $this->ustvaDates();
+            $period = $start->format('d.m.Y').'–'.$end->format('d.m.Y');
+            $taxationType = $this->taxationType === 'soll' ? 'Sollversteuerung' : 'Istversteuerung';
+            $rows = collect($report['rows'])->map(fn (array $row): array => [
+                $row['code'], $row['section'], $row['description'], $row['net'], $row['tax'],
+                $row['supported'] ? 'Berechnet' : 'Nicht verfügbar', $period, $taxationType, null,
+            ])->concat(collect($report['warnings'])->map(fn (string $warning): array => [
+                null, null, null, null, null, 'Hinweis', $period, $taxationType, $warning,
+            ]));
+
+            return [[
+                'Kz.', 'Bereich', 'Beschreibung', 'Bemessungsgrundlage', 'Steuerbetrag', 'Status',
+                'Zeitraum', 'Versteuerung', 'Validierungshinweis',
+            ], $rows];
+        }
+
         $records = $this->getFilteredSortedTableQuery()?->get() ?? collect();
 
         return match ($this->activeTab) {
@@ -317,9 +403,19 @@ class Reports extends Page implements HasTable
 
     private function exportFilename(): string
     {
+        if ($this->activeTab === 'tax' && $this->taxView === 'ustva') {
+            [$start, $end] = $this->ustvaDates();
+
+            return 'fidoma-ustva-'.$start->format('Y-m-d').'-'.$end->format('Y-m-d');
+        }
+
+        $period = filled($this->startDate) && filled($this->endDate)
+            ? "{$this->startDate}-{$this->endDate}"
+            : 'alle-zeitraeume';
+
         return 'fidoma-'.match ($this->activeTab) {
             'payments' => 'zahlungen', 'invoices' => 'rechnungen', default => 'umsatzsteuer',
-        }."-{$this->startDate}-{$this->endDate}";
+        }."-{$period}";
     }
 
     /** @param Collection<int, Invoice> $records */

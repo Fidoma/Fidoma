@@ -4,6 +4,14 @@
     </div>
 
     <form wire:submit="applyDateFilter" class="dashboard-period-filter">
+        <x-filament::button
+            type="button"
+            color="gray"
+            icon="heroicon-o-x-circle"
+            aria-label="Datumsfilter leeren"
+            tooltip="Datumsfilter zurücksetzen"
+            wire:click="clearDateFilter"
+        />
         <div class="dashboard-period-field">
             <label for="dashboard-start-date">Von</label>
             <x-filament::input.wrapper>

@@ -20,6 +20,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Js;
 use Livewire\Attributes\On;
 use Throwable;
+use UnitEnum;
 
 class Documents extends Page implements HasTable
 {
@@ -28,6 +29,10 @@ class Documents extends Page implements HasTable
     protected static ?string $title = 'Zuordnungen';
 
     protected static ?string $navigationLabel = 'Zuordnungen';
+
+    protected static string|UnitEnum|null $navigationGroup = 'Finanzen';
+
+    protected static ?int $navigationSort = 2;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedLink;
 

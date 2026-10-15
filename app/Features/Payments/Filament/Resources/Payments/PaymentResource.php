@@ -9,6 +9,7 @@ use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class PaymentResource extends Resource
 {
@@ -19,6 +20,10 @@ class PaymentResource extends Resource
     protected static ?string $pluralModelLabel = 'Zahlungen';
 
     protected static ?string $navigationLabel = 'Zahlungen';
+
+    protected static string|UnitEnum|null $navigationGroup = 'Finanzen';
+
+    protected static ?int $navigationSort = 3;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBanknotes;
 

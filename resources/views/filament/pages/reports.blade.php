@@ -12,19 +12,52 @@
             </x-filament::tabs.item>
         </x-filament::tabs>
 
-        <form wire:submit="applyPeriod" class="reports-period-filter">
-            <div class="reports-filter-field reports-period-select">
-                <label for="reports-period">Zeitraum</label>
-                <x-filament::input.wrapper>
-                    <x-filament::input.select id="reports-period" wire:model="period">
-                        <option value="current_month">Aktueller Monat</option>
-                        <option value="last_month">Letzter Monat</option>
-                        <option value="current_quarter">Aktuelles Quartal</option>
-                        <option value="current_year">Aktuelles Jahr</option>
-                        <option value="custom">Benutzerdefiniert</option>
-                    </x-filament::input.select>
-                </x-filament::input.wrapper>
+        @if ($activeTab === 'tax' && $taxView === 'ustva')
+            <div class="reports-period-filter">
+                <div class="reports-filter-field">
+                    <label for="ustva-frequency">Zeitraum</label>
+                    <x-filament::input.wrapper><x-filament::input.select id="ustva-frequency" wire:model.live="ustvaFrequency">
+                        <option value="month">Monat</option><option value="quarter">Quartal</option>
+                    </x-filament::input.select></x-filament::input.wrapper>
+                </div>
+                <div class="reports-filter-field">
+                    <label for="ustva-year">Jahr</label>
+                    <x-filament::input.wrapper><x-filament::input.select id="ustva-year" wire:model.live="ustvaYear">
+                        @foreach ($this->ustvaYears() as $year)<option value="{{ $year }}">{{ $year }}</option>@endforeach
+                    </x-filament::input.select></x-filament::input.wrapper>
+                </div>
+                @if ($ustvaFrequency === 'month')
+                    <div class="reports-filter-field">
+                        <label for="ustva-month">Monat</label>
+                        <x-filament::input.wrapper><x-filament::input.select id="ustva-month" wire:model.live="ustvaMonth">
+                            @foreach (range(1, 12) as $month)<option value="{{ $month }}">{{ \Carbon\CarbonImmutable::create(2026, $month, 1)->translatedFormat('F') }}</option>@endforeach
+                        </x-filament::input.select></x-filament::input.wrapper>
+                    </div>
+                @else
+                    <div class="reports-filter-field">
+                        <label for="ustva-quarter">Quartal</label>
+                        <x-filament::input.wrapper><x-filament::input.select id="ustva-quarter" wire:model.live="ustvaQuarter">
+                            @foreach (range(1, 4) as $quarter)<option value="{{ $quarter }}">Q{{ $quarter }}</option>@endforeach
+                        </x-filament::input.select></x-filament::input.wrapper>
+                    </div>
+                @endif
+                <div class="reports-filter-field">
+                    <label for="taxation-type">Versteuerung</label>
+                    <x-filament::input.wrapper><x-filament::input.select id="taxation-type" wire:model.live="taxationType">
+                        <option value="soll">Sollversteuerung</option><option value="ist">Istversteuerung</option>
+                    </x-filament::input.select></x-filament::input.wrapper>
+                </div>
             </div>
+        @else
+        <form wire:submit="applyPeriod" class="reports-period-filter">
+            <x-filament::button
+                type="button"
+                color="gray"
+                icon="heroicon-o-x-circle"
+                aria-label="Datumsfilter leeren"
+                tooltip="Datumsfilter zurücksetzen"
+                wire:click="clearDateFilter"
+            />
             <div class="reports-filter-field">
                 <label for="reports-start">Von</label>
                 <x-filament::input.wrapper>
@@ -39,10 +72,19 @@
             </div>
             <x-filament::button type="submit" icon="heroicon-m-magnifying-glass">Auswerten</x-filament::button>
         </form>
+        @endif
     </div>
 
-    @php($summary = $this->summary())
+    @if ($activeTab === 'tax')
+        <x-filament::tabs label="Umsatzsteueransicht" class="reports-tax-tabs">
+            <x-filament::tabs.item wire:click="setTaxView('overview')" :active="$taxView === 'overview'">Übersicht</x-filament::tabs.item>
+            <x-filament::tabs.item wire:click="setTaxView('ustva')" :active="$taxView === 'ustva'">UStVA-Vorschau</x-filament::tabs.item>
+        </x-filament::tabs>
+    @endif
 
+    @php($summary = $activeTab === 'tax' && $taxView === 'ustva' ? null : $this->summary())
+
+    @if (! ($activeTab === 'tax' && $taxView === 'ustva'))
     <div class="reports-kpis">
         @if ($activeTab === 'tax')
             <x-filament::section compact><span>Gesamter Nettoumsatz</span><strong>{{ number_format($summary['net'], 2, ',', '.') }} €</strong></x-filament::section>
@@ -61,6 +103,7 @@
             <x-filament::section compact><span>Gesamtbetrag</span><strong>{{ number_format($summary['total'], 2, ',', '.') }} €</strong></x-filament::section>
         @endif
     </div>
+    @endif
 
     <x-filament::section>
         <div class="reports-table-header">
@@ -82,15 +125,6 @@
                             <x-filament::input.select id="payment-method" wire:model.live="paymentMethodId">
                                 <option value="">Alle Zahlungsarten</option>
                                 @foreach ($this->paymentMethods() as $id => $name)<option value="{{ $id }}">{{ $name }}</option>@endforeach
-                            </x-filament::input.select>
-                        </x-filament::input.wrapper>
-                    </div>
-                    <div class="reports-filter-field">
-                        <label for="bank-account">Bankkonto</label>
-                        <x-filament::input.wrapper>
-                            <x-filament::input.select id="bank-account" wire:model.live="bankAccount">
-                                <option value="">Alle Bankkonten</option>
-                                @foreach ($this->bankAccounts() as $iban)<option value="{{ $iban }}">{{ $iban }}</option>@endforeach
                             </x-filament::input.select>
                         </x-filament::input.wrapper>
                     </div>
@@ -117,14 +151,21 @@
             </div>
 
             <div class="reports-export-actions">
+                @if ($activeTab === 'tax' && $taxView === 'ustva')
+                    <x-filament::button color="gray" size="sm" icon="heroicon-o-document-arrow-down" wire:click="exportUstvaPdf">PDF</x-filament::button>
+                @endif
                 <x-filament::button color="gray" size="sm" icon="heroicon-o-document-text" wire:click="exportCsv">CSV</x-filament::button>
                 <x-filament::button color="gray" size="sm" icon="heroicon-o-table-cells" wire:click="exportExcel">Excel</x-filament::button>
             </div>
         </div>
 
-        {{ $this->table }}
+        @if ($activeTab === 'tax' && $taxView === 'ustva')
+            @include('filament.pages.reports-ustva', ['report' => $this->ustvaReport()])
+        @else
+            {{ $this->table }}
+        @endif
 
-        @if ($activeTab === 'tax')
+        @if ($activeTab === 'tax' && $taxView === 'overview')
             <div class="reports-tax-total">
                 <strong>Gesamt</strong>
                 <span>{{ number_format($summary['net'], 2, ',', '.') }} € netto</span>
