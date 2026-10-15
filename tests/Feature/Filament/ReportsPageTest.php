@@ -74,6 +74,18 @@ class ReportsPageTest extends TestCase
             ->assertFileDownloaded('fidoma-ustva-2026-10-01-2026-10-31.csv');
     }
 
+    public function test_ustva_detail_action_opens_its_slide_over(): void
+    {
+        CarbonImmutable::setTestNow('2026-10-15');
+
+        Livewire::actingAs(User::factory()->create())
+            ->test(Reports::class)
+            ->call('setTaxView', 'ustva')
+            ->mountAction('viewUstvaDetails', ['code' => '86'])
+            ->assertActionMounted('viewUstvaDetails')
+            ->assertSee('Steuerpflichtige Umsätze zum Steuersatz von 7 %');
+    }
+
     public function test_ustva_quarter_can_be_exported_as_excel_and_pdf(): void
     {
         CarbonImmutable::setTestNow('2026-10-15');

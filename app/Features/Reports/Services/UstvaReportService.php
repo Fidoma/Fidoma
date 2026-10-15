@@ -71,7 +71,16 @@ final class UstvaReportService
     /** @return Collection<string, Collection<int, array<string, mixed>>> */
     public function details(CarbonInterface $start, CarbonInterface $end, string $taxationType): Collection
     {
-        $items = InvoiceItem::query()
+        return $this->detailQuery($start, $end, $taxationType)
+            ->get()
+            ->map(fn (InvoiceItem $item): array => $this->detailForItem($item, $taxationType))
+            ->groupBy('code');
+    }
+
+    /** @return Builder<InvoiceItem> */
+    public function detailQuery(CarbonInterface $start, CarbonInterface $end, string $taxationType, ?string $code = null): Builder
+    {
+        return InvoiceItem::query()
             ->whereHas('invoice', fn (Builder $query): Builder => $query
                 ->where('invoice_status_id', '!=', InvoiceStatus::Draft->value)
                 ->where('is_archived', false)
@@ -83,43 +92,56 @@ final class UstvaReportService
                         fn (Builder $paymentQuery): Builder => $paymentQuery->whereBetween('payment_date', [$start, $end]),
                     ),
                 ))
+            ->when($code !== null, function (Builder $query) use ($code): Builder {
+                return match ($code) {
+                    '81' => $query->whereHas('taxRate', fn (Builder $taxQuery): Builder => $taxQuery->where('tax_rate_percent', 19)),
+                    '86' => $query->whereHas('taxRate', fn (Builder $taxQuery): Builder => $taxQuery->where('tax_rate_percent', 7)),
+                    '87' => $query->whereHas('taxRate', fn (Builder $taxQuery): Builder => $taxQuery
+                        ->where('tax_rate_percent', '>', 0)
+                        ->whereNotIn('tax_rate_percent', [7, 19])),
+                    default => $query->whereRaw('1 = 0'),
+                };
+            })
             ->with([
                 'amount',
                 'taxRate',
                 'invoice.client',
                 'invoice.amount',
                 'invoice.payments' => fn ($query) => $query->whereBetween('payment_date', [$start, $end]),
-            ])
-            ->get();
+            ]);
+    }
 
-        return $items->map(function (InvoiceItem $item) use ($taxationType): array {
-            $invoiceTotal = (string) abs((float) ($item->invoice?->amount?->invoice_total ?? 0));
-            $periodPayments = (string) abs((float) ($item->invoice?->payments?->sum('payment_amount') ?? 0));
+    /** @return array<string, mixed> */
+    public function detailForItem(InvoiceItem $item, string $taxationType): array
+    {
+        $invoiceTotal = (string) abs((float) ($item->invoice?->amount?->invoice_total ?? 0));
+        $periodPayments = (string) abs((float) ($item->invoice?->payments?->sum('payment_amount') ?? 0));
 
-            $rate = $item->taxRate?->tax_rate_percent;
-            $code = match (true) {
-                $rate === null => 'unknown',
-                (float) $rate === 19.0 => '81',
-                (float) $rate === 7.0 => '86',
-                (float) $rate > 0.0 => '87',
-                default => 'unknown',
-            };
+        $rate = $item->taxRate?->tax_rate_percent;
+        $code = match (true) {
+            $rate === null => 'unknown',
+            (float) $rate === 19.0 => '81',
+            (float) $rate === 7.0 => '86',
+            (float) $rate > 0.0 => '87',
+            default => 'unknown',
+        };
 
-            return [
-                'code' => $code,
-                'invoice_id' => $item->invoice_id,
-                'invoice_number' => $item->invoice?->invoice_number,
-                'client' => $item->invoice?->client?->client_name,
-                'invoice_date' => $item->invoice?->invoice_date_created?->format('d.m.Y'),
-                'tax_period' => $taxationType === 'soll'
-                    ? $item->invoice?->invoice_date_created?->format('d.m.Y')
-                    : $item->invoice?->payments?->pluck('payment_date')->filter()->map->format('d.m.Y')->join(', '),
-                'rate' => $rate === null ? null : (float) $rate,
-                'net' => $this->allocatedMoney((string) ($item->amount?->item_subtotal ?? 0), $invoiceTotal, $periodPayments, $taxationType),
-                'tax' => $this->allocatedMoney((string) ($item->amount?->item_tax_total ?? 0), $invoiceTotal, $periodPayments, $taxationType),
-                'gross' => $this->allocatedMoney((string) ($item->amount?->item_total ?? 0), $invoiceTotal, $periodPayments, $taxationType),
-            ];
-        })->groupBy('code');
+        return [
+            'code' => $code,
+            'invoice_id' => $item->invoice_id,
+            'invoice_number' => $item->invoice?->invoice_number,
+            'client' => $item->invoice?->client?->client_name,
+            'item_name' => $item->item_name,
+            'invoice_date' => $item->invoice?->invoice_date_created?->format('d.m.Y'),
+            'service_date' => $item->item_date?->format('d.m.Y'),
+            'tax_period' => $taxationType === 'soll'
+                ? $item->invoice?->invoice_date_created?->format('d.m.Y')
+                : $item->invoice?->payments?->pluck('payment_date')->filter()->map->format('d.m.Y')->join(', '),
+            'rate' => $rate === null ? null : (float) $rate,
+            'net' => $this->allocatedMoney((string) ($item->amount?->item_subtotal ?? 0), $invoiceTotal, $periodPayments, $taxationType),
+            'tax' => $this->allocatedMoney((string) ($item->amount?->item_tax_total ?? 0), $invoiceTotal, $periodPayments, $taxationType),
+            'gross' => $this->allocatedMoney((string) ($item->amount?->item_total ?? 0), $invoiceTotal, $periodPayments, $taxationType),
+        ];
     }
 
     /** @return list<array{code: string, section: string, description: string, basis: bool, tax: bool}> */

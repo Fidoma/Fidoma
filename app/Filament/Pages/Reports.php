@@ -192,13 +192,21 @@ class Reports extends Page implements HasTable
         return Action::make('viewUstvaDetails')
             ->modalHeading(fn (array $arguments): string => 'UStVA Kz. '.($arguments['code'] ?? ''))
             ->modalContent(function (array $arguments): View {
+                [$start, $end] = $this->ustvaDates();
                 $row = collect($this->ustvaReport()['rows'])
                     ->firstWhere('code', (string) ($arguments['code'] ?? ''));
 
-                return view('filament.pages.reports-ustva-details', ['row' => $row]);
+                return view('filament.pages.reports-ustva-details', [
+                    'code' => (string) ($row['code'] ?? ''),
+                    'description' => (string) ($row['description'] ?? 'Keine Beschreibung verfügbar.'),
+                    'startDate' => $start->toDateString(),
+                    'endDate' => $end->toDateString(),
+                    'taxationType' => $this->taxationType,
+                ]);
             })
             ->modalSubmitAction(false)
             ->modalCancelActionLabel('Schließen')
+            ->modalWidth(Width::SevenExtraLarge)
             ->slideOver();
     }
 

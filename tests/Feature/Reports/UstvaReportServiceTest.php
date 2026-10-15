@@ -10,11 +10,13 @@ use App\Features\Invoices\Models\Invoice;
 use App\Features\Invoices\Models\InvoiceItem;
 use App\Features\PaymentMethods\Models\PaymentMethod;
 use App\Features\Payments\Models\Payment;
+use App\Features\Reports\Livewire\UstvaDetailsTable;
 use App\Features\Reports\Services\UstvaReportService;
 use App\Features\TaxRates\Models\TaxRate;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class UstvaReportServiceTest extends TestCase
@@ -41,7 +43,7 @@ class UstvaReportServiceTest extends TestCase
         $rate19 = $this->taxRate('Standard', 19);
         $rate7 = $this->taxRate('Ermäßigt', 7);
         $invoice = $this->invoice('RE-100', InvoiceType::Invoice, InvoiceStatus::Sent);
-        $this->item($invoice, $rate19, 100);
+        $item19 = $this->item($invoice, $rate19, 100);
         $this->item($invoice, $rate7, 200, 2);
         app(RecalculateInvoice::class)->handle($invoice);
 
@@ -61,6 +63,18 @@ class UstvaReportServiceTest extends TestCase
         $this->assertSame(200.0, $this->row($report, '86')['net']);
         $this->assertSame(14.0, $this->row($report, '86')['tax']);
         $this->assertSame(33.0, $report['output_tax']);
+
+        Livewire::actingAs($this->user)
+            ->test(UstvaDetailsTable::class, [
+                'code' => '81',
+                'startDate' => '2026-10-01',
+                'endDate' => '2026-10-31',
+                'taxationType' => 'soll',
+            ])
+            ->assertCanSeeTableRecords([$item19])
+            ->searchTable('RE-100')
+            ->assertCanSeeTableRecords([$item19])
+            ->sortTable('item_name');
     }
 
     public function test_credit_and_cancellation_reduce_the_taxable_amount(): void

@@ -21,12 +21,7 @@
                     @php($sectionRows = collect($report['rows'])->where('section', $section))
                     <tr class="ustva-section-row"><th colspan="5">{{ $section }}</th></tr>
                     @forelse ($sectionRows as $row)
-                        <tr
-                            @class(['ustva-data-row', 'is-clickable' => $row['supported'] && count($row['details'])])
-                            @if ($row['supported'] && count($row['details']))
-                                wire:click="mountAction('viewUstvaDetails', { code: '{{ $row['code'] }}' })"
-                            @endif
-                        >
+                        <tr class="ustva-data-row is-clickable" wire:click="mountAction('viewUstvaDetails', { code: '{{ $row['code'] }}' })">
                             <td><strong>{{ $row['code'] }}</strong></td>
                             <td>{{ $row['description'] }}</td>
                             <td>{{ $row['supported'] && $row['basis'] ? number_format($row['net'], 2, ',', '.').' €' : '–' }}</td>

@@ -174,4 +174,6 @@
             </div>
         @endif
     </x-filament::section>
+
+    <x-filament-actions::modals />
 </x-filament-panels::page>
