@@ -9,9 +9,7 @@
 
     <div class="reservation-billing-legend">
         <span>Abrechnung:</span>
-        <span class="reservation-legend reservation-billing-none">Nicht berechnet</span>
-        <span class="reservation-legend reservation-billing-draft">Entwurf</span>
-        <span class="reservation-legend reservation-billing-sent">Versendet</span>
+        <span class="reservation-legend reservation-billing-open">Offen / nicht berechnet</span>
         <span class="reservation-legend reservation-billing-paid">Bezahlt</span>
     </div>
 

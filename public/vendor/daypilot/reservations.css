@@ -123,13 +123,9 @@
     content: '';
 }
 
-.reservation-billing-none { --reservation-status-color: #94a3b8; }
-.reservation-billing-draft { --reservation-status-color: #f59e0b; }
-.reservation-billing-sent { --reservation-status-color: #3b82f6; }
+.reservation-billing-open { --reservation-status-color: #94a3b8; }
 .reservation-billing-paid { --reservation-status-color: #22c55e; }
-.reservation-billing-stripe-none { background-color: #94a3b8; }
-.reservation-billing-stripe-draft { background-color: #f59e0b; }
-.reservation-billing-stripe-sent { background-color: #3b82f6; }
+.reservation-billing-stripe-open { background-color: #94a3b8; }
 .reservation-billing-stripe-paid { background-color: #22c55e; }
 
 .dark .reservation-scheduler-card .scheduler_default_corner,
