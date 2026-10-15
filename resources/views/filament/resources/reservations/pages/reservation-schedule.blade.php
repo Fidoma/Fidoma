@@ -1,16 +1,18 @@
 @php($schedule = $this->schedule())
 
 <x-filament-panels::page>
+    <x-filament::actions :actions="[$this->createAction, $this->listAction]" />
+
+    <div class="reservation-scheduler-card">
+        <div id="reservations-scheduler" aria-label="Belegungsplan"></div>
+    </div>
+
     <div class="reservation-billing-legend">
         <span>Abrechnung:</span>
         <span class="reservation-legend reservation-billing-none">Nicht berechnet</span>
         <span class="reservation-legend reservation-billing-draft">Entwurf</span>
         <span class="reservation-legend reservation-billing-sent">Versendet</span>
         <span class="reservation-legend reservation-billing-paid">Bezahlt</span>
-    </div>
-
-    <div class="reservation-scheduler-card">
-        <div id="reservations-scheduler" aria-label="Belegungsplan"></div>
     </div>
 
     @assets

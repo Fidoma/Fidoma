@@ -22,6 +22,23 @@ class ReservationSchedule extends Page
 
     protected Width|string|null $maxContentWidth = Width::Full;
 
+    public function createAction(): Action
+    {
+        return Action::make('create')
+            ->label('Reservierung')
+            ->icon(Heroicon::Plus)
+            ->url(ReservationResource::getUrl('create'));
+    }
+
+    public function listAction(): Action
+    {
+        return Action::make('list')
+            ->label('Liste')
+            ->icon(Heroicon::OutlinedListBullet)
+            ->color('gray')
+            ->url(ReservationResource::getUrl());
+    }
+
     /** @return array{startDate: string, days: int, resources: array<int, array<string, mixed>>, events: array<int, array<string, mixed>>, createUrl: string} */
     public function schedule(): array
     {
@@ -84,15 +101,6 @@ class ReservationSchedule extends Page
             'resources' => $resources,
             'events' => $events,
             'createUrl' => ReservationResource::getUrl('create'),
-        ];
-    }
-
-    /** @return array<Action> */
-    protected function getHeaderActions(): array
-    {
-        return [
-            Action::make('list')->label('Liste')->icon(Heroicon::OutlinedListBullet)->url(ReservationResource::getUrl()),
-            Action::make('create')->label('Reservierung')->icon(Heroicon::Plus)->url(ReservationResource::getUrl('create')),
         ];
     }
 
