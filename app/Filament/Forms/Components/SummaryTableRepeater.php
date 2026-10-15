@@ -47,10 +47,6 @@ class SummaryTableRepeater extends Repeater
 
     protected function toTableEmbeddedHtml(): string
     {
-        $hasReorderColumn = (count($this->getItems()) > 1)
-            && ($this->isReorderableWithButtons() || $this->isReorderableWithDragAndDrop());
-        $tableColumnCount = $this->evaluate($this->summaryTableColumnCount) + ($hasReorderColumn ? 1 : 0);
-        $leadingColumnSpan = $this->evaluate($this->summaryLeadingColumnSpan) + ($hasReorderColumn ? 1 : 0);
         $addAction = $this->getAction($this->getAddActionName());
         $inlineAddAction = ($this->isAddable() && $addAction?->isVisible())
             ? $addAction->toHtml()
@@ -90,44 +86,21 @@ class SummaryTableRepeater extends Repeater
             return $html;
         }
 
-        $summary = '<table aria-label="Summenübersicht">';
-        $summary .= $this->renderSummaryColgroup($hasReorderColumn, $tableColumnCount);
-        $summary .= '<tbody>';
+        $summary = '<div class="fi-fo-summary-layout">';
+        $summary .= '<div class="fi-fo-summary-actions">'.$inlineActions.'</div>';
+        $summary .= '<div class="fi-fo-summary-table-wrapper">';
+        $summary .= '<table class="fi-fo-summary-table" aria-label="Summenübersicht"><tbody>';
 
         foreach ($summaryRows as $label => $value) {
-            $summary .= '<tr style="border-width: 0">';
-            $summary .= '<td colspan="'.$leadingColumnSpan.'" style="border-width: 0">'.$inlineActions.'</td>';
-            $summary .= '<td colspan="2" style="border-width: 0">'.e($label).'</td>';
-            $summary .= '<td style="border-width: 0">'.self::renderReadonlyInput($label, $value).'</td>';
-            $summary .= '<td style="border-width: 0"></td>';
+            $summary .= '<tr>';
+            $summary .= '<th scope="row">'.e($label).'</th>';
+            $summary .= '<td>'.self::renderReadonlyInput($label, $value).'</td>';
             $summary .= '</tr>';
-
-            $inlineActions = '';
         }
 
-        $summary .= '</tbody></table>';
+        $summary .= '</tbody></table></div></div>';
 
         return substr_replace($html, $summary, $tableEndPosition + strlen('</table>'), 0);
-    }
-
-    private function renderSummaryColgroup(bool $hasReorderColumn, int $tableColumnCount): string
-    {
-        $columns = $hasReorderColumn ? ['1%'] : [];
-
-        foreach ($this->getTableColumns() ?? [] as $column) {
-            $columns[] = $column->getWidth();
-        }
-
-        $columns = array_pad($columns, $tableColumnCount, null);
-        $colgroup = '<colgroup>';
-
-        foreach (array_slice($columns, 0, $tableColumnCount) as $width) {
-            $colgroup .= filled($width)
-                ? '<col style="width: '.e($width).'">'
-                : '<col>';
-        }
-
-        return $colgroup.'</colgroup>';
     }
 
     private static function renderReadonlyInput(string $label, string $value): string

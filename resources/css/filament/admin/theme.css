@@ -12,3 +12,42 @@
 .document-information .fi-in-entry-content {
     @apply font-normal;
 }
+
+.fi-fo-summary-layout {
+    @apply grid gap-6 border-t border-gray-200 px-4 py-4 dark:border-white/10;
+}
+
+@media (min-width: 64rem) {
+    .fi-fo-summary-layout {
+        grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    }
+}
+
+.fi-fo-summary-actions {
+    @apply flex min-w-0 items-start;
+}
+
+.fi-fo-summary-actions .fi-fo-table-repeater-actions {
+    @apply flex flex-wrap items-center gap-2;
+}
+
+.fi-fo-summary-table-wrapper {
+    @apply min-w-0 overflow-hidden rounded-lg border border-gray-200 dark:border-white/10;
+}
+
+.fi-fo-summary-table {
+    @apply w-full table-fixed border-collapse text-sm;
+}
+
+.fi-fo-summary-table th,
+.fi-fo-summary-table td {
+    @apply border border-gray-200 px-3 py-2 align-middle dark:border-white/10;
+}
+
+.fi-fo-summary-table th {
+    @apply w-2/5 text-left font-medium text-gray-700 dark:text-gray-200;
+}
+
+.fi-fo-summary-table td {
+    @apply w-3/5;
+}
