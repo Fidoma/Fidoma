@@ -14,9 +14,9 @@ final class InvoiceTemplateData
             'client' => ['number' => 'K-1048', 'company' => 'Musterwerk GmbH', 'name' => 'Anna Schneider', 'address' => 'Hafenstraße 18', 'city' => '20457 Hamburg', 'email' => 'anna.schneider@musterwerk.de'],
             'issuer' => ['company' => config('app.name', 'Fidoma').' GmbH', 'name' => 'Arianit Mustermann', 'address' => 'Beispielweg 12', 'city' => '10115 Berlin', 'email' => 'rechnung@fidoma.de', 'vat_id' => 'DE123456789', 'iban' => 'DE89 3704 0044 0532 0130 00'],
             'items' => [
-                ['name' => 'Beratung und Konzeption', 'description' => 'Workshop und technische Konzeption', 'quantity' => 4, 'unit' => 'Std.', 'price' => 125, 'tax' => 19, 'total' => 595],
-                ['name' => 'Implementierung', 'description' => 'Umsetzung der vereinbarten Funktionen', 'quantity' => 12, 'unit' => 'Std.', 'price' => 110, 'tax' => 19, 'total' => 1570.80],
-                ['name' => 'Hosting', 'description' => 'Hosting für Oktober 2026', 'quantity' => 1, 'unit' => 'Monat', 'price' => 49, 'tax' => 19, 'total' => 58.31],
+                ['name' => 'Beratung und Konzeption', 'description' => 'Workshop und technische Konzeption', 'quantity' => 4, 'unit' => 'Std.', 'price' => 125, 'net_total' => 500, 'tax' => 19, 'total' => 595],
+                ['name' => 'Implementierung', 'description' => 'Umsetzung der vereinbarten Funktionen', 'quantity' => 12, 'unit' => 'Std.', 'price' => 110, 'net_total' => 1320, 'tax' => 19, 'total' => 1570.80],
+                ['name' => 'Hosting', 'description' => 'Hosting für Oktober 2026', 'quantity' => 1, 'unit' => 'Monat', 'price' => 49, 'net_total' => 49, 'tax' => 19, 'total' => 58.31],
             ],
             'totals' => ['subtotal' => 1869, 'tax' => 355.11, 'total' => 2224.11],
         ];
@@ -59,6 +59,7 @@ final class InvoiceTemplateData
                 'quantity' => (float) $item->item_quantity,
                 'unit' => $item->item_product_unit ?? '',
                 'price' => (float) $item->item_price,
+                'net_total' => (float) ($item->amount?->item_subtotal ?? 0),
                 'tax' => (float) ($item->taxRate?->tax_rate_percent ?? 0),
                 'total' => (float) ($item->amount?->item_total ?? 0),
             ])->all(),

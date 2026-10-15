@@ -43,10 +43,10 @@ final class InvoiceTemplateRenderer
 
         foreach ($items as $index => $item) {
             $description = $item['description'] ? '<div class="item-description">'.nl2br(e((string) $item['description'])).'</div>' : '';
-            $rows[] = '<tr><td>'.($index + 1).'</td><td><div class="item-name">'.e((string) $item['name']).'</div>'.$description.'</td><td class="number">'.$this->number($item['quantity']).' '.e((string) $item['unit']).'</td><td class="number">'.$this->money($item['price']).'</td><td class="number">'.$this->number($item['tax']).' %</td><td class="number">'.$this->money($item['total']).'</td></tr>';
+            $rows[] = '<tr><td>'.($index + 1).'</td><td><div class="item-name">'.e((string) $item['name']).'</div>'.$description.'</td><td class="number">'.$this->number($item['quantity']).' '.e((string) $item['unit']).'</td><td class="number">'.$this->money($item['price']).'</td><td class="number">'.$this->money($item['net_total']).'</td><td class="number">'.$this->number($item['tax']).' %</td><td class="number">'.$this->money($item['total']).'</td></tr>';
         }
 
-        return $rows !== [] ? implode('', $rows) : '<tr><td colspan="6">Keine Positionen vorhanden.</td></tr>';
+        return $rows !== [] ? implode('', $rows) : '<tr><td colspan="7">Keine Positionen vorhanden.</td></tr>';
     }
 
     private function money(mixed $value): string

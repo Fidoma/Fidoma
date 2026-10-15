@@ -49,11 +49,12 @@ final class InvoiceLayoutDefaults
         <thead>
             <tr>
                 <th style="width: 5%">Pos.</th>
-                <th style="width: 43%">Leistung / Produkt</th>
+                <th style="width: 33%">Leistung / Produkt</th>
                 <th class="number" style="width: 10%">Menge</th>
-                <th class="number" style="width: 14%">Einzelpreis</th>
+                <th class="number" style="width: 12%">Einzelpreis</th>
+                <th class="number" style="width: 14%">Gesamt netto</th>
                 <th class="number" style="width: 10%">Steuer</th>
-                <th class="number" style="width: 18%">Gesamt</th>
+                <th class="number" style="width: 16%">Gesamt</th>
             </tr>
         </thead>
         <tbody>{{ items }}</tbody>

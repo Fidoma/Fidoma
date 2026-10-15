@@ -80,4 +80,18 @@ class InvoiceLayoutPageTest extends TestCase
         $this->assertStringNotContainsString('<?php', $rendered);
         $this->assertStringNotContainsString('onclick=', $rendered);
     }
+
+    public function test_item_rows_include_the_net_total_after_the_unit_price(): void
+    {
+        $rendered = app(InvoiceTemplateRenderer::class)->render(
+            '<table><tbody>{{ items }}</tbody></table>',
+            '',
+            ['items' => [[
+                'name' => 'Leistung', 'description' => '', 'quantity' => 2, 'unit' => 'Std.',
+                'price' => 100, 'net_total' => 200, 'tax' => 19, 'total' => 238,
+            ]]],
+        );
+
+        $this->assertMatchesRegularExpression('/100,00 €<\/td><td class="number">200,00 €<\/td><td class="number">19,00 %/', $rendered);
+    }
 }
