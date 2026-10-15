@@ -25,15 +25,17 @@ class Documents extends Page implements HasTable
 {
     use InteractsWithTable;
 
-    protected static ?string $title = 'Dokumente';
+    protected static ?string $title = 'Zuordnungen';
 
-    protected static ?string $navigationLabel = 'Dokumente';
+    protected static ?string $navigationLabel = 'Zuordnungen';
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedLink;
 
     protected string $view = 'filament.pages.documents';
 
     public ?string $paperlessError = null;
+
+    public string $activeTab = 'expenses';
 
     public static function canAccess(): bool
     {
@@ -84,6 +86,15 @@ class Documents extends Page implements HasTable
             ->emptyStateHeading('Keine Dokumente gefunden')
             ->emptyStateDescription(fn (): ?string => $this->paperlessError)
             ->emptyStateIcon(Heroicon::OutlinedDocumentText);
+    }
+
+    public function showTab(string $tab): void
+    {
+        if (! in_array($tab, ['income', 'expenses'], true)) {
+            return;
+        }
+
+        $this->activeTab = $tab;
     }
 
     #[On('paperless-mapping-created')]

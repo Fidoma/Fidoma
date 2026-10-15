@@ -4,8 +4,15 @@ namespace Tests\Feature\Filament;
 
 use App\Features\BankTransactions\Actions\CreateBankTransaction;
 use App\Features\BankTransactions\Models\BankTransactionMapping;
+use App\Features\Clients\Models\Client;
 use App\Features\Documents\Livewire\AssignBankTransaction;
 use App\Features\Documents\Services\PaperlessClient;
+use App\Features\Invoices\Enums\InvoiceStatus;
+use App\Features\Invoices\Enums\InvoiceType;
+use App\Features\Invoices\Livewire\AssignInvoiceBankTransaction;
+use App\Features\Invoices\Livewire\InvoiceMappings;
+use App\Features\Invoices\Models\Invoice;
+use App\Features\Invoices\Models\InvoiceAmount;
 use App\Filament\Pages\Documents;
 use App\Models\User;
 use Filament\Actions\Action;
@@ -61,6 +68,111 @@ class DocumentsPageTest extends TestCase
         Http::assertSent(fn ($request): bool => str_contains($request->url(), '/api/documents/')
             && str_contains($request->url(), 'storage_path__id=42')
             && str_contains($request->url(), 'document_type__id=7'));
+    }
+
+    public function test_page_is_named_assignments_and_offers_income_and_expense_tabs(): void
+    {
+        Config::set('services.paperless.url', 'https://paperless.test');
+        Config::set('services.paperless.token', 'test-token');
+        Http::fake([
+            'paperless.test/api/documents/*' => Http::response(['count' => 0, 'results' => []]),
+            'paperless.test/api/correspondents/*' => Http::response(['results' => []]),
+        ]);
+
+        Livewire::actingAs(User::factory()->create())
+            ->test(Documents::class)
+            ->assertSee('Zuordnungen')
+            ->assertSee('Einnahmen')
+            ->assertSee('Ausgaben')
+            ->assertSet('activeTab', 'expenses')
+            ->call('showTab', 'income')
+            ->assertSet('activeTab', 'income');
+    }
+
+    public function test_income_tab_lists_invoices_with_mapping_relevant_columns(): void
+    {
+        $user = User::factory()->create();
+        $client = Client::query()->create([
+            'client_name' => 'Musterkunde GmbH',
+            'client_active' => true,
+        ]);
+        $invoice = Invoice::query()->create([
+            'invoice_type' => InvoiceType::Invoice,
+            'user_id' => $user->getKey(),
+            'client_id' => $client->getKey(),
+            'invoice_group_id' => 1,
+            'invoice_status_id' => InvoiceStatus::Sent,
+            'is_read_only' => false,
+            'is_archived' => false,
+            'invoice_password' => '',
+            'invoice_date_created' => '2026-10-14',
+            'invoice_time_created' => '10:00:00',
+            'invoice_date_due' => '2026-10-28',
+            'invoice_number' => 'RE-2026-1001',
+            'invoice_discount_amount' => 0,
+            'invoice_discount_percent' => 0,
+            'invoice_terms' => '',
+            'invoice_url_key' => 'income-mapping-test',
+            'payment_method' => 0,
+            'creditinvoice_parent_id' => null,
+            'invoice_einvoicing_version' => '',
+        ]);
+        InvoiceAmount::query()->create([
+            'invoice_id' => $invoice->getKey(),
+            'invoice_total' => 119,
+            'invoice_paid' => 0,
+            'invoice_balance' => 119,
+        ]);
+
+        $incoming = app(CreateBankTransaction::class)->handle([
+            'account_iban' => 'DE02120300000000202051',
+            'booking_date' => '2026-10-15',
+            'amount' => '119.0000',
+            'currency' => 'EUR',
+            'counterparty_name' => 'Musterkunde GmbH',
+            'purpose' => 'Zahlung RE-2026-1001',
+            'pending' => false,
+        ]);
+        $outgoing = app(CreateBankTransaction::class)->handle([
+            'account_iban' => 'DE02120300000000202051',
+            'booking_date' => '2026-10-15',
+            'amount' => '-119.0000',
+            'currency' => 'EUR',
+            'counterparty_name' => 'Musterkunde GmbH',
+            'purpose' => 'Ausgabe',
+            'pending' => false,
+        ]);
+
+        $component = Livewire::actingAs($user)
+            ->test(InvoiceMappings::class)
+            ->assertSee('RE-2026-1001')
+            ->assertSee('Rechnungsdatum')
+            ->assertSee('Fällig am')
+            ->assertSee('Gesamt')
+            ->assertSee('Offen')
+            ->assertSee('Nicht zugeordnet');
+
+        $this->assertSame('openAssignment', $component->instance()->getTable()->getRecordAction($invoice));
+
+        $component
+            ->call('openAssignment', $invoice->getKey())
+            ->assertActionMounted('assign');
+
+        $mountedAction = $component->instance()->getMountedAction();
+        $this->assertInstanceOf(Action::class, $mountedAction);
+        $this->assertTrue($mountedAction->isModalSlideOver());
+        $this->assertSame(Width::TwoExtraLarge, $mountedAction->getModalWidth());
+
+        Livewire::actingAs($user)
+            ->test(AssignInvoiceBankTransaction::class, ['invoiceId' => $invoice->getKey()])
+            ->assertSee('Rechnungsinformationen')
+            ->assertSee('Banktransaktionen')
+            ->assertSee('Verknüpft')
+            ->assertCanSeeTableRecords([$incoming])
+            ->assertCanNotSeeTableRecords([$outgoing])
+            ->call('applyTableSearch', '119.00')
+            ->assertSet('tableSearch', '119.00')
+            ->assertCanSeeTableRecords([$incoming]);
     }
 
     public function test_paperless_documents_are_not_filtered_by_path_or_type_when_settings_are_empty(): void

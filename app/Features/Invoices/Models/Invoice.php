@@ -2,6 +2,7 @@
 
 namespace App\Features\Invoices\Models;
 
+use App\Features\BankTransactions\Models\BankTransactionMapping;
 use App\Features\Clients\Models\Client;
 use App\Features\InvoiceGroups\Models\InvoiceGroup;
 use App\Features\Invoices\Enums\InvoiceStatus;
@@ -12,6 +13,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Invoice extends Model
@@ -100,6 +102,19 @@ class Invoice extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class, 'invoice_id', 'invoice_id');
+    }
+
+    /** @return HasManyThrough<BankTransactionMapping, Payment, $this> */
+    public function bankTransactionMappings(): HasManyThrough
+    {
+        return $this->hasManyThrough(
+            BankTransactionMapping::class,
+            Payment::class,
+            'invoice_id',
+            'payment_id',
+            'invoice_id',
+            'payment_id',
+        );
     }
 
     /** @return HasOne<InvoiceAmount, $this> */

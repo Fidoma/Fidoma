@@ -2,10 +2,12 @@
 
 namespace App\Features\Payments\Models;
 
+use App\Features\BankTransactions\Models\BankTransactionMapping;
 use App\Features\Invoices\Models\Invoice;
 use App\Features\PaymentMethods\Models\PaymentMethod;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Payment extends Model
 {
@@ -42,5 +44,11 @@ class Payment extends Model
     public function paymentMethod(): BelongsTo
     {
         return $this->belongsTo(PaymentMethod::class, 'payment_method_id', 'payment_method_id');
+    }
+
+    /** @return HasMany<BankTransactionMapping, $this> */
+    public function bankTransactionMappings(): HasMany
+    {
+        return $this->hasMany(BankTransactionMapping::class, 'payment_id', 'payment_id');
     }
 }
