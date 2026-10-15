@@ -3,7 +3,7 @@
 <x-filament-panels::page>
     <x-filament::actions :actions="[$this->createAction, $this->listAction]" />
 
-    <div class="reservation-scheduler-card">
+    <div class="reservation-scheduler-card" wire:ignore>
         <div id="reservations-scheduler" aria-label="Belegungsplan"></div>
     </div>
 
@@ -79,13 +79,12 @@
                     }];
                 },
                 onTimeRangeSelected: args => {
-                    const params = new URLSearchParams({
+                    $wire.mountAction('create', {
                         room_id: String(args.resource).replace(/^room-/, ''),
                         arrival_date: args.start.toString('yyyy-MM-dd'),
                         departure_date: args.end.toString('yyyy-MM-dd'),
                     });
                     scheduler.clearSelection();
-                    window.location.assign(`${config.createUrl}?${params}`);
                 },
             });
 
