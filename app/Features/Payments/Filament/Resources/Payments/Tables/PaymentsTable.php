@@ -150,7 +150,7 @@ class PaymentsTable
     {
         return Invoice::query()
             ->where('invoice_type', InvoiceType::Invoice)
-            ->where('invoice_status_id', InvoiceStatus::Sent)
+            ->whereIn('invoice_status_id', [InvoiceStatus::Draft, InvoiceStatus::Sent])
             ->where('is_archived', false)
             ->whereHas('amount', fn (Builder $query): Builder => $query->where('invoice_balance', '>', 0))
             ->with(['client', 'amount'])

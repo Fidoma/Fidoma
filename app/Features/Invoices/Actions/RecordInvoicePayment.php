@@ -2,7 +2,6 @@
 
 namespace App\Features\Invoices\Actions;
 
-use App\Features\Invoices\Enums\InvoiceStatus;
 use App\Features\Invoices\Enums\InvoiceType;
 use App\Features\Invoices\Models\Invoice;
 use App\Features\Payments\Models\Payment;
@@ -21,10 +20,6 @@ final class RecordInvoicePayment
 
             if ($invoice->invoice_type !== InvoiceType::Invoice) {
                 throw new LogicException('Payments can only be recorded for regular invoices.');
-            }
-
-            if ($invoice->invoice_status_id === InvoiceStatus::Draft) {
-                throw new LogicException('Payments cannot be recorded for draft invoices.');
             }
 
             $amount = round((float) ($attributes['payment_amount'] ?? 0), 2);

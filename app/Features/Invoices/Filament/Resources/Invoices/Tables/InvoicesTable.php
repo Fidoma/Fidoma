@@ -103,11 +103,6 @@ class InvoicesTable
                 && ! $record->is_archived
                 && $record->invoice_status_id !== InvoiceStatus::Paid
                 && (float) ($record->amount?->invoice_balance ?? 0) > 0)
-            ->disabled(fn (Invoice $record): bool => $record->invoice_status_id === InvoiceStatus::Draft)
-            ->tooltip(fn (Invoice $record): ?string => match (true) {
-                $record->invoice_status_id === InvoiceStatus::Draft => 'Die Rechnung muss zuerst ausgestellt werden.',
-                default => null,
-            })
             ->modalHeading(fn (Invoice $record): string => 'Zahlung für Rechnung '.$record->invoice_number)
             ->modalSubmitActionLabel('Zahlung speichern')
             ->schema([

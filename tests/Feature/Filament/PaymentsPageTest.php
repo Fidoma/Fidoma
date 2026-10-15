@@ -100,7 +100,7 @@ class PaymentsPageTest extends TestCase
         );
     }
 
-    public function test_a_payment_can_be_added_for_an_open_invoice(): void
+    public function test_a_payment_can_be_added_for_a_draft_invoice(): void
     {
         $user = User::factory()->create();
         $client = Client::query()->create([
@@ -115,7 +115,7 @@ class PaymentsPageTest extends TestCase
             'user_id' => $user->getKey(),
             'client_id' => $client->getKey(),
             'invoice_group_id' => 1,
-            'invoice_status_id' => InvoiceStatus::Sent,
+            'invoice_status_id' => InvoiceStatus::Draft,
             'is_read_only' => false,
             'is_archived' => false,
             'invoice_password' => '',
@@ -163,7 +163,7 @@ class PaymentsPageTest extends TestCase
             'payment_note' => 'Erste Teilzahlung',
         ]);
         $this->assertSame('69.00', $invoice->refresh()->amount->invoice_balance);
-        $this->assertSame(InvoiceStatus::Sent, $invoice->invoice_status_id);
+        $this->assertSame(InvoiceStatus::Draft, $invoice->invoice_status_id);
 
         Livewire::actingAs($user)
             ->test(ListPayments::class)
