@@ -70,6 +70,10 @@ class ReservationTest extends TestCase
         $this->assertTrue($firstInvoice->is($secondInvoice));
         $this->assertSame($invoiceCountBeforeConversion + 1, Invoice::query()->count());
         $this->assertSame(1, $firstInvoice->items()->count());
+        $this->assertSame(
+            "Zimmer: 101 – Gartenblick\nAnreise: 01.11.2026\nAbreise: 04.11.2026",
+            $firstInvoice->items()->firstOrFail()->item_description,
+        );
         $this->assertSame('321.00', $firstInvoice->amount->invoice_total);
         $this->assertSame($firstInvoice->getKey(), $reservation->refresh()->invoice_id);
 

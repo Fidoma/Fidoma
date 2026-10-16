@@ -7,6 +7,7 @@ use App\Features\Invoices\Actions\RecalculateInvoice;
 use App\Features\Invoices\Enums\InvoiceStatus;
 use App\Features\Invoices\Models\Invoice;
 use App\Features\Reservations\Models\Reservation;
+use App\Features\Reservations\Models\ReservationItem;
 use Illuminate\Support\Facades\DB;
 
 final class ConvertReservationToInvoice
@@ -31,14 +32,14 @@ final class ConvertReservationToInvoice
                 'invoice_terms' => '',
             ]);
 
-            foreach ($locked->items()->get() as $item) {
+            foreach ($locked->items()->with('room')->get() as $item) {
                 $invoice->items()->create([
                     'item_tax_rate_id' => $item->item_tax_rate_id,
                     'item_tax_included' => $item->item_tax_included,
                     'item_product_id' => $item->item_product_id,
                     'item_date_added' => now()->toDateString(),
                     'item_name' => $item->item_name,
-                    'item_description' => $item->item_description,
+                    'item_description' => $this->invoiceItemDescription($item),
                     'item_quantity' => $item->item_quantity,
                     'item_price' => $item->item_price,
                     'item_discount_amount' => $item->item_discount_amount,
@@ -61,5 +62,14 @@ final class ConvertReservationToInvoice
 
             return $invoice->refresh();
         });
+    }
+
+    private function invoiceItemDescription(ReservationItem $item): string
+    {
+        return collect([
+            $item->room ? 'Zimmer: '.$item->room->displayName() : null,
+            $item->arrival_date ? 'Anreise: '.$item->arrival_date->format('d.m.Y') : null,
+            $item->departure_date ? 'Abreise: '.$item->departure_date->format('d.m.Y') : null,
+        ])->filter()->implode("\n");
     }
 }
