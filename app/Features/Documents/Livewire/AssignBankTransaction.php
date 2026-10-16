@@ -146,8 +146,8 @@ class AssignBankTransaction extends Component implements HasActions, HasSchemas,
     {
         return $table
             ->identifier('documentBankTransactions')
-            ->heading('Banktransaktionen')
-            ->description('Nur negative Banktransaktionen werden für Paperless-Dokumente angeboten.')
+            ->heading(__('documents::messages.assignment.transactions_heading'))
+            ->description(__('documents::messages.assignment.transactions_description'))
             ->query(fn (): Builder => app(BankTransactionCandidateQuery::class)
                 ->query($this->paperlessDocument())
                 ->when(
@@ -296,8 +296,8 @@ class AssignBankTransaction extends Component implements HasActions, HasSchemas,
             ->searchPlaceholder('Name, IBAN, Zweck, Referenz oder Betrag')
             ->paginated([5, 10, 25])
             ->defaultPaginationPageOption(5)
-            ->emptyStateHeading('Keine passenden Banktransaktionen gefunden')
-            ->emptyStateDescription('Passen Sie die Suche oder den Zuordnungsstatus an.')
+            ->emptyStateHeading(__('documents::messages.assignment.empty_heading'))
+            ->emptyStateDescription(__('documents::messages.assignment.empty_description'))
             ->emptyStateIcon(Heroicon::OutlinedBuildingLibrary);
     }
 
@@ -307,11 +307,13 @@ class AssignBankTransaction extends Component implements HasActions, HasSchemas,
             ->components([
                 Toggle::make('showAssigned')
                     ->label(fn (?bool $state): string => $state
-                        ? 'Bereits zugeordnet'
-                        : 'Nicht zugeordnet')
+                        ? __('documents::messages.assignment.assigned')
+                        : __('documents::messages.assignment.unassigned'))
                     ->hiddenLabel()
                     ->extraAttributes(function (?bool $state): array {
-                        $status = $state ? 'Bereits zugeordnet' : 'Nicht zugeordnet';
+                        $status = $state
+                            ? __('documents::messages.assignment.assigned')
+                            : __('documents::messages.assignment.unassigned');
 
                         return [
                             'aria-label' => $status,
