@@ -109,6 +109,7 @@ class Documents extends Page implements HasTable
                         'unassigned' => 'Nicht zugeordnet',
                         'assigned' => 'Zugeordnet',
                     ])
+                    ->default('unassigned')
                     ->placeholder('Alle'),
             ])
             ->toolbarActions([

@@ -61,6 +61,7 @@ class DocumentsPageTest extends TestCase
 
         Livewire::actingAs($user)
             ->test(Documents::class)
+            ->assertSet('tableFilters.status.value', 'unassigned')
             ->assertSee('Aktualisieren')
             ->assertDontSee('Eingangsrechnung Oktober')
             ->callTableAction('refreshPaperlessDocuments')
@@ -252,6 +253,9 @@ class DocumentsPageTest extends TestCase
             ->assertDontSee('Bereits zugeordnet')
             ->assertDontSee('Noch nicht zugeordnet')
             ->callTableAction('refreshPaperlessDocuments')
+            ->assertDontSee('Bereits zugeordnet')
+            ->assertSee('Noch nicht zugeordnet')
+            ->filterTable('status')
             ->assertSee('Bereits zugeordnet')
             ->assertSee('Noch nicht zugeordnet')
             ->filterTable('status', 'unassigned')
