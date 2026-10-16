@@ -13,7 +13,7 @@ final class PaperlessClient
     public const DOCUMENT_PREVIEW_WINDOW = 'paperless-document-preview';
 
     /** @return array{count: int, documents: list<PaperlessDocument>} */
-    public function documents(string $search = '', int $page = 1, int $perPage = 20): array
+    public function documents(string $search = '', int $page = 1, int $perPage = 20, bool $cacheDocuments = true): array
     {
         $payload = $this->request()->get('api/documents/', array_filter([
             'page' => max(1, $page),
@@ -33,14 +33,32 @@ final class PaperlessClient
             ->values()
             ->all();
 
-        foreach ($documents as $document) {
-            Cache::put($this->documentCacheKey($document->id), $document->toArray(), now()->addMinutes(5));
+        if ($cacheDocuments) {
+            foreach ($documents as $document) {
+                Cache::put($this->documentCacheKey($document->id), $document->toArray(), now()->addMinutes(5));
+            }
         }
 
         return [
             'count' => max(0, (int) ($payload['count'] ?? count($documents))),
             'documents' => $documents,
         ];
+    }
+
+    /** @return list<PaperlessDocument> */
+    public function allDocuments(): array
+    {
+        $page = 1;
+        $perPage = 50;
+        $documents = [];
+
+        do {
+            $result = $this->documents(page: $page, perPage: $perPage, cacheDocuments: false);
+            $documents = [...$documents, ...$result['documents']];
+            $page++;
+        } while ($result['documents'] !== [] && count($documents) < $result['count']);
+
+        return $documents;
     }
 
     public function document(int $documentId, bool $fresh = false): PaperlessDocument

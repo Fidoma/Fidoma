@@ -197,6 +197,66 @@ class DocumentsPageTest extends TestCase
             && ! str_contains($request->url(), 'document_type__id='));
     }
 
+    public function test_expense_documents_can_be_filtered_across_all_paperless_pages_and_refreshed(): void
+    {
+        Config::set('services.paperless.url', 'https://paperless-all-documents.test');
+        Config::set('services.paperless.token', 'test-token');
+        Http::preventStrayRequests();
+        Http::fake(function ($request) {
+            if (str_contains($request->url(), '/api/correspondents/')) {
+                return Http::response(['results' => []]);
+            }
+
+            $page = (int) ($request->data()['page'] ?? 1);
+
+            return Http::response([
+                'count' => 2,
+                'results' => [[
+                    'id' => $page === 1 ? 77 : 88,
+                    'title' => $page === 1 ? 'Bereits zugeordnet' : 'Noch nicht zugeordnet',
+                    'document_date' => $page === 1 ? '2026-10-15' : '2026-10-14',
+                    'custom_fields' => [],
+                ]],
+            ]);
+        });
+
+        $transaction = app(CreateBankTransaction::class)->handle([
+            'account_iban' => 'DE02120300000000202051',
+            'booking_date' => '2026-10-15',
+            'amount' => '-119.0000',
+            'currency' => 'EUR',
+            'purpose' => 'Bereits zugeordnete Ausgabe',
+            'pending' => false,
+        ]);
+        BankTransactionMapping::query()->create([
+            'bank_transaction_id' => $transaction->getKey(),
+            'payment_id' => null,
+            'document_id' => 77,
+        ]);
+
+        $component = Livewire::actingAs(User::factory()->create())
+            ->test(Documents::class)
+            ->assertTableActionExists('refreshPaperlessDocuments')
+            ->assertTableFilterExists('status')
+            ->assertSee('Bereits zugeordnet')
+            ->assertSee('Noch nicht zugeordnet')
+            ->filterTable('status', 'unassigned')
+            ->assertDontSee('Bereits zugeordnet')
+            ->assertSee('Noch nicht zugeordnet')
+            ->callTableAction('refreshPaperlessDocuments')
+            ->assertSet('tableFilters.status.value', 'unassigned')
+            ->assertSee('Noch nicht zugeordnet');
+
+        $documentRequests = collect(Http::recorded())
+            ->filter(fn (array $record): bool => str_contains($record[0]->url(), '/api/documents/'));
+
+        $this->assertCount(4, $documentRequests);
+        $this->assertSame([1, 2, 1, 2], $documentRequests
+            ->map(fn (array $record): int => (int) ($record[0]->data()['page'] ?? 1))
+            ->values()
+            ->all());
+    }
+
     public function test_assignment_action_opens_the_slide_over_content(): void
     {
         Config::set('services.paperless.url', 'https://paperless.test');
@@ -233,6 +293,7 @@ class DocumentsPageTest extends TestCase
         $paperlessPreviewScript = data_get($component->effects, 'xjs.0.expression', '');
 
         $this->assertStringContainsString('window.paperlessDocumentPreview', $paperlessPreviewScript);
+        $this->assertStringNotContainsString('.focus()', $paperlessPreviewScript);
         $this->assertStringContainsString(
             'https://paperless.test/documents/77/details',
             str_replace('\\/', '/', $paperlessPreviewScript),
