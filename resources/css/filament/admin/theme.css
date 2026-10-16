@@ -153,7 +153,7 @@
 }
 
 .fi-fo-summary-leading-component {
-    @apply w-full;
+    @apply w-full self-center;
 }
 
 .fi-fo-summary-leading-component .fi-fo-field-wrp {

@@ -17,7 +17,7 @@ class DocumentItemActionsTest extends TestCase
         foreach (['/admin/invoices/create', '/admin/quotes/create', '/admin/reservations/create'] as $url) {
             $expectedActions = ['Position duplizieren'];
 
-            if ($url === '/admin/invoices/create') {
+            if (in_array($url, ['/admin/invoices/create', '/admin/quotes/create'], strict: true)) {
                 $expectedActions[] = 'Zeile hinzufügen';
             }
 
@@ -26,7 +26,7 @@ class DocumentItemActionsTest extends TestCase
 
             $response = $this->get($url)->assertOk()->assertSeeTextInOrder($expectedActions);
 
-            if ($url === '/admin/invoices/create') {
+            if (in_array($url, ['/admin/invoices/create', '/admin/quotes/create'], strict: true)) {
                 $response
                     ->assertSee('fi-fo-summary-actions-in-table', escape: false)
                     ->assertSee('fi-fo-summary-table-actions', escape: false)

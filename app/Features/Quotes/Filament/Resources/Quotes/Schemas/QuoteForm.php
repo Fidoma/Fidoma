@@ -42,6 +42,7 @@ class QuoteForm
             ->components([
                 Hidden::make('quote_discount_percent')->default(0),
                 Hidden::make('quote_discount_amount')->default(0),
+                Hidden::make('notes')->default(fn (): string => app(QuoteDefaults::class)->notes()),
                 Repeater::make('quoteTaxRates')
                     ->relationship()
                     ->defaultItems(0)
@@ -116,10 +117,10 @@ class QuoteForm
                             ->orderColumn('item_order')
                             ->defaultItems(1)
                             ->minItems(1)
+                            ->addable(false)
                             ->deletable(false)
                             ->reorderable()
                             ->compact()
-                            ->addAction(fn (Action $action): Action => $action->label('Zeile hinzufügen')->icon(Heroicon::Plus))
                             ->table([
                                 TableColumn::make('Position')->markAsRequired()->width('190px'),
                                 TableColumn::make('Beschreibung')->width('190px'),
@@ -201,6 +202,11 @@ class QuoteForm
                                             ->icon(Heroicon::OutlinedSquare2Stack)
                                             ->color('gray')
                                             ->action(fn (Component $component) => self::duplicateItem($component)),
+                                        Action::make('addItem')
+                                            ->label('Zeile hinzufügen')
+                                            ->icon(Heroicon::Plus)
+                                            ->color('gray')
+                                            ->action(fn (Component $component) => self::addItem($component)),
                                         Action::make('toggleTaxIncluded')
                                             ->label('Preis inklusive Steuer')
                                             ->icon(fn (Get $get): Heroicon => $get('item_tax_included')
@@ -225,6 +231,16 @@ class QuoteForm
                                 ])->alignCenter(),
                             ])
                             ->summaryLayout(tableColumnCount: 9, leadingColumnSpan: 5)
+                            ->summaryActionsInTable()
+                            ->summaryLeadingComponent(
+                                Textarea::make('notes')
+                                    ->label('Angebotsbedingungen')
+                                    ->hiddenLabel()
+                                    ->extraAttributes([
+                                        'class' => 'ring-1! ring-gray-950/10! shadow-sm! dark:ring-white/20!',
+                                    ])
+                                    ->rows(4),
+                            )
                             ->summaryActions([
                                 Action::make('editDiscount')
                                     ->label('Rabatt')
@@ -296,15 +312,6 @@ class QuoteForm
                                     'Gesamtsumme' => self::formatAmount($totals['total']),
                                 ];
                             })
-                            ->columnSpanFull(),
-                    ]),
-                Section::make('Angebotsnotizen')
-                    ->columnSpan(['default' => 12])
-                    ->schema([
-                        Textarea::make('notes')
-                            ->hiddenLabel()
-                            ->default(fn (): string => app(QuoteDefaults::class)->notes())
-                            ->rows(4)
                             ->columnSpanFull(),
                     ]),
             ]);
@@ -440,6 +447,44 @@ class QuoteForm
         }
 
         $repeater->rawState($items);
+        $repeater->callAfterStateUpdated();
+    }
+
+    private static function addItem(Component $component): void
+    {
+        $repeater = $component->getParentRepeater();
+        $itemKey = $component->getParentRepeaterItem()?->getStatePath(isAbsolute: false);
+
+        if ((! $repeater) || blank($itemKey)) {
+            return;
+        }
+
+        $items = $repeater->getRawState() ?? [];
+
+        if (! array_key_exists($itemKey, $items)) {
+            return;
+        }
+
+        $newKey = $repeater->generateUuid();
+
+        if (! $newKey) {
+            $items[] = [];
+            $newKey = array_key_last($items);
+            unset($items[$newKey]);
+        }
+
+        $itemsWithNewRow = [];
+
+        foreach ($items as $key => $item) {
+            $itemsWithNewRow[$key] = $item;
+
+            if ((string) $key === (string) $itemKey) {
+                $itemsWithNewRow[$newKey] = [];
+            }
+        }
+
+        $repeater->rawState($itemsWithNewRow);
+        $repeater->getChildSchema($newKey)->fill();
         $repeater->callAfterStateUpdated();
     }
 }
