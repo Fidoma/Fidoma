@@ -121,7 +121,17 @@ class ReservationTest extends TestCase
             ->assertSeeText('Reservierungsdatum')
             ->assertSeeText('Status')
             ->assertDontSeeText('Gültig bis');
-        $this->get('/admin/reservations/belegungsplan')->assertOk();
+        $this->get('/admin/reservations/belegungsplan')
+            ->assertOk()
+            ->assertSeeText('Senkrechter Rand:')
+            ->assertSeeText('Offen')
+            ->assertSeeText('Bestätigt')
+            ->assertSeeText('Storniert')
+            ->assertSeeText('Oberer Balken:')
+            ->assertSeeText('Offen / nicht berechnet')
+            ->assertSeeText('Bezahlt')
+            ->assertDontSeeText('Die Reservierung wurde noch nicht bestätigt.')
+            ->assertDontSeeText('Die zugehörige Rechnung ist vollständig bezahlt.');
         $this->get('/admin/rooms')->assertOk();
 
         $schedule = Livewire::test(ReservationSchedule::class);

@@ -95,36 +95,6 @@
 .reservation-event-content strong { font-size: .8rem; }
 .reservation-event-content span { color: rgb(100 116 139); font-size: .7rem; }
 
-.reservation-billing-legend {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: .5rem;
-    color: rgb(100 116 139);
-    font-size: .8rem;
-}
-
-.reservation-legend {
-    display: inline-flex;
-    align-items: center;
-    gap: .4rem;
-    padding: .25rem .6rem;
-    border: 1px solid rgb(229 231 235);
-    border-radius: 9999px;
-    background: white;
-    color: rgb(55 65 81);
-}
-
-.reservation-legend::before {
-    width: .5rem;
-    height: .5rem;
-    border-radius: 9999px;
-    background: var(--reservation-status-color);
-    content: '';
-}
-
-.reservation-billing-open { --reservation-status-color: #94a3b8; }
-.reservation-billing-paid { --reservation-status-color: #22c55e; }
 .reservation-billing-stripe-open { background-color: #94a3b8; }
 .reservation-billing-stripe-paid { background-color: #22c55e; }
 
@@ -146,10 +116,4 @@
 
 .dark .reservation-scheduler-card .scheduler_default_rowheader_inner {
     border-color: rgb(55 65 81);
-}
-
-.dark .reservation-legend {
-    border-color: rgb(55 65 81);
-    background: rgb(17 24 39);
-    color: rgb(209 213 219);
 }

@@ -5,10 +5,18 @@
         <div id="reservations-scheduler" aria-label="Belegungsplan"></div>
     </div>
 
-    <div class="reservation-billing-legend">
-        <span>Abrechnung:</span>
-        <span class="reservation-legend reservation-billing-open">Offen / nicht berechnet</span>
-        <span class="reservation-legend reservation-billing-paid">Bezahlt</span>
+    <div class="flex flex-col gap-2 text-sm text-gray-600 dark:text-gray-400">
+        <div class="flex flex-wrap items-center gap-2">
+            <span>Senkrechter Rand:</span>
+            <x-filament::badge color="gray">Offen</x-filament::badge>
+            <x-filament::badge color="success">Bestätigt</x-filament::badge>
+            <x-filament::badge color="danger">Storniert</x-filament::badge>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+            <span>Oberer Balken:</span>
+            <x-filament::badge color="gray">Offen / nicht berechnet</x-filament::badge>
+            <x-filament::badge color="success">Bezahlt</x-filament::badge>
+        </div>
     </div>
 
     @assets
