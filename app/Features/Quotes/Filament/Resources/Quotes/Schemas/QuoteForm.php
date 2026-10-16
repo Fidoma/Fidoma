@@ -196,6 +196,11 @@ class QuoteForm
                                     ->content(fn (Get $get): string => self::formatAmount(self::calculateItemAmounts($get)['total'])),
                                 Actions::make([
                                     ActionGroup::make([
+                                        Action::make('duplicateItem')
+                                            ->label('Position duplizieren')
+                                            ->icon(Heroicon::OutlinedSquare2Stack)
+                                            ->color('gray')
+                                            ->action(fn (Component $component) => self::duplicateItem($component)),
                                         Action::make('toggleTaxIncluded')
                                             ->label('Preis inklusive Steuer')
                                             ->icon(fn (Get $get): Heroicon => $get('item_tax_included')
@@ -406,6 +411,33 @@ class QuoteForm
         }
 
         unset($items[$itemKey]);
+
+        $repeater->rawState($items);
+        $repeater->callAfterStateUpdated();
+    }
+
+    private static function duplicateItem(Component $component): void
+    {
+        $repeater = $component->getParentRepeater();
+        $itemKey = $component->getParentRepeaterItem()?->getStatePath(isAbsolute: false);
+
+        if ((! $repeater) || blank($itemKey)) {
+            return;
+        }
+
+        $items = $repeater->getRawState() ?? [];
+
+        if (! array_key_exists($itemKey, $items)) {
+            return;
+        }
+
+        $newKey = $repeater->generateUuid();
+
+        if ($newKey) {
+            $items[$newKey] = $items[$itemKey];
+        } else {
+            $items[] = $items[$itemKey];
+        }
 
         $repeater->rawState($items);
         $repeater->callAfterStateUpdated();

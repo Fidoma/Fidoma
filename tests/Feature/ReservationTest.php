@@ -2,18 +2,23 @@
 
 namespace Tests\Feature;
 
+use App\Features\Clients\Filament\Resources\Clients\ClientResource;
 use App\Features\Clients\Models\Client;
+use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
 use App\Features\Invoices\Models\Invoice;
 use App\Features\Products\Models\Product;
 use App\Features\Reservations\Actions\ConvertReservationToInvoice;
 use App\Features\Reservations\Actions\CreateReservation;
 use App\Features\Reservations\Actions\RecalculateReservation;
 use App\Features\Reservations\Enums\ReservationStatus;
+use App\Features\Reservations\Filament\Resources\Reservations\Pages\ListReservations;
+use App\Features\Reservations\Filament\Resources\Reservations\ReservationResource;
 use App\Features\Reservations\Models\Room;
 use App\Features\TaxRates\Models\TaxRate;
 use App\Features\Units\Models\Unit;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class ReservationTest extends TestCase
@@ -65,6 +70,35 @@ class ReservationTest extends TestCase
         $this->assertSame(1, $firstInvoice->items()->count());
         $this->assertSame('321.00', $firstInvoice->amount->invoice_total);
         $this->assertSame($firstInvoice->getKey(), $reservation->refresh()->invoice_id);
+
+        $component = Livewire::test(ListReservations::class)
+            ->assertCanSeeTableRecords([$reservation])
+            ->assertTableColumnExists(
+                'reservation_number',
+                fn ($column): bool => $column->getUrl() === ReservationResource::getUrl('edit', ['record' => $reservation]),
+                $reservation,
+            )
+            ->assertTableColumnExists(
+                'invoice.invoice_number',
+                fn ($column): bool => $column->getUrl() === InvoiceResource::getUrl('edit', ['record' => $firstInvoice]),
+                $reservation,
+            )
+            ->assertTableColumnExists(
+                'client.client_name',
+                fn ($column): bool => $column->getUrl() === ClientResource::getUrl('view', ['record' => $client]),
+                $reservation,
+            )
+            ->assertTableColumnExists(
+                'items.0.arrival_date',
+                fn ($column): bool => $column->getUrl() === null,
+                $reservation,
+            );
+
+        $this->assertNull($component->instance()->getTable()->getRecordUrl($reservation));
+        $this->assertSame(
+            ['reservation_number', 'invoice.invoice_number', 'client.client_name'],
+            array_slice(array_keys($component->instance()->getTable()->getColumns()), 0, 3),
+        );
     }
 
     public function test_authenticated_user_can_open_reservation_pages(): void
