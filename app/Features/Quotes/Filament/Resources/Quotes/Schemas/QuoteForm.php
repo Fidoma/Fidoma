@@ -236,6 +236,7 @@ class QuoteForm
                                 Textarea::make('notes')
                                     ->label('Angebotsbedingungen')
                                     ->hiddenLabel()
+                                    ->placeholder('Zahlungsbedingungen ...')
                                     ->extraAttributes([
                                         'class' => 'ring-1! ring-gray-950/10! shadow-sm! dark:ring-white/20!',
                                     ])
