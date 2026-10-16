@@ -231,6 +231,9 @@ class InvoiceForm
                             Textarea::make('invoice_terms')
                                 ->label('Zahlungsbedingungen')
                                 ->hiddenLabel()
+                                ->extraAttributes([
+                                    'class' => 'ring-1! ring-gray-950/10! shadow-sm! dark:ring-white/20!',
+                                ])
                                 ->rows(7),
                         )
                         ->summaryActions([
