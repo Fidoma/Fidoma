@@ -12,11 +12,13 @@ use App\Features\Reservations\Actions\CreateReservation;
 use App\Features\Reservations\Actions\RecalculateReservation;
 use App\Features\Reservations\Enums\ReservationStatus;
 use App\Features\Reservations\Filament\Resources\Reservations\Pages\ListReservations;
+use App\Features\Reservations\Filament\Resources\Reservations\Pages\ReservationSchedule;
 use App\Features\Reservations\Filament\Resources\Reservations\ReservationResource;
 use App\Features\Reservations\Models\Room;
 use App\Features\TaxRates\Models\TaxRate;
 use App\Features\Units\Models\Unit;
 use App\Models\User;
+use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -99,6 +101,8 @@ class ReservationTest extends TestCase
             ['reservation_number', 'invoice.invoice_number', 'client.client_name'],
             array_slice(array_keys($component->instance()->getTable()->getColumns()), 0, 3),
         );
+        $this->assertFalse(collect($component->instance()->getTable()->getToolbarActions())
+            ->contains(fn ($action): bool => $action->getName() === 'schedule'));
     }
 
     public function test_authenticated_user_can_open_reservation_pages(): void
@@ -115,5 +119,23 @@ class ReservationTest extends TestCase
             ->assertDontSeeText('Gültig bis');
         $this->get('/admin/reservations/belegungsplan')->assertOk();
         $this->get('/admin/rooms')->assertOk();
+
+        $schedule = Livewire::test(ReservationSchedule::class);
+        $this->assertNull($schedule->instance()->getHeading());
+        $schedule
+            ->assertDontSee('Reservierung hinzufügen')
+            ->assertDontSee('Liste');
+
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        $navigationItems = ReservationResource::getNavigationItems();
+
+        $this->assertSame(['Reservierungen', 'Belegungsplan'], array_map(
+            fn ($item): string => $item->getLabel(),
+            $navigationItems,
+        ));
+        $this->assertSame(
+            ReservationResource::getUrl('schedule'),
+            $navigationItems[1]->getUrl(),
+        );
     }
 }

@@ -17,6 +17,8 @@ use UnitEnum;
 
 class EmailTemplateResource extends Resource
 {
+    protected static bool $shouldRegisterNavigation = false;
+
     protected static ?string $model = EmailTemplate::class;
 
     protected static ?string $modelLabel = 'E-Mail-Vorlage';

@@ -17,6 +17,8 @@ use UnitEnum;
 
 class InvoiceGroupResource extends Resource
 {
+    protected static bool $shouldRegisterNavigation = false;
+
     protected static ?string $model = InvoiceGroup::class;
 
     protected static ?string $modelLabel = 'Nummernkreis';

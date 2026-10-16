@@ -27,8 +27,6 @@ class EditReservation extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Action::make('schedule')->label('Belegungsplan')->icon(Heroicon::OutlinedCalendarDays)
-                ->url(ReservationResource::getUrl('schedule'))->color('gray'),
             Action::make('invoice')
                 ->label(fn (): string => $this->record->invoice_id ? 'Rechnung öffnen' : 'In Rechnung umwandeln')
                 ->icon(Heroicon::OutlinedDocumentText)

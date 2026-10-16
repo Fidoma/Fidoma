@@ -10,6 +10,7 @@ use App\Features\Reservations\Filament\Resources\Reservations\Schemas\Reservatio
 use App\Features\Reservations\Filament\Resources\Reservations\Tables\ReservationsTable;
 use App\Features\Reservations\Models\Reservation;
 use BackedEnum;
+use Filament\Navigation\NavigationItem;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -39,6 +40,34 @@ class ReservationResource extends Resource
     public static function table(Table $table): Table
     {
         return ReservationsTable::configure($table);
+    }
+
+    /** @return array<NavigationItem> */
+    public static function getNavigationItems(): array
+    {
+        $items = parent::getNavigationItems();
+
+        if ($items === []) {
+            return [];
+        }
+
+        $routeBaseName = static::getRouteBaseName();
+        $items[0]->isActiveWhen(fn (): bool => request()->routeIs([
+            $routeBaseName.'.index',
+            $routeBaseName.'.create',
+            $routeBaseName.'.edit',
+        ]));
+
+        return [
+            ...$items,
+            NavigationItem::make('Belegungsplan')
+                ->key(static::class.'::schedule')
+                ->group(static::getNavigationGroup())
+                ->icon(Heroicon::OutlinedCalendarDateRange)
+                ->sort(2)
+                ->url(static::getUrl('schedule'))
+                ->isActiveWhen(fn (): bool => request()->routeIs($routeBaseName.'.schedule')),
+        ];
     }
 
     public static function getPages(): array

@@ -11,6 +11,7 @@ use App\Features\Reservations\Filament\Resources\Reservations\ReservationResourc
 use App\Features\Reservations\Models\Reservation;
 use App\Features\Reservations\Models\ReservationItem;
 use App\Features\Reservations\Models\Room;
+use App\Filament\Concerns\WithoutPageHeading;
 use Carbon\CarbonImmutable;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
@@ -23,6 +24,8 @@ use Illuminate\Support\Facades\DB;
 
 class ReservationSchedule extends Page
 {
+    use WithoutPageHeading;
+
     protected static string $resource = ReservationResource::class;
 
     protected string $view = 'filament.resources.reservations.pages.reservation-schedule';
@@ -123,15 +126,6 @@ class ReservationSchedule extends Page
                 Notification::make()->success()->title('Reservierung wurde erstellt.')->send();
                 $action->redirect(ReservationResource::getUrl('edit', ['record' => $reservation]));
             });
-    }
-
-    public function listAction(): Action
-    {
-        return Action::make('list')
-            ->label('Liste')
-            ->icon(Heroicon::OutlinedListBullet)
-            ->color('gray')
-            ->url(ReservationResource::getUrl());
     }
 
     /** @return array{startDate: string, days: int, resources: array<int, array<string, mixed>>, events: array<int, array<string, mixed>>} */

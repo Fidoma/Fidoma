@@ -2,6 +2,12 @@
 
 namespace App\Providers\Filament;
 
+use App\Features\EmailTemplates\Filament\Resources\EmailTemplates\EmailTemplateResource;
+use App\Features\InvoiceGroups\Filament\Resources\InvoiceGroups\InvoiceGroupResource;
+use App\Features\TaxRates\Filament\Resources\TaxRates\TaxRateResource;
+use App\Features\Users\Filament\Resources\Users\UserResource;
+use App\Filament\Pages\InvoiceLayout;
+use Filament\Actions\Action;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -30,6 +36,43 @@ class AdminPanelProvider extends PanelProvider
             ->globalSearch(false)
             ->colors([
                 'primary' => Color::Amber,
+            ])
+            ->userMenuItems([
+                [
+                    'logout' => fn (Action $action): Action => $action->sort(0),
+                ],
+                [
+                    Action::make('pdfLayouts')
+                        ->label(InvoiceLayout::getNavigationLabel())
+                        ->icon(InvoiceLayout::getNavigationIcon())
+                        ->url(fn (): string => InvoiceLayout::getUrl())
+                        ->visible(fn (): bool => InvoiceLayout::canAccess())
+                        ->sort(0),
+                    Action::make('emailTemplates')
+                        ->label(EmailTemplateResource::getNavigationLabel())
+                        ->icon(EmailTemplateResource::getNavigationIcon())
+                        ->url(fn (): string => EmailTemplateResource::getUrl())
+                        ->visible(fn (): bool => EmailTemplateResource::canAccess())
+                        ->sort(1),
+                    Action::make('invoiceGroups')
+                        ->label(InvoiceGroupResource::getNavigationLabel())
+                        ->icon(InvoiceGroupResource::getNavigationIcon())
+                        ->url(fn (): string => InvoiceGroupResource::getUrl())
+                        ->visible(fn (): bool => InvoiceGroupResource::canAccess())
+                        ->sort(2),
+                    Action::make('taxRates')
+                        ->label(TaxRateResource::getNavigationLabel())
+                        ->icon(TaxRateResource::getNavigationIcon())
+                        ->url(fn (): string => TaxRateResource::getUrl())
+                        ->visible(fn (): bool => TaxRateResource::canAccess())
+                        ->sort(3),
+                    Action::make('users')
+                        ->label(UserResource::getNavigationLabel())
+                        ->icon(UserResource::getNavigationIcon())
+                        ->url(fn (): string => UserResource::getUrl())
+                        ->visible(fn (): bool => UserResource::canAccess())
+                        ->sort(4),
+                ],
             ])
             ->discoverResources(in: app_path('Features'), for: 'App\Features')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')

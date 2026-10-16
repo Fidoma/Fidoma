@@ -1,8 +1,6 @@
 @php($schedule = $this->schedule())
 
 <x-filament-panels::page>
-    <x-filament::actions :actions="[$this->createAction, $this->listAction]" />
-
     <div class="reservation-scheduler-card" wire:ignore>
         <div id="reservations-scheduler" aria-label="Belegungsplan"></div>
     </div>

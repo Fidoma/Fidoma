@@ -50,9 +50,6 @@ class ReservationsTable
             ])
             ->recordUrl(null)
             ->toolbarActions([
-                Action::make('schedule')
-                    ->label('Belegungsplan')->icon(Heroicon::OutlinedCalendarDays)
-                    ->url(ReservationResource::getUrl('schedule')),
                 CreateAction::make()->label('Reservierung')->icon(Heroicon::Plus),
             ])
             ->recordActions([

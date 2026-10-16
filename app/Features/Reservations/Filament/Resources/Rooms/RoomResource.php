@@ -31,7 +31,7 @@ class RoomResource extends Resource
 
     protected static string|\UnitEnum|null $navigationGroup = 'Reservierungen';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 3;
 
     protected static ?string $recordTitleAttribute = 'room_number';
 
