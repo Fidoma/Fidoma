@@ -2,12 +2,13 @@
 
 namespace App\Filament\Pages;
 
-use App\Features\BankTransactions\Models\BankTransaction;
 use App\Features\Clients\Models\Client;
 use App\Features\Invoices\Actions\GenerateInvoicePdf;
+use App\Features\Invoices\Actions\GenerateInvoiceXRechnung;
 use App\Features\Invoices\Models\Invoice;
 use App\Features\Invoices\Models\InvoiceItem;
 use App\Features\PaymentMethods\Models\PaymentMethod;
+use App\Features\Payments\Models\Payment;
 use App\Features\Reports\Services\InvoiceReportService;
 use App\Features\Reports\Services\PaymentReportService;
 use App\Features\Reports\Services\ReportExportService;
@@ -17,8 +18,10 @@ use App\Filament\Concerns\WithoutPageHeading;
 use BackedEnum;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\CarbonImmutable;
+use DomainException;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
@@ -61,8 +64,6 @@ class Reports extends Page implements HasTable
     public ?string $startDate = null;
 
     public ?string $endDate = null;
-
-    public string $paymentDirection = 'all';
 
     public ?int $paymentMethodId = null;
 
@@ -113,11 +114,6 @@ class Reports extends Page implements HasTable
         $this->taxationType = $type;
     }
 
-    public function updatedPaymentDirection(): void
-    {
-        $this->resetTable();
-    }
-
     public function updatedPaymentMethodId(): void
     {
         $this->resetTable();
@@ -149,7 +145,7 @@ class Reports extends Page implements HasTable
 
         return match ($this->activeTab) {
             'payments' => app(PaymentReportService::class)->summary(
-                $start, $end, $this->paymentDirection, $this->paymentMethodId,
+                $start, $end, $this->paymentMethodId,
             ),
             'invoices' => app(InvoiceReportService::class)->summary(
                 $start, $end, $this->invoiceStatus, $this->clientId,
@@ -255,26 +251,22 @@ class Reports extends Page implements HasTable
     {
         return $table
             ->query(fn (): Builder => app(PaymentReportService::class)->query(
-                ...[...$this->dates(), $this->paymentDirection, $this->paymentMethodId],
+                ...[...$this->dates(), $this->paymentMethodId],
             ))
             ->columns([
-                TextColumn::make('booking_date')->label('Zahlungsdatum')->date('d.m.Y')->sortable(),
-                TextColumn::make('payment_type')->label('Zahlungsart')
-                    ->state(fn (BankTransaction $record): string => app(PaymentReportService::class)->paymentType($record)),
-                TextColumn::make('counterparty_name')->label('Empfänger / Auftraggeber')->placeholder('–')->searchable()->sortable(),
-                TextColumn::make('purpose')->label('Verwendungszweck')->placeholder('–')->searchable()->limit(60)->wrap(),
-                TextColumn::make('amount')->label('Betrag')->money(fn (BankTransaction $record): string => $record->currency ?: 'EUR', locale: 'de')
-                    ->color(fn (BankTransaction $record): string => (float) $record->amount < 0 ? 'danger' : 'success')->sortable(),
-                TextColumn::make('account_iban')->label('Bankkonto')->placeholder('–')->searchable(),
-                TextColumn::make('invoice_number')->label('Rechnung')->placeholder('–')
-                    ->state(fn (BankTransaction $record): ?string => app(PaymentReportService::class)->invoiceNumber($record)),
+                TextColumn::make('payment_date')->label('Zahlungsdatum')->date('d.m.Y')->sortable(),
+                TextColumn::make('invoice.client.client_name')->label('Kunde')->placeholder('–')->sortable(),
+                TextColumn::make('invoice.invoice_number')->label('Rechnung')->placeholder('–')->sortable(),
+                TextColumn::make('paymentMethod.payment_method_name')->label('Zahlungsart')->placeholder('–'),
+                TextColumn::make('payment_amount')->label('Betrag')->money('EUR', locale: 'de')->sortable(),
+                TextColumn::make('payment_note')->label('Notiz')->placeholder('–')->wrap(),
             ])
-            ->defaultSort('booking_date', 'desc')
+            ->defaultSort('payment_date', 'desc')
             ->searchable(false)
             ->paginated([10, 25, 50])
             ->defaultPaginationPageOption(25)
             ->emptyStateHeading('Keine Zahlungen gefunden')
-            ->emptyStateDescription('Für den gewählten Zeitraum und die gesetzten Filter liegen keine Bankbewegungen vor.')
+            ->emptyStateDescription('Für den gewählten Zeitraum und die gesetzten Filter liegen keine Zahlungen vor.')
             ->emptyStateIcon(Heroicon::OutlinedBanknotes);
     }
 
@@ -309,6 +301,8 @@ class Reports extends Page implements HasTable
             ->toolbarActions([
                 BulkAction::make('downloadPdfs')->label('PDFs als ZIP')->icon(Heroicon::OutlinedArchiveBoxArrowDown)
                     ->action(fn (Collection $records): BinaryFileResponse => $this->downloadInvoicePdfs($records)),
+                BulkAction::make('downloadXmls')->label('XML als ZIP')->icon(Heroicon::OutlinedCodeBracketSquare)
+                    ->action(fn (Collection $records): BinaryFileResponse => $this->downloadInvoiceXmls($records)),
             ])
             ->defaultSort('invoice_date_created', 'desc')
             ->searchable(false)
@@ -356,11 +350,11 @@ class Reports extends Page implements HasTable
 
         return match ($this->activeTab) {
             'payments' => [[
-                'Zahlungsdatum', 'Zahlungsart', 'Empfänger / Auftraggeber', 'Verwendungszweck', 'Betrag', 'Währung', 'Bankkonto', 'Rechnung',
-            ], $records->map(fn (BankTransaction $record): array => [
-                $record->booking_date?->format('d.m.Y'), app(PaymentReportService::class)->paymentType($record),
-                $record->counterparty_name, $record->purpose, (float) $record->amount, $record->currency,
-                $record->account_iban, app(PaymentReportService::class)->invoiceNumber($record),
+                'Zahlungsdatum', 'Kunde', 'Rechnung', 'Zahlungsart', 'Betrag', 'Notiz',
+            ], $records->map(fn (Payment $record): array => [
+                $record->payment_date?->format('d.m.Y'), $record->invoice?->client?->client_name,
+                $record->invoice?->invoice_number, $record->paymentMethod?->payment_method_name,
+                (float) $record->payment_amount, $record->payment_note,
             ])],
             'invoices' => [[
                 'Rechnungsnummer', 'Kunde', 'Rechnungsdatum', 'Fälligkeitsdatum', 'Netto', 'Umsatzsteuer', 'Brutto', 'Zahlungsstatus',
@@ -416,5 +410,41 @@ class Reports extends Page implements HasTable
         $zip->close();
 
         return response()->download($path, 'fidoma-rechnungen.zip')->deleteFileAfterSend();
+    }
+
+    /** @param Collection<int, Invoice> $records */
+    private function downloadInvoiceXmls(Collection $records): BinaryFileResponse
+    {
+        $path = tempnam(sys_get_temp_dir(), 'fidoma-xrechnungen-').'.zip';
+        $zip = new ZipArchive;
+        $zip->open($path, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+        $generator = app(GenerateInvoiceXRechnung::class);
+        $errors = [];
+
+        foreach ($records as $invoice) {
+            try {
+                $zip->addFromString($invoice->getKey().'-'.$generator->filename($invoice), $generator->handle($invoice));
+            } catch (DomainException $exception) {
+                $number = $invoice->invoice_number ?: 'Rechnung #'.$invoice->getKey();
+                $errors[] = $number.': '.$exception->getMessage();
+            }
+        }
+
+        if ($errors !== []) {
+            $zip->addFromString(
+                'HINWEISE-ZUM-XML-EXPORT.txt',
+                "Für folgende Rechnungen konnte keine gültige XRechnung erzeugt werden:\n\n".implode("\n", $errors)."\n",
+            );
+
+            Notification::make()
+                ->warning()
+                ->title('Nicht alle XML-Dateien konnten erzeugt werden.')
+                ->body('Details befinden sich in der Hinweisdatei im ZIP-Archiv.')
+                ->send();
+        }
+
+        $zip->close();
+
+        return response()->download($path, 'fidoma-xrechnungen.zip')->deleteFileAfterSend();
     }
 }

@@ -56,9 +56,9 @@
             <x-filament::section compact><span>Abziehbare Vorsteuer</span><strong class="reports-muted">Nicht verfügbar</strong></x-filament::section>
             <x-filament::section compact><span>Umsatzsteuerdifferenz</span><strong class="reports-muted">Nicht berechenbar</strong></x-filament::section>
         @elseif ($activeTab === 'payments')
-            <x-filament::section compact><span>Zahlungseingänge</span><strong class="reports-positive">{{ number_format($summary['incoming'], 2, ',', '.') }} €</strong></x-filament::section>
-            <x-filament::section compact><span>Zahlungsausgänge</span><strong class="reports-negative">{{ number_format($summary['outgoing'], 2, ',', '.') }} €</strong></x-filament::section>
-            <x-filament::section compact><span>Saldo</span><strong>{{ number_format($summary['balance'], 2, ',', '.') }} €</strong></x-filament::section>
+            <x-filament::section compact><span>Gesamtzahlungen</span><strong class="reports-positive">{{ number_format($summary['total'], 2, ',', '.') }} €</strong></x-filament::section>
+            <x-filament::section compact><span>Anzahl Zahlungen</span><strong>{{ $summary['count'] }}</strong></x-filament::section>
+            <x-filament::section compact><span>Durchschnittlicher Zahlbetrag</span><strong>{{ number_format($summary['average'], 2, ',', '.') }} €</strong></x-filament::section>
         @else
             <x-filament::section compact><span>Anzahl Rechnungen</span><strong>{{ $summary['count'] }}</strong></x-filament::section>
             <x-filament::section compact><span>Bezahlt</span><strong class="reports-positive">{{ $summary['paid'] }}</strong></x-filament::section>
@@ -72,16 +72,6 @@
         <div class="reports-table-header">
             <div class="reports-secondary-filters">
                 @if ($activeTab === 'payments')
-                    <div class="reports-filter-field">
-                        <label for="payment-direction">Richtung</label>
-                        <x-filament::input.wrapper>
-                            <x-filament::input.select id="payment-direction" wire:model.live="paymentDirection">
-                                <option value="all">Alle</option>
-                                <option value="incoming">Zahlungseingänge</option>
-                                <option value="outgoing">Zahlungsausgänge</option>
-                            </x-filament::input.select>
-                        </x-filament::input.wrapper>
-                    </div>
                     <div class="reports-filter-field">
                         <label for="payment-method">Zahlungsart</label>
                         <x-filament::input.wrapper>

@@ -2,8 +2,8 @@
 
 namespace Tests\Feature\Filament;
 
-use App\Features\BankTransactions\Actions\CreateBankTransaction;
 use App\Features\PaymentMethods\Models\PaymentMethod;
+use App\Features\Payments\Models\Payment;
 use App\Features\Reports\Services\PaymentReportService;
 use App\Filament\Pages\Reports;
 use App\Models\User;
@@ -59,10 +59,21 @@ class ReportsPageTest extends TestCase
             ->test(Reports::class)
             ->call('setTab', 'payments')
             ->assertSet('activeTab', 'payments')
-            ->assertSee('Zahlungseingänge')
+            ->assertSee('Gesamtzahlungen')
+            ->assertSee('Anzahl Zahlungen')
+            ->assertSee('Zahlungsdatum')
+            ->assertSee('Zahlungsart')
+            ->assertSee('Kunde')
+            ->assertSee('Notiz')
+            ->assertDontSee('Richtung')
+            ->assertDontSee('Bankkonto')
+            ->assertDontSee('Verwendungszweck')
             ->call('setTab', 'invoices')
             ->assertSet('activeTab', 'invoices')
-            ->assertSee('Teilbezahlt');
+            ->assertSee('Teilbezahlt')
+            ->assertTableBulkActionExists('downloadPdfs')
+            ->assertTableBulkActionExists('downloadXmls')
+            ->assertTableBulkActionHasLabel('downloadXmls', 'XML als ZIP');
     }
 
     public function test_ustva_preview_can_be_opened_and_exported(): void
@@ -148,19 +159,15 @@ class ReportsPageTest extends TestCase
             ->assertFileDownloaded('fidoma-zahlungen-alle-zeitraeume.xlsx');
     }
 
-    public function test_payment_method_filter_includes_unmapped_transactions_with_matching_booking_text(): void
+    public function test_payment_method_filter_uses_payments(): void
     {
         $method = PaymentMethod::query()->create(['payment_method_name' => 'Überweisung']);
-        $transaction = app(CreateBankTransaction::class)->handle([
-            'account_iban' => 'DE02120300000000202051',
-            'booking_date' => '2026-10-15',
-            'value_date' => '2026-10-15',
-            'amount' => '125.0000',
-            'currency' => 'EUR',
-            'booking_text' => 'Überweisung',
-            'counterparty_name' => 'Musterkunde GmbH',
-            'purpose' => 'Rechnung RE-100',
-            'pending' => false,
+        $payment = Payment::query()->create([
+            'invoice_id' => 0,
+            'payment_method_id' => $method->getKey(),
+            'payment_date' => '2026-10-15',
+            'payment_amount' => 125,
+            'payment_note' => 'Rechnung RE-100',
         ]);
 
         $records = app(PaymentReportService::class)
@@ -171,6 +178,6 @@ class ReportsPageTest extends TestCase
             )
             ->get();
 
-        $this->assertTrue($records->contains($transaction));
+        $this->assertTrue($records->contains($payment));
     }
 }
