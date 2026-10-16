@@ -44,6 +44,7 @@ class InvoiceForm
             Hidden::make('creditinvoice_parent_id'),
             Hidden::make('invoice_discount_percent')->default(0),
             Hidden::make('invoice_discount_amount')->default(0),
+            Hidden::make('invoice_terms')->default(fn (): string => app(InvoiceDefaults::class)->terms()),
             Repeater::make('invoiceTaxRates')
                 ->relationship()
                 ->defaultItems(0)
@@ -131,10 +132,10 @@ class InvoiceForm
                         ->orderColumn('item_order')
                         ->defaultItems(1)
                         ->minItems(1)
+                        ->addable(false)
                         ->deletable(false)
                         ->reorderable()
                         ->compact()
-                        ->addAction(fn (Action $action): Action => $action->label('Zeile hinzufügen')->icon(Heroicon::Plus))
                         ->table([
                             TableColumn::make('Position')->markAsRequired()->width('190px'),
                             TableColumn::make('Beschreibung')->width('190px'),
@@ -196,6 +197,11 @@ class InvoiceForm
                                         ->icon(Heroicon::OutlinedSquare2Stack)
                                         ->color('gray')
                                         ->action(fn (Component $component) => self::duplicateItem($component)),
+                                    Action::make('addItem')
+                                        ->label('Zeile hinzufügen')
+                                        ->icon(Heroicon::Plus)
+                                        ->color('gray')
+                                        ->action(fn (Component $component) => self::addItem($component)),
                                     Action::make('toggleTaxIncluded')
                                         ->label('Preis inklusive Steuer')
                                         ->icon(fn (Get $get): Heroicon => $get('item_tax_included')
@@ -220,6 +226,12 @@ class InvoiceForm
                             ])->alignCenter(),
                         ])
                         ->summaryLayout(tableColumnCount: 9, leadingColumnSpan: 5)
+                        ->summaryActionsInTable()
+                        ->summaryLeadingComponent(
+                            Textarea::make('invoice_terms')
+                                ->label('Zahlungsbedingungen')
+                                ->rows(7),
+                        )
                         ->summaryActions([
                             Action::make('editDiscount')
                                 ->label('Rabatt')
@@ -292,12 +304,6 @@ class InvoiceForm
                             ];
                         })
                         ->columnSpanFull(),
-                ]),
-            Section::make('Zahlungsbedingungen')
-                ->columnSpan(['default' => 12])
-                ->schema([
-                    Textarea::make('invoice_terms')->hiddenLabel()
-                        ->default(fn (): string => app(InvoiceDefaults::class)->terms())->rows(4)->columnSpanFull(),
                 ]),
         ]);
     }
@@ -415,6 +421,44 @@ class InvoiceForm
         }
 
         $repeater->rawState($items);
+        $repeater->callAfterStateUpdated();
+    }
+
+    private static function addItem(Component $component): void
+    {
+        $repeater = $component->getParentRepeater();
+        $itemKey = $component->getParentRepeaterItem()?->getStatePath(isAbsolute: false);
+
+        if ((! $repeater) || blank($itemKey)) {
+            return;
+        }
+
+        $items = $repeater->getRawState() ?? [];
+
+        if (! array_key_exists($itemKey, $items)) {
+            return;
+        }
+
+        $newKey = $repeater->generateUuid();
+
+        if (! $newKey) {
+            $items[] = [];
+            $newKey = array_key_last($items);
+            unset($items[$newKey]);
+        }
+
+        $itemsWithNewRow = [];
+
+        foreach ($items as $key => $item) {
+            $itemsWithNewRow[$key] = $item;
+
+            if ((string) $key === (string) $itemKey) {
+                $itemsWithNewRow[$newKey] = [];
+            }
+        }
+
+        $repeater->rawState($itemsWithNewRow);
+        $repeater->getChildSchema($newKey)->fill();
         $repeater->callAfterStateUpdated();
     }
 

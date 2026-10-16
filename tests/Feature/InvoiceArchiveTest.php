@@ -80,6 +80,10 @@ class InvoiceArchiveTest extends TestCase
         Livewire::actingAs($user)
             ->test(EditInvoice::class, ['record' => $invoice->getRouteKey()])
             ->assertSee('Versendet')
+            ->assertSee('Zeile hinzufügen')
+            ->assertSee('fi-fo-summary-table-actions')
+            ->assertSee('Zahlungsbedingungen')
+            ->set('data.invoice_terms', 'Zahlbar innerhalb von 14 Tagen.')
             ->set('data.mark_as_sent', true)
             ->assertHasNoErrors()
             ->assertNotified('Rechnung wurde als versendet markiert.');
@@ -88,6 +92,7 @@ class InvoiceArchiveTest extends TestCase
 
         $this->assertSame(InvoiceStatus::Sent, $invoice->invoice_status_id);
         $this->assertTrue($invoice->is_read_only);
+        $this->assertSame('Zahlbar innerhalb von 14 Tagen.', $invoice->invoice_terms);
     }
 
     public function test_invoice_list_uses_colored_numbers_and_filters_counterparts_by_type(): void

@@ -15,13 +15,24 @@ class DocumentItemActionsTest extends TestCase
         $this->actingAs(User::factory()->create());
 
         foreach (['/admin/invoices/create', '/admin/quotes/create', '/admin/reservations/create'] as $url) {
-            $this->get($url)
-                ->assertOk()
-                ->assertSeeTextInOrder([
-                    'Position duplizieren',
-                    'Preis inklusive Steuer',
-                    'Position löschen',
-                ]);
+            $expectedActions = ['Position duplizieren'];
+
+            if ($url === '/admin/invoices/create') {
+                $expectedActions[] = 'Zeile hinzufügen';
+            }
+
+            $expectedActions[] = 'Preis inklusive Steuer';
+            $expectedActions[] = 'Position löschen';
+
+            $response = $this->get($url)->assertOk()->assertSeeTextInOrder($expectedActions);
+
+            if ($url === '/admin/invoices/create') {
+                $response
+                    ->assertSee('fi-fo-summary-actions-in-table', escape: false)
+                    ->assertSee('fi-fo-summary-table-actions', escape: false)
+                    ->assertSee('fi-fo-summary-leading-component', escape: false)
+                    ->assertSeeText('Zahlungsbedingungen');
+            }
         }
     }
 }

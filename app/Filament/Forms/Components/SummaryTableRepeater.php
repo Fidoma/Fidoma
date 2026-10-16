@@ -5,6 +5,7 @@ namespace App\Filament\Forms\Components;
 use Closure;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Repeater;
+use Filament\Schemas\Components\Component;
 use Illuminate\Support\Facades\Blade;
 
 class SummaryTableRepeater extends Repeater
@@ -18,6 +19,10 @@ class SummaryTableRepeater extends Repeater
 
     /** @var array<string> */
     protected array $summaryActionNames = [];
+
+    protected bool|Closure $hasSummaryActionsInTable = false;
+
+    protected Component|Closure|null $summaryLeadingComponent = null;
 
     /** @param array<string, string> | Closure $rows */
     public function summaryRows(array|Closure $rows): static
@@ -43,6 +48,20 @@ class SummaryTableRepeater extends Repeater
         }
 
         return $this->registerActions($actions);
+    }
+
+    public function summaryActionsInTable(bool|Closure $condition = true): static
+    {
+        $this->hasSummaryActionsInTable = $condition;
+
+        return $this;
+    }
+
+    public function summaryLeadingComponent(Component|Closure|null $component): static
+    {
+        $this->summaryLeadingComponent = $component;
+
+        return $this;
     }
 
     protected function toTableEmbeddedHtml(): string
@@ -86,16 +105,34 @@ class SummaryTableRepeater extends Repeater
             return $html;
         }
 
-        $summary = '<div class="fi-fo-summary-layout">';
-        $summary .= '<div class="fi-fo-summary-actions">'.$inlineActions.'</div>';
+        $actionsInTable = (bool) $this->evaluate($this->hasSummaryActionsInTable);
+        $leadingComponent = $this->evaluate($this->summaryLeadingComponent);
+        $leadingComponentHtml = '';
+
+        if ($leadingComponent instanceof Component) {
+            $leadingComponent = clone $leadingComponent;
+            $leadingComponent->container($this->getContainer());
+            $leadingComponentHtml = '<div class="fi-fo-summary-leading-component">'.$leadingComponent->toHtml().'</div>';
+        }
+
+        $summary = '<div class="fi-fo-summary-layout'.($actionsInTable ? ' fi-fo-summary-actions-in-table' : '').'">';
+        $summary .= '<div class="fi-fo-summary-actions">'.$leadingComponentHtml.($actionsInTable ? '' : $inlineActions).'</div>';
         $summary .= '<div class="fi-fo-summary-table-wrapper">';
         $summary .= '<table class="fi-fo-summary-table" aria-label="Summenübersicht"><tbody>';
 
+        $rowIndex = 0;
+
         foreach ($summaryRows as $label => $value) {
             $summary .= '<tr>';
+
+            if ($actionsInTable && $rowIndex === 0) {
+                $summary .= '<td class="fi-fo-summary-table-actions" rowspan="'.count($summaryRows).'">'.$inlineActions.'</td>';
+            }
+
             $summary .= '<th scope="row">'.e($label).'</th>';
             $summary .= '<td>'.self::renderReadonlyInput($label, $value).'</td>';
             $summary .= '</tr>';
+            $rowIndex++;
         }
 
         $summary .= '</tbody></table></div></div>';

@@ -21,6 +21,10 @@
     .fi-fo-summary-layout {
         grid-template-columns: minmax(0, 1fr) 26rem;
     }
+
+    .fi-fo-summary-layout.fi-fo-summary-actions-in-table {
+        grid-template-columns: minmax(0, 1fr) 36rem;
+    }
 }
 
 .reports-toolbar,
@@ -148,6 +152,10 @@
     @apply flex min-w-0 items-start;
 }
 
+.fi-fo-summary-leading-component {
+    @apply w-full;
+}
+
 .fi-fo-summary-actions .fi-fo-table-repeater-actions {
     @apply flex flex-wrap items-center gap-2;
 }
@@ -171,6 +179,14 @@
 
 .fi-fo-summary-table td {
     @apply w-3/5;
+}
+
+.fi-fo-summary-table td.fi-fo-summary-table-actions {
+    @apply w-40 align-top;
+}
+
+.fi-fo-summary-table-actions .fi-fo-table-repeater-actions {
+    @apply flex flex-col items-stretch gap-2;
 }
 
 .invoice-layout-grid {
