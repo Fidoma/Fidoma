@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Features\BankTransactions\Models\BankTransaction;
 use App\Features\BankTransactions\Models\BankTransactionMapping;
+use App\Features\Documents\Data\PaperlessDocument;
 use App\Features\Documents\Services\PaperlessClient;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -48,7 +49,7 @@ class Documents extends Page implements HasTable
 
     public function mount(): void
     {
-        $this->fetchPaperlessDocuments();
+        $this->loadCachedPaperlessDocuments();
     }
 
     public static function canAccess(): bool
@@ -258,20 +259,36 @@ class Documents extends Page implements HasTable
     private function fetchPaperlessDocuments(): void
     {
         try {
-            $this->paperlessDocumentRecords = collect(app(PaperlessClient::class)->allDocuments())
-                ->map(fn ($document): array => [
-                    ...$document->toArray(),
-                    'mappedCount' => 0,
-                ])
-                ->values()
-                ->all();
+            $this->setPaperlessDocuments(app(PaperlessClient::class)->refreshCachedDocuments());
             $this->addMappingCounts();
             $this->paperlessError = null;
         } catch (Throwable $exception) {
             report($exception);
-            $this->paperlessDocumentRecords = [];
             $this->paperlessError = 'Die Verbindung zu Paperless ist derzeit nicht verfügbar. Bitte prüfen Sie URL, API-Token und Erreichbarkeit.';
         }
+    }
+
+    private function loadCachedPaperlessDocuments(): void
+    {
+        try {
+            $this->setPaperlessDocuments(app(PaperlessClient::class)->cachedDocuments());
+            $this->addMappingCounts();
+        } catch (Throwable $exception) {
+            report($exception);
+            $this->paperlessDocumentRecords = [];
+        }
+    }
+
+    /** @param iterable<int, PaperlessDocument> $documents */
+    private function setPaperlessDocuments(iterable $documents): void
+    {
+        $this->paperlessDocumentRecords = collect($documents)
+            ->map(fn ($document): array => [
+                ...$document->toArray(),
+                'mappedCount' => 0,
+            ])
+            ->values()
+            ->all();
     }
 
     private function addMappingCounts(): void

@@ -34,7 +34,7 @@ class DocumentsPageTest extends TestCase
         $this->get('/admin/documents')->assertRedirect('/admin/login');
     }
 
-    public function test_authenticated_user_sees_paperless_documents_without_a_separate_assignment_column(): void
+    public function test_authenticated_user_can_manually_load_paperless_documents_without_a_separate_assignment_column(): void
     {
         Config::set('services.paperless.url', 'https://paperless.test');
         Config::set('services.paperless.token', 'test-token');
@@ -57,17 +57,28 @@ class DocumentsPageTest extends TestCase
             'paperless.test/api/correspondents/*' => Http::response(['results' => []]),
         ]);
 
-        $this->actingAs(User::factory()->create())
-            ->get('/admin/documents')
-            ->assertOk()
+        $user = User::factory()->create();
+
+        Livewire::actingAs($user)
+            ->test(Documents::class)
+            ->assertSee('Aktualisieren')
+            ->assertDontSee('Eingangsrechnung Oktober')
+            ->callTableAction('refreshPaperlessDocuments')
             ->assertSee('Eingangsrechnung Oktober')
             ->assertSee('Rechnungsnummer')
             ->assertSee('RE-2026-4711')
             ->assertDontSee('Zuordnen');
 
+        Livewire::actingAs($user)
+            ->test(Documents::class)
+            ->assertSee('Eingangsrechnung Oktober')
+            ->assertSee('RE-2026-4711');
+
         Http::assertSent(fn ($request): bool => str_contains($request->url(), '/api/documents/')
             && str_contains($request->url(), 'storage_path__id=42')
             && str_contains($request->url(), 'document_type__id=7'));
+        $this->assertCount(1, collect(Http::recorded())
+            ->filter(fn (array $record): bool => str_contains($record[0]->url(), '/api/documents/')));
     }
 
     public function test_page_is_named_assignments_and_offers_income_and_expense_tabs(): void
@@ -238,6 +249,9 @@ class DocumentsPageTest extends TestCase
             ->test(Documents::class)
             ->assertTableActionExists('refreshPaperlessDocuments')
             ->assertTableFilterExists('status')
+            ->assertDontSee('Bereits zugeordnet')
+            ->assertDontSee('Noch nicht zugeordnet')
+            ->callTableAction('refreshPaperlessDocuments')
             ->assertSee('Bereits zugeordnet')
             ->assertSee('Noch nicht zugeordnet')
             ->filterTable('status', 'unassigned')
@@ -310,6 +324,39 @@ class DocumentsPageTest extends TestCase
             ->assertSee('Dokumentinformationen')
             ->assertSee('Banktransaktionen')
             ->assertSee('Link');
+    }
+
+    public function test_assignment_slide_over_always_loads_fresh_paperless_document_data(): void
+    {
+        Config::set('services.paperless.url', 'https://paperless-fresh-document.test');
+        Config::set('services.paperless.token', 'test-token');
+        Http::preventStrayRequests();
+        Http::fake([
+            'paperless-fresh-document.test/api/documents/99/' => Http::sequence()
+                ->push([
+                    'id' => 99,
+                    'title' => 'Lieferantenrechnung',
+                    'document_date' => '2026-10-14',
+                    'correspondent' => ['name' => 'Alter Lieferant'],
+                    'custom_fields' => [],
+                ])
+                ->push([
+                    'id' => 99,
+                    'title' => 'Lieferantenrechnung',
+                    'document_date' => '2026-10-14',
+                    'correspondent' => ['name' => 'Neuer Lieferant'],
+                    'custom_fields' => [],
+                ]),
+            'paperless-fresh-document.test/api/correspondents/*' => Http::response(['results' => []]),
+        ]);
+
+        $this->assertSame('Alter Lieferant', app(PaperlessClient::class)->document(99)->supplier);
+
+        Livewire::actingAs(User::factory()->create())
+            ->test(AssignBankTransaction::class, ['documentId' => 99])
+            ->assertSet('document.supplier', 'Neuer Lieferant')
+            ->assertSee('Neuer Lieferant')
+            ->assertDontSee('Alter Lieferant');
     }
 
     public function test_assignment_slide_over_uses_document_data_as_initial_search_and_filters(): void
@@ -451,6 +498,9 @@ class DocumentsPageTest extends TestCase
             ->assertCanNotSeeTableRecords([$assigned])
             ->set('showAssigned', true)
             ->assertSee('Bereits zugeordnet')
+            ->assertSee('#500')
+            ->assertSeeHtml('href="https://paperless-invoice-filter.test/documents/500/details"')
+            ->assertSeeHtml('paperless-document-preview')
             ->assertCanSeeTableRecords([$assigned])
             ->assertCanNotSeeTableRecords([$matching, $unrelated]);
     }

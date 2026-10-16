@@ -61,6 +61,35 @@ final class PaperlessClient
         return $documents;
     }
 
+    /** @return list<PaperlessDocument> */
+    public function cachedDocuments(): array
+    {
+        $documents = Cache::get($this->documentsCacheKey(), []);
+
+        if (! is_array($documents)) {
+            return [];
+        }
+
+        return collect($documents)
+            ->filter(fn (mixed $document): bool => is_array($document))
+            ->map(fn (array $document): PaperlessDocument => new PaperlessDocument(...$document))
+            ->values()
+            ->all();
+    }
+
+    /** @return list<PaperlessDocument> */
+    public function refreshCachedDocuments(): array
+    {
+        $documents = $this->allDocuments();
+
+        Cache::forever(
+            $this->documentsCacheKey(),
+            collect($documents)->map(fn (PaperlessDocument $document): array => $document->toArray())->all(),
+        );
+
+        return $documents;
+    }
+
     public function document(int $documentId, bool $fresh = false): PaperlessDocument
     {
         if ($documentId < 1) {
@@ -139,5 +168,16 @@ final class PaperlessClient
     private function documentCacheKey(int $documentId): string
     {
         return $this->cachePrefix().":document:{$documentId}";
+    }
+
+    private function documentsCacheKey(): string
+    {
+        $filters = implode('|', [
+            (string) config('services.paperless.filter_tag_id'),
+            (string) config('services.paperless.storage_path_id'),
+            (string) config('services.paperless.document_type_id'),
+        ]);
+
+        return $this->cachePrefix().':documents:'.hash('sha256', $filters);
     }
 }

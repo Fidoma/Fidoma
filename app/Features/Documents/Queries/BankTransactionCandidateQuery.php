@@ -17,6 +17,7 @@ final class BankTransactionCandidateQuery
         $query = BankTransaction::query()
             ->where('amount', '<', 0)
             ->select('ip_bank_transactions.*')
+            ->with('mappings')
             ->withCount('mappings')
             ->withExists([
                 'mappings as mapped_to_current_document' => fn (Builder $query): Builder => $query->where('document_id', $document->id),

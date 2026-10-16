@@ -4,6 +4,7 @@ namespace App\Features\Documents\Livewire;
 
 use App\Features\BankTransactions\Models\BankTransaction;
 use App\Features\Documents\Actions\UnassignPaperlessDocument;
+use App\Features\Documents\Filament\Tables\Columns\PaperlessDocumentIdsColumn;
 use Filament\Actions\BulkAction;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
@@ -48,6 +49,7 @@ class LinkedBankTransactions extends Component implements HasActions, HasSchemas
             ->description('Hier werden ausschließlich Banktransaktionen angezeigt, die mit diesem Dokument verknüpft sind.')
             ->query(fn (): Builder => BankTransaction::query()
                 ->whereHas('mappings', fn (Builder $query): Builder => $query->where('document_id', $this->documentId))
+                ->with('mappings')
                 ->withCount('mappings')
                 ->orderByDesc('booking_date')
                 ->orderByDesc('id'))
@@ -87,12 +89,7 @@ class LinkedBankTransactions extends Component implements HasActions, HasSchemas
                             ->date('d.m.Y')
                             ->color('gray')
                             ->grow(false),
-                        TextColumn::make('mappings_count')
-                            ->label('Status')
-                            ->formatStateUsing(fn (int|string $state): string => (int) $state.' '.((int) $state === 1 ? 'Zuordnung' : 'Zuordnungen'))
-                            ->badge()
-                            ->color('success')
-                            ->grow(false),
+                        PaperlessDocumentIdsColumn::make(),
                     ])
                         ->alignment(Alignment::End)
                         ->space(1)

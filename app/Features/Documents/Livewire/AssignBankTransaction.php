@@ -5,6 +5,7 @@ namespace App\Features\Documents\Livewire;
 use App\Features\BankTransactions\Models\BankTransaction;
 use App\Features\Documents\Actions\AssignPaperlessDocument;
 use App\Features\Documents\Data\PaperlessDocument;
+use App\Features\Documents\Filament\Tables\Columns\PaperlessDocumentIdsColumn;
 use App\Features\Documents\Queries\BankTransactionCandidateQuery;
 use App\Features\Documents\Services\PaperlessClient;
 use Filament\Actions\Action;
@@ -55,7 +56,7 @@ class AssignBankTransaction extends Component implements HasActions, HasSchemas,
     public function mount(int $documentId, PaperlessClient $paperless): void
     {
         Gate::authorize('viewAny', BankTransaction::class);
-        $this->document = $paperless->document($documentId)->toArray();
+        $this->document = $paperless->document($documentId, fresh: true)->toArray();
     }
 
     public function documentInfolist(Schema $schema): Schema
@@ -207,19 +208,7 @@ class AssignBankTransaction extends Component implements HasActions, HasSchemas,
                             ->badge()
                             ->color('info')
                             ->grow(false),
-                        TextColumn::make('mappings_count')
-                            ->label('Status')
-                            ->state(fn (BankTransaction $record): int => $record->mapped_to_current_document
-                                ? -1
-                                : (int) $record->mappings_count)
-                            ->badge()
-                            ->formatStateUsing(fn (int|string $state): string => match (true) {
-                                (int) $state === -1 => 'Diesem Dokument zugeordnet',
-                                (int) $state > 0 => (int) $state.' Zuordnung(en)',
-                                default => 'Nicht zugeordnet',
-                            })
-                            ->color(fn (int|string $state): string => (int) $state !== 0 ? 'success' : 'gray')
-                            ->grow(false),
+                        PaperlessDocumentIdsColumn::make(),
                     ])
                         ->alignment(Alignment::End)
                         ->space(1)
