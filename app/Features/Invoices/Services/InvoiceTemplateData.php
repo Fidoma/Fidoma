@@ -3,6 +3,7 @@
 namespace App\Features\Invoices\Services;
 
 use App\Features\Invoices\Models\Invoice;
+use App\Features\Quotes\Models\Quote;
 
 final class InvoiceTemplateData
 {
@@ -99,6 +100,64 @@ final class InvoiceTemplateData
         ];
     }
 
+    /** @return array<string, mixed> */
+    public function fromQuote(Quote $quote): array
+    {
+        $quote->loadMissing([
+            'amount',
+            'client',
+            'quoteTaxRates.taxRate',
+            'items.amount',
+            'items.taxRate',
+            'user',
+        ]);
+
+        $client = $quote->client;
+        $issuer = $quote->user;
+
+        return [
+            'quote' => [
+                'number' => $quote->quote_number ?: 'Entwurf',
+                'date' => $quote->quote_date_created?->format('d.m.Y') ?? '',
+                'due_date' => $quote->quote_date_expires?->format('d.m.Y') ?? '',
+                'terms' => $quote->notes ?? '',
+            ],
+            'client' => [
+                'number' => (string) $quote->client_id,
+                'company' => $client?->client_company ?: $client?->client_name ?: '',
+                'name' => $client?->client_company ? ($client?->client_name ?? '') : '',
+                'address' => trim(($client?->client_address_1 ?? '').' '.($client?->client_address_2 ?? '')),
+                'city' => trim(($client?->client_zip ?? '').' '.($client?->client_city ?? '')),
+                'email' => $client?->client_email ?? '',
+            ],
+            'issuer' => [
+                'company' => $issuer?->company_name ?: $issuer?->name ?: config('app.name', 'Fidoma'),
+                'name' => $issuer?->name ?? '',
+                'address' => trim(($issuer?->address_line_1 ?? '').' '.($issuer?->address_line_2 ?? '')),
+                'city' => trim(($issuer?->postal_code ?? '').' '.($issuer?->city ?? '')),
+                'email' => $issuer?->email ?? '',
+                'vat_id' => $issuer?->vat_id ?? '',
+                'iban' => $issuer?->iban ?? '',
+            ],
+            'items' => $quote->items->map(fn ($item): array => [
+                'name' => $item->item_name,
+                'description' => $item->item_description ?? '',
+                'quantity' => (float) $item->item_quantity,
+                'unit' => $item->item_product_unit ?? '',
+                'price' => (float) $item->item_price,
+                'net_total' => (float) ($item->amount?->item_subtotal ?? 0),
+                'tax' => (float) ($item->taxRate?->tax_rate_percent ?? 0),
+                'total' => (float) ($item->amount?->item_total ?? 0),
+            ])->all(),
+            'tax_rows' => $this->quoteTaxRows($quote),
+            'totals' => [
+                'subtotal' => (float) ($quote->amount?->quote_item_subtotal ?? 0),
+                'tax' => (float) (($quote->amount?->quote_item_tax_total ?? 0) + ($quote->amount?->quote_tax_total ?? 0)),
+                'total' => (float) ($quote->amount?->quote_total ?? 0),
+            ],
+        ];
+    }
+
     /** @return array<int, array{name: string, rate: float, amount: float}> */
     private function taxRows(Invoice $invoice): array
     {
@@ -124,6 +183,41 @@ final class InvoiceTemplateData
                 'amount' => 0.0,
             ];
             $rows[$key]['amount'] += (float) $invoiceTaxRate->invoice_tax_rate_amount;
+        }
+
+        uasort($rows, fn (array $left, array $right): int => $left['rate'] <=> $right['rate']);
+
+        return array_values(array_map(fn (array $row): array => [
+            ...$row,
+            'amount' => round($row['amount'], 2),
+        ], $rows));
+    }
+
+    /** @return array<int, array{name: string, rate: float, amount: float}> */
+    private function quoteTaxRows(Quote $quote): array
+    {
+        $rows = [];
+
+        foreach ($quote->items as $item) {
+            $rate = (float) ($item->taxRate?->tax_rate_percent ?? 0);
+            $key = $this->taxRateKey($rate);
+            $rows[$key] ??= [
+                'name' => $item->taxRate?->tax_rate_name ?: 'Umsatzsteuer',
+                'rate' => $rate,
+                'amount' => 0.0,
+            ];
+            $rows[$key]['amount'] += (float) ($item->amount?->item_tax_total ?? 0);
+        }
+
+        foreach ($quote->quoteTaxRates as $quoteTaxRate) {
+            $rate = (float) ($quoteTaxRate->taxRate?->tax_rate_percent ?? 0);
+            $key = $this->taxRateKey($rate);
+            $rows[$key] ??= [
+                'name' => $quoteTaxRate->taxRate?->tax_rate_name ?: 'Umsatzsteuer',
+                'rate' => $rate,
+                'amount' => 0.0,
+            ];
+            $rows[$key]['amount'] += (float) $quoteTaxRate->quote_tax_rate_amount;
         }
 
         uasort($rows, fn (array $left, array $right): int => $left['rate'] <=> $right['rate']);

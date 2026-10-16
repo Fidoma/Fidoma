@@ -4,6 +4,7 @@ namespace App\Features\Quotes\Models;
 
 use App\Features\Clients\Models\Client;
 use App\Features\InvoiceGroups\Models\InvoiceGroup;
+use App\Features\Invoices\Models\Invoice;
 use App\Features\Quotes\Enums\QuoteStatus;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
@@ -75,6 +76,12 @@ class Quote extends Model
     public function invoiceGroup(): BelongsTo
     {
         return $this->belongsTo(InvoiceGroup::class, 'invoice_group_id', 'invoice_group_id');
+    }
+
+    /** @return BelongsTo<Invoice, $this> */
+    public function invoice(): BelongsTo
+    {
+        return $this->belongsTo(Invoice::class, 'invoice_id', 'invoice_id');
     }
 
     /** @return HasMany<QuoteItem, $this> */

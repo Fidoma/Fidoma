@@ -3,8 +3,11 @@
 namespace App\Features\Quotes\Filament\Resources\Quotes\Tables;
 
 use App\Features\Clients\Filament\Resources\Clients\ClientResource;
+use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
 use App\Features\Quotes\Actions\ArchiveQuote;
+use App\Features\Quotes\Actions\ConvertQuoteToInvoice;
 use App\Features\Quotes\Enums\QuoteStatus;
+use App\Features\Quotes\Filament\Actions\QuoteEmailAction;
 use App\Features\Quotes\Filament\Resources\Quotes\QuoteResource;
 use App\Features\Quotes\Models\Quote;
 use Filament\Actions\Action;
@@ -67,6 +70,27 @@ class QuotesTable
                     EditAction::make()
                         ->label('Bearbeiten')
                         ->icon(Heroicon::OutlinedPencilSquare),
+                    Action::make('invoice')
+                        ->label(fn (Quote $record): string => $record->invoice_id ? 'Rechnung öffnen' : 'In Rechnung umwandeln')
+                        ->icon(Heroicon::OutlinedDocumentText)
+                        ->visible(fn (Quote $record): bool => ! $record->is_archived)
+                        ->requiresConfirmation(fn (Quote $record): bool => ! (bool) $record->invoice_id)
+                        ->modalHeading('Angebot in Rechnung umwandeln')
+                        ->modalDescription('Alle Positionen, Steuern und Rabatte werden in einen neuen Rechnungsentwurf übernommen.')
+                        ->action(function (Action $action, Quote $record): void {
+                            $invoice = app(ConvertQuoteToInvoice::class)->handle($record);
+
+                            Notification::make()
+                                ->success()
+                                ->title('Rechnungsentwurf ist verfügbar.')
+                                ->send();
+
+                            $action->redirect(InvoiceResource::getUrl('edit', ['record' => $invoice]));
+                        }),
+                    self::statusAction('markApproved', QuoteStatus::Approved, Heroicon::OutlinedCheckCircle),
+                    self::statusAction('markRejected', QuoteStatus::Rejected, Heroicon::OutlinedXCircle),
+                    self::statusAction('markCanceled', QuoteStatus::Canceled, Heroicon::OutlinedNoSymbol),
+                    QuoteEmailAction::make(),
                     Action::make('archive')
                         ->label('Archivieren')
                         ->icon(Heroicon::OutlinedArchiveBox)
@@ -91,5 +115,26 @@ class QuotesTable
                     ->tooltip('Optionen')
                     ->iconButton(),
             ]);
+    }
+
+    private static function statusAction(string $name, QuoteStatus $status, Heroicon $icon): Action
+    {
+        return Action::make($name)
+            ->label($status->label())
+            ->icon($icon)
+            ->color($status->color())
+            ->visible(fn (Quote $record): bool => ! $record->is_archived
+                && $record->quote_status_id !== $status)
+            ->requiresConfirmation()
+            ->modalHeading('Angebot als „'.$status->label().'“ markieren?')
+            ->modalSubmitActionLabel('Status ändern')
+            ->action(function (Quote $record) use ($status): void {
+                $record->update(['quote_status_id' => $status]);
+
+                Notification::make()
+                    ->success()
+                    ->title('Angebot wurde als „'.$status->label().'“ markiert.')
+                    ->send();
+            });
     }
 }
