@@ -82,7 +82,6 @@ class InvoiceArchiveTest extends TestCase
             ->assertSee('Versendet')
             ->assertSee('Zeile hinzufügen')
             ->assertSee('fi-fo-summary-table-actions')
-            ->assertSee('Zahlungsbedingungen')
             ->set('data.invoice_terms', 'Zahlbar innerhalb von 14 Tagen.')
             ->set('data.mark_as_sent', true)
             ->assertHasNoErrors()

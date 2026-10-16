@@ -230,6 +230,7 @@ class InvoiceForm
                         ->summaryLeadingComponent(
                             Textarea::make('invoice_terms')
                                 ->label('Zahlungsbedingungen')
+                                ->hiddenLabel()
                                 ->rows(7),
                         )
                         ->summaryActions([

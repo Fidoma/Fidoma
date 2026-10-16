@@ -156,6 +156,10 @@
     @apply w-full;
 }
 
+.fi-fo-summary-leading-component .fi-fo-field-wrp {
+    display: contents;
+}
+
 .fi-fo-summary-actions .fi-fo-table-repeater-actions {
     @apply flex flex-wrap items-center gap-2;
 }

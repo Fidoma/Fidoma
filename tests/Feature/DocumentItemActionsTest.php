@@ -30,8 +30,7 @@ class DocumentItemActionsTest extends TestCase
                 $response
                     ->assertSee('fi-fo-summary-actions-in-table', escape: false)
                     ->assertSee('fi-fo-summary-table-actions', escape: false)
-                    ->assertSee('fi-fo-summary-leading-component', escape: false)
-                    ->assertSeeText('Zahlungsbedingungen');
+                    ->assertSee('fi-fo-summary-leading-component', escape: false);
             }
         }
     }
