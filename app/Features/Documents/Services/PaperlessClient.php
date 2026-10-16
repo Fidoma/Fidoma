@@ -20,15 +20,17 @@ final class PaperlessClient
             'page_size' => min(50, max(1, $perPage)),
             'ordering' => '-document_date',
             'query' => trim($search) ?: null,
-            'tags__id' => config('services.paperless.filter_tag_id') ?: null,
             'storage_path__id' => config('services.paperless.storage_path_id') ?: null,
             'document_type__id' => config('services.paperless.document_type_id') ?: null,
         ]))->throw()->json();
 
-        $correspondents = $this->correspondents();
-        $documents = collect($payload['results'] ?? [])
+        $results = collect($payload['results'] ?? [])
             ->filter(fn (mixed $document): bool => is_array($document))
-            ->map(fn (array $document): PaperlessDocument => PaperlessDocument::fromPaperless($document, $correspondents))
+            ->values();
+        $correspondents = $this->correspondents();
+        $tags = $results->pluck('tags')->flatten()->filter()->isNotEmpty() ? $this->tags() : [];
+        $documents = $results
+            ->map(fn (array $document): PaperlessDocument => PaperlessDocument::fromPaperless($document, $correspondents, $tags))
             ->filter(fn (PaperlessDocument $document): bool => $document->id > 0)
             ->values()
             ->all();
@@ -80,6 +82,7 @@ final class PaperlessClient
     /** @return list<PaperlessDocument> */
     public function refreshCachedDocuments(): array
     {
+        Cache::forget($this->cachePrefix().':tags');
         $documents = $this->allDocuments();
 
         Cache::forever(
@@ -143,6 +146,25 @@ final class PaperlessClient
         });
     }
 
+    /** @return array<int, string> */
+    private function tags(): array
+    {
+        return Cache::remember($this->cachePrefix().':tags', now()->addMinutes(15), function (): array {
+            $payload = $this->request()->get('api/tags/', [
+                'page_size' => 1000,
+                'ordering' => 'name',
+            ])->throw()->json();
+
+            return collect($payload['results'] ?? [])
+                ->filter(fn (mixed $tag): bool => is_array($tag))
+                ->mapWithKeys(fn (array $tag): array => [
+                    (int) ($tag['id'] ?? 0) => trim((string) ($tag['name'] ?? '')),
+                ])
+                ->filter(fn (string $name, int $tagId): bool => $tagId > 0 && $name !== '')
+                ->all();
+        });
+    }
+
     private function request(): PendingRequest
     {
         $url = rtrim((string) config('services.paperless.url'), '/');
@@ -173,7 +195,6 @@ final class PaperlessClient
     private function documentsCacheKey(): string
     {
         $filters = implode('|', [
-            (string) config('services.paperless.filter_tag_id'),
             (string) config('services.paperless.storage_path_id'),
             (string) config('services.paperless.document_type_id'),
         ]);

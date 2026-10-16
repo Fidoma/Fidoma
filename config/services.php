@@ -25,7 +25,6 @@ return [
     'paperless' => [
         'url' => env('PAPERLESS_URL'),
         'token' => env('PAPERLESS_TOKEN'),
-        'filter_tag_id' => env('PAPERLESS_FILTER_TAG_ID'),
         'storage_path_id' => env('PAPERLESS_STORAGE_PATH_ID'),
         'document_type_id' => env('PAPERLESS_DOCUMENT_TYPE_ID'),
         'amount_field_id' => env('PAPERLESS_AMOUNT_FIELD_ID'),

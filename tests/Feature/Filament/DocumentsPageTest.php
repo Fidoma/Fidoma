@@ -49,25 +49,31 @@ class DocumentsPageTest extends TestCase
                     'id' => 77,
                     'title' => 'Eingangsrechnung Oktober',
                     'document_date' => '2026-10-14',
+                    'tags' => [3],
                     'custom_fields' => [
                         ['field' => 9, 'value' => 'RE-2026-4711'],
                     ],
                 ]],
             ]),
             'paperless.test/api/correspondents/*' => Http::response(['results' => []]),
+            'paperless.test/api/tags/*' => Http::response(['results' => [
+                ['id' => 3, 'name' => 'Eingangsrechnung'],
+            ]]),
         ]);
 
         $user = User::factory()->create();
 
         Livewire::actingAs($user)
             ->test(Documents::class)
-            ->assertSet('tableFilters.status.value', 'unassigned')
+            ->assertSet('tableFilters.status.value', null)
             ->assertSee('Aktualisieren')
             ->assertDontSee('Eingangsrechnung Oktober')
             ->callTableAction('refreshPaperlessDocuments')
             ->assertSee('Eingangsrechnung Oktober')
             ->assertSee('Rechnungsnummer')
             ->assertSee('RE-2026-4711')
+            ->assertTableFilterExists('paperless_tag')
+            ->assertSee('Eingangsrechnung')
             ->assertDontSee('Zuordnen');
 
         Livewire::actingAs($user)
@@ -205,6 +211,7 @@ class DocumentsPageTest extends TestCase
         app(PaperlessClient::class)->documents();
 
         Http::assertSent(fn ($request): bool => str_contains($request->url(), '/api/documents/')
+            && ! str_contains($request->url(), 'tags__id=')
             && ! str_contains($request->url(), 'storage_path__id=')
             && ! str_contains($request->url(), 'document_type__id='));
     }
@@ -219,6 +226,13 @@ class DocumentsPageTest extends TestCase
                 return Http::response(['results' => []]);
             }
 
+            if (str_contains($request->url(), '/api/tags/')) {
+                return Http::response(['results' => [
+                    ['id' => 10, 'name' => 'Bezahlt'],
+                    ['id' => 20, 'name' => 'Offen'],
+                ]]);
+            }
+
             $page = (int) ($request->data()['page'] ?? 1);
 
             return Http::response([
@@ -227,6 +241,7 @@ class DocumentsPageTest extends TestCase
                     'id' => $page === 1 ? 77 : 88,
                     'title' => $page === 1 ? 'Bereits zugeordnet' : 'Noch nicht zugeordnet',
                     'document_date' => $page === 1 ? '2026-10-15' : '2026-10-14',
+                    'tags' => [$page === 1 ? 10 : 20],
                     'custom_fields' => [],
                 ]],
             ]);
@@ -246,23 +261,45 @@ class DocumentsPageTest extends TestCase
             'document_id' => 77,
         ]);
 
-        $component = Livewire::actingAs(User::factory()->create())
+        $user = User::factory()->create();
+        $component = Livewire::actingAs($user)
             ->test(Documents::class)
             ->assertTableActionExists('refreshPaperlessDocuments')
             ->assertTableFilterExists('status')
+            ->assertTableFilterExists('paperless_tag')
+            ->assertTableFilterExists('document_date')
             ->assertDontSee('Bereits zugeordnet')
             ->assertDontSee('Noch nicht zugeordnet')
             ->callTableAction('refreshPaperlessDocuments')
-            ->assertDontSee('Bereits zugeordnet')
-            ->assertSee('Noch nicht zugeordnet')
-            ->filterTable('status')
             ->assertSee('Bereits zugeordnet')
             ->assertSee('Noch nicht zugeordnet')
             ->filterTable('status', 'unassigned')
             ->assertDontSee('Bereits zugeordnet')
             ->assertSee('Noch nicht zugeordnet')
+            ->filterTable('status')
+            ->assertSee('Bereits zugeordnet')
+            ->assertSee('Noch nicht zugeordnet')
+            ->filterTable('paperless_tag', 10)
+            ->assertSee('Bereits zugeordnet')
+            ->assertDontSee('Noch nicht zugeordnet')
+            ->filterTable('paperless_tag')
+            ->filterTable('document_date', ['from' => '2026-10-15', 'until' => '2026-10-16'])
+            ->assertSee('Ausstellungsdatum von 15.10.2026')
+            ->assertSee('Ausstellungsdatum bis 16.10.2026')
+            ->assertSee('Bereits zugeordnet')
+            ->assertDontSee('Noch nicht zugeordnet')
+            ->filterTable('document_date', ['from' => null, 'until' => null])
+            ->filterTable('status', 'unassigned')
+            ->assertDontSee('Bereits zugeordnet')
+            ->assertSee('Noch nicht zugeordnet')
             ->callTableAction('refreshPaperlessDocuments')
             ->assertSet('tableFilters.status.value', 'unassigned')
+            ->assertSee('Noch nicht zugeordnet');
+
+        Livewire::actingAs($user)
+            ->test(Documents::class)
+            ->assertSet('tableFilters.status.value', 'unassigned')
+            ->assertDontSee('Bereits zugeordnet')
             ->assertSee('Noch nicht zugeordnet');
 
         $documentRequests = collect(Http::recorded())

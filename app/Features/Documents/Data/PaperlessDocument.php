@@ -7,7 +7,7 @@ use DateTimeImmutable;
 final readonly class PaperlessDocument
 {
     /**
-     * @param  array<int, string>  $correspondents
+     * @param  array<int, string>  $tags
      */
     public function __construct(
         public int $id,
@@ -17,13 +17,15 @@ final readonly class PaperlessDocument
         public ?string $documentDate,
         public ?float $amount,
         public string $currency = 'EUR',
+        public array $tags = [],
     ) {}
 
     /**
      * @param  array<string, mixed>  $payload
      * @param  array<int, string>  $correspondents
+     * @param  array<int, string>  $tags
      */
-    public static function fromPaperless(array $payload, array $correspondents = []): self
+    public static function fromPaperless(array $payload, array $correspondents = [], array $tags = []): self
     {
         $customFields = collect($payload['custom_fields'] ?? [])
             ->filter(fn (mixed $field): bool => is_array($field))
@@ -53,10 +55,14 @@ final readonly class PaperlessDocument
                 : null,
             documentDate: $documentDate !== '' ? substr($documentDate, 0, 10) : null,
             amount: is_float($amount) ? $amount : null,
+            tags: collect($payload['tags'] ?? [])
+                ->mapWithKeys(fn (mixed $tagId): array => [(int) $tagId => $tags[(int) $tagId] ?? 'Tag #'.(int) $tagId])
+                ->filter(fn (string $name, int $tagId): bool => $tagId > 0 && $name !== '')
+                ->all(),
         );
     }
 
-    /** @return array<string, int|float|string|null> */
+    /** @return array<string, array<int, string>|int|float|string|null> */
     public function toArray(): array
     {
         return [
@@ -67,6 +73,7 @@ final readonly class PaperlessDocument
             'documentDate' => $this->documentDate,
             'amount' => $this->amount,
             'currency' => $this->currency,
+            'tags' => $this->tags,
         ];
     }
 }

@@ -7,13 +7,17 @@ use App\Features\BankTransactions\Models\BankTransactionMapping;
 use App\Features\Documents\Data\PaperlessDocument;
 use App\Features\Documents\Services\PaperlessClient;
 use BackedEnum;
+use Carbon\CarbonImmutable;
 use Filament\Actions\Action;
+use Filament\Forms\Components\DatePicker;
 use Filament\Pages\Page;
 use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\Indicator;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -44,7 +48,7 @@ class Documents extends Page implements HasTable
 
     public string $activeTab = 'expenses';
 
-    /** @var list<array{id: int, title: string, supplier: ?string, invoiceNumber: ?string, documentDate: ?string, amount: ?float, currency: string, mappedCount: int}> */
+    /** @var list<array{id: int, title: string, supplier: ?string, invoiceNumber: ?string, documentDate: ?string, amount: ?float, currency: string, tags: array<int, string>, mappedCount: int}> */
     public array $paperlessDocumentRecords = [];
 
     public function mount(): void
@@ -109,9 +113,42 @@ class Documents extends Page implements HasTable
                         'unassigned' => 'Nicht zugeordnet',
                         'assigned' => 'Zugeordnet',
                     ])
-                    ->default('unassigned')
                     ->placeholder('Alle'),
+                SelectFilter::make('paperless_tag')
+                    ->label('Paperless-Tag')
+                    ->options(fn (): array => $this->paperlessTagOptions())
+                    ->searchable()
+                    ->placeholder('Alle'),
+                Filter::make('document_date')
+                    ->label('Ausstellungsdatum')
+                    ->schema([
+                        DatePicker::make('from')
+                            ->label('Von')
+                            ->native(false),
+                        DatePicker::make('until')
+                            ->label('Bis')
+                            ->native(false),
+                    ])
+                    ->columns(2)
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+
+                        if (filled($data['from'] ?? null)) {
+                            $indicators[] = Indicator::make(
+                                'Ausstellungsdatum von '.CarbonImmutable::parse($data['from'])->format('d.m.Y'),
+                            )->removeField('from');
+                        }
+
+                        if (filled($data['until'] ?? null)) {
+                            $indicators[] = Indicator::make(
+                                'Ausstellungsdatum bis '.CarbonImmutable::parse($data['until'])->format('d.m.Y'),
+                            )->removeField('until');
+                        }
+
+                        return $indicators;
+                    }),
             ])
+            ->persistFiltersInSession()
             ->toolbarActions([
                 Action::make('refreshPaperlessDocuments')
                     ->label('Aktualisieren')
@@ -222,6 +259,23 @@ class Documents extends Page implements HasTable
             default => $records,
         };
 
+        if (filled($paperlessTag = data_get($filters, 'paperless_tag.value'))) {
+            $records = $records->filter(fn (array $record): bool => array_key_exists(
+                (int) $paperlessTag,
+                $record['tags'] ?? [],
+            ));
+        }
+
+        if (filled($dateFrom = data_get($filters, 'document_date.from'))) {
+            $records = $records->filter(fn (array $record): bool => filled($record['documentDate'])
+                && $record['documentDate'] >= $dateFrom);
+        }
+
+        if (filled($dateUntil = data_get($filters, 'document_date.until'))) {
+            $records = $records->filter(fn (array $record): bool => filled($record['documentDate'])
+                && $record['documentDate'] <= $dateUntil);
+        }
+
         $sortColumn = in_array($sortColumn, ['title', 'supplier', 'invoiceNumber', 'documentDate', 'amount', 'mappedCount'], true)
             ? $sortColumn
             : 'documentDate';
@@ -308,6 +362,22 @@ class Documents extends Page implements HasTable
             ])
             ->values()
             ->all();
+    }
+
+    /** @return array<string, string> */
+    private function paperlessTagOptions(): array
+    {
+        $options = [];
+
+        foreach ($this->paperlessDocumentRecords as $document) {
+            foreach ($document['tags'] ?? [] as $tagId => $tagName) {
+                $options[(string) $tagId] = $tagName;
+            }
+        }
+
+        natcasesort($options);
+
+        return $options;
     }
 
     /** @param Collection<int|string, array<string, mixed>> $records */
