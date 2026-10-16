@@ -272,13 +272,16 @@ class DocumentsPageTest extends TestCase
             'paperless-defaults.test/api/correspondents/*' => Http::response(['results' => []]),
         ]);
 
-        $component = Livewire::actingAs(User::factory()->create())
+        $component = Livewire::withQueryParams(['page' => 3])
+            ->actingAs(User::factory()->create())
             ->test(AssignBankTransaction::class, ['documentId' => 91]);
 
         $statusToggle = $component->instance()->assignmentStatusToggle->getComponent('showAssigned');
 
         $this->assertInstanceOf(Toggle::class, $statusToggle);
         $this->assertTrue($statusToggle->isLabelHidden());
+        $this->assertSame('documentBankTransactionsPage', $component->instance()->getTablePaginationPageName());
+        $this->assertSame(1, $component->instance()->getTablePage());
 
         $component
             ->assertSet('tableSearch', '')
@@ -383,6 +386,8 @@ class DocumentsPageTest extends TestCase
             ->assertCanSeeTableRecords([$matching])
             ->assertCanNotSeeTableRecords([$unrelated, $assigned])
             ->call('removeTableFilters')
+            ->assertCanSeeTableRecords([$matching, $unrelated])
+            ->assertCanNotSeeTableRecords([$assigned])
             ->set('showAssigned', true)
             ->assertSee('Bereits zugeordnet')
             ->assertCanSeeTableRecords([$assigned])

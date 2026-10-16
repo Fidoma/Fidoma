@@ -145,6 +145,7 @@ class AssignBankTransaction extends Component implements HasActions, HasSchemas,
     public function table(Table $table): Table
     {
         return $table
+            ->identifier('documentBankTransactions')
             ->heading('Banktransaktionen')
             ->description('Nur negative Banktransaktionen werden für Paperless-Dokumente angeboten.')
             ->query(fn (): Builder => app(BankTransactionCandidateQuery::class)
