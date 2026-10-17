@@ -12,7 +12,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->redirectGuestsTo(fn (): string => route('filament.admin.auth.login'));
+
+        // Roundcube performs its own CSRF validation on this authenticated gateway.
+        $middleware->validateCsrfTokens(except: [
+            'admin/webmail/client',
+            'admin/webmail/client/*',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

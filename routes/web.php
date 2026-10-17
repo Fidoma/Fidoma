@@ -2,6 +2,7 @@
 
 use App\Features\Invoices\Http\Controllers\InvoiceDocumentController;
 use App\Features\Invoices\Http\Controllers\InvoiceLayoutPreviewController;
+use App\Features\Webmail\Http\Controllers\RoundcubeController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -19,3 +20,7 @@ Route::middleware('auth')->prefix('admin/invoices/{invoice}')->group(function ()
 
 Route::middleware('auth')->get('admin/pdf-layouts/pdf-preview', InvoiceLayoutPreviewController::class)
     ->name('pdf-layouts.pdf-preview');
+
+Route::middleware('auth')->any('admin/webmail/client/{path?}', RoundcubeController::class)
+    ->where('path', '.*')
+    ->name('webmail.client');

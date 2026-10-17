@@ -16,5 +16,13 @@ class FeatureTranslationServiceProvider extends ServiceProvider
 
             $this->loadTranslationsFrom($languageDirectory, Str::kebab($feature));
         }
+
+        $viewDirectories = glob(app_path('Features/*/resources/views'), GLOB_ONLYDIR) ?: [];
+
+        foreach ($viewDirectories as $viewDirectory) {
+            $feature = basename(dirname($viewDirectory, 2));
+
+            $this->loadViewsFrom($viewDirectory, Str::kebab($feature));
+        }
     }
 }
