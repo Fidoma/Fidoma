@@ -3,9 +3,9 @@
 namespace App\Filament\Widgets;
 
 use App\Features\BankTransactions\Filament\Resources\BankTransactions\BankTransactionResource;
+use App\Features\Documents\Filament\Pages\Documents;
 use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
 use App\Features\Quotes\Filament\Resources\Quotes\QuoteResource;
-use App\Filament\Pages\Documents;
 use App\Filament\Support\DashboardMetrics;
 use App\Filament\Support\DashboardPeriod;
 use Filament\Widgets\Concerns\InteractsWithPageFilters;

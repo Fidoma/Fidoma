@@ -4,8 +4,8 @@ namespace Tests\Feature\Filament;
 
 use App\Features\PaymentMethods\Models\PaymentMethod;
 use App\Features\Payments\Models\Payment;
+use App\Features\Reports\Filament\Pages\Reports;
 use App\Features\Reports\Services\PaymentReportService;
-use App\Filament\Pages\Reports;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;

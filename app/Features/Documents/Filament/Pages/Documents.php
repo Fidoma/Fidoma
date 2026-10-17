@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Pages;
+namespace App\Features\Documents\Filament\Pages;
 
 use App\Features\BankTransactions\Models\BankTransaction;
 use App\Features\BankTransactions\Models\BankTransactionMapping;

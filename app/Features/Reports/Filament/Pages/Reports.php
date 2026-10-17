@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Pages;
+namespace App\Features\Reports\Filament\Pages;
 
 use App\Features\Clients\Models\Client;
 use App\Features\Invoices\Actions\GenerateInvoicePdf;

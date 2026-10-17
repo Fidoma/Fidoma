@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Pages;
+namespace App\Features\Invoices\Filament\Pages;
 
 use App\Features\Invoices\Models\InvoiceLayout as InvoiceLayoutModel;
 use App\Features\Invoices\Services\InvoiceLayoutDefaults;

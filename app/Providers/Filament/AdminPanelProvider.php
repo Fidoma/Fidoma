@@ -2,14 +2,16 @@
 
 namespace App\Providers\Filament;
 
+use App\Features\Documents\Filament\Pages\Documents;
 use App\Features\Documents\Services\PaperlessClient;
 use App\Features\EmailTemplates\Filament\Resources\EmailTemplates\EmailTemplateResource;
 use App\Features\InvoiceGroups\Filament\Resources\InvoiceGroups\InvoiceGroupResource;
+use App\Features\Invoices\Filament\Pages\InvoiceLayout;
+use App\Features\Reports\Filament\Pages\Reports;
 use App\Features\TaxRates\Filament\Resources\TaxRates\TaxRateResource;
 use App\Features\Users\Filament\Resources\Users\UserResource;
 use App\Features\Webmail\Filament\Pages\Webmail;
 use App\Filament\Pages\Auth\Login;
-use App\Filament\Pages\InvoiceLayout;
 use Filament\Actions\Action;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -119,6 +121,9 @@ class AdminPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Features'), for: 'App\Features')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
+                Documents::class,
+                InvoiceLayout::class,
+                Reports::class,
                 Webmail::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')

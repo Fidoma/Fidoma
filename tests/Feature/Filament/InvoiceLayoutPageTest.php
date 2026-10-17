@@ -2,9 +2,9 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Features\Invoices\Filament\Pages\InvoiceLayout as InvoiceLayoutPage;
 use App\Features\Invoices\Models\InvoiceLayout;
 use App\Features\Invoices\Services\InvoiceTemplateRenderer;
-use App\Filament\Pages\InvoiceLayout as InvoiceLayoutPage;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;

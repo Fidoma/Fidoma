@@ -4,7 +4,7 @@
     <x-filament::tabs label="Belegart">
         <x-filament::tabs.item
             tag="a"
-            :href="\App\Filament\Pages\InvoiceLayout::getUrl(['type' => 'invoice'])"
+            :href="\App\Features\Invoices\Filament\Pages\InvoiceLayout::getUrl(['type' => 'invoice'])"
             :active="$activeType === 'invoice'"
             icon="heroicon-o-document-text"
         >
@@ -12,7 +12,7 @@
         </x-filament::tabs.item>
         <x-filament::tabs.item
             tag="a"
-            :href="\App\Filament\Pages\InvoiceLayout::getUrl(['type' => 'quote'])"
+            :href="\App\Features\Invoices\Filament\Pages\InvoiceLayout::getUrl(['type' => 'quote'])"
             :active="$activeType === 'quote'"
             icon="heroicon-o-document-duplicate"
         >
@@ -20,7 +20,7 @@
         </x-filament::tabs.item>
         <x-filament::tabs.item
             tag="a"
-            :href="\App\Filament\Pages\InvoiceLayout::getUrl(['type' => 'reservation'])"
+            :href="\App\Features\Invoices\Filament\Pages\InvoiceLayout::getUrl(['type' => 'reservation'])"
             :active="$activeType === 'reservation'"
             icon="heroicon-o-calendar-days"
         >
