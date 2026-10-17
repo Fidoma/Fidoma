@@ -81,8 +81,8 @@ class AdminNavigationTest extends TestCase
         $groups = $panel->getUserMenuItemGroups();
 
         $this->assertCount(2, $groups);
-        $this->assertSame(['profile', 'logout'], array_keys($groups[0]));
-        $this->assertSame(['settings'], array_keys($groups[1]));
+        $this->assertSame(['profile', 'settings'], array_keys($groups[0]));
+        $this->assertSame(['logout'], array_keys($groups[1]));
         $this->assertFalse(SettingsCluster::shouldRegisterNavigation());
 
         $this->get(SettingsCluster::getUrl())

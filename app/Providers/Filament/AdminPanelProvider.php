@@ -81,15 +81,15 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->userMenuItems([
                 [
-                    'logout' => fn (Action $action): Action => $action->sort(0),
-                ],
-                [
                     Action::make('settings')
                         ->label('Settings')
                         ->icon(Heroicon::OutlinedCog6Tooth)
                         ->url(fn (): string => SettingsCluster::getUrl())
                         ->visible(fn (): bool => SettingsCluster::canAccessClusteredComponents())
                         ->sort(0),
+                ],
+                [
+                    'logout' => fn (Action $action): Action => $action->sort(PHP_INT_MAX),
                 ],
             ])
             ->discoverResources(in: app_path('Features'), for: 'App\Features')

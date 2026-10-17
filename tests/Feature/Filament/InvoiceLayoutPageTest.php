@@ -35,6 +35,14 @@ class InvoiceLayoutPageTest extends TestCase
             ->assertSee('RE-2026-1042');
     }
 
+    public function test_page_heading_is_hidden(): void
+    {
+        $page = Livewire::actingAs(User::factory()->create())
+            ->test(InvoiceLayoutPage::class);
+
+        $this->assertNull($page->instance()->getHeading());
+    }
+
     public function test_layout_can_be_saved_and_loaded_again(): void
     {
         $user = User::factory()->create();
