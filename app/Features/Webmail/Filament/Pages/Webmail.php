@@ -18,7 +18,7 @@ class Webmail extends Page
 
     protected static ?string $navigationLabel = 'Webmail';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Kommunikation';
+    protected static string|UnitEnum|null $navigationGroup = 'Externe Dienste';
 
     protected static ?int $navigationSort = 2;
 

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Features\Documents\Services\PaperlessClient;
 use App\Features\EmailTemplates\Filament\Resources\EmailTemplates\EmailTemplateResource;
 use App\Features\InvoiceGroups\Filament\Resources\InvoiceGroups\InvoiceGroupResource;
 use App\Features\TaxRates\Filament\Resources\TaxRates\TaxRateResource;
@@ -10,6 +11,7 @@ use App\Filament\Pages\InvoiceLayout;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Config;
 use Tests\TestCase;
 
 class AdminNavigationTest extends TestCase
@@ -47,5 +49,24 @@ class AdminNavigationTest extends TestCase
         $this->assertFalse(InvoiceGroupResource::shouldRegisterNavigation());
         $this->assertFalse(TaxRateResource::shouldRegisterNavigation());
         $this->assertFalse(UserResource::shouldRegisterNavigation());
+    }
+
+    public function test_paperless_documents_link_reuses_a_named_browser_tab(): void
+    {
+        Config::set('services.paperless.url', 'https://paperless.example.test');
+        $this->actingAs(User::factory()->create());
+
+        $panel = Filament::getPanel('admin');
+        Filament::setCurrentPanel($panel);
+
+        $item = collect($panel->getNavigation())
+            ->firstWhere(fn ($group): bool => $group->getLabel() === 'Externe Dienste')
+            ?->getItems()
+            ->firstWhere(fn ($item): bool => $item->getLabel() === 'Dokumente');
+
+        $this->assertNotNull($item);
+        $this->assertSame('https://paperless.example.test', $item->getUrl());
+        $this->assertStringContainsString('window.paperlessDocumentPreview.focus()', $item->getExtraAttributeBag()->get('x-on:click.prevent'));
+        $this->assertStringContainsString("'".PaperlessClient::DOCUMENT_PREVIEW_WINDOW."'", $item->getExtraAttributeBag()->get('x-on:click.prevent'));
     }
 }

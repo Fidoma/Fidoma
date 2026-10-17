@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Features\Documents\Services\PaperlessClient;
 use App\Features\EmailTemplates\Filament\Resources\EmailTemplates\EmailTemplateResource;
 use App\Features\InvoiceGroups\Filament\Resources\InvoiceGroups\InvoiceGroupResource;
 use App\Features\TaxRates\Filament\Resources\TaxRates\TaxRateResource;
@@ -13,14 +14,17 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\NavigationItem;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\Js;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 class AdminPanelProvider extends PanelProvider
@@ -40,6 +44,23 @@ class AdminPanelProvider extends PanelProvider
             ->globalSearch(false)
             ->colors([
                 'primary' => Color::hex('#FF0092'),
+            ])
+            ->navigationItems([
+                NavigationItem::make('Dokumente')
+                    ->group('Externe Dienste')
+                    ->icon(Heroicon::OutlinedDocumentText)
+                    ->sort(3)
+                    ->url(fn (): string => rtrim((string) config('services.paperless.url'), '/'))
+                    ->visible(fn (): bool => filter_var(config('services.paperless.url'), FILTER_VALIDATE_URL) !== false)
+                    ->extraAttributes(function (): array {
+                        $url = Js::from(rtrim((string) config('services.paperless.url'), '/'));
+
+                        return [
+                            'x-on:click.prevent' => "window.paperlessDocumentPreview && !window.paperlessDocumentPreview.closed
+                                ? window.paperlessDocumentPreview.focus()
+                                : (window.paperlessDocumentPreview = window.open({$url}, '".PaperlessClient::DOCUMENT_PREVIEW_WINDOW."'))?.focus()",
+                        ];
+                    }),
             ])
             ->userMenuItems([
                 [
