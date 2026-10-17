@@ -56,10 +56,10 @@ Dokumentations-, Schema-, Query- und Browser-Log-Werkzeuge.
 
 Die Fachlogik ist nach Features unter `app/Features/<Feature>` organisiert. Derzeit gibt es:
 
-- `BankTransactions`, `Clients`, `Documents`, `EmailTemplates`
+- `Authentication`, `BankTransactions`, `Clients`, `Dashboard`, `Documents`, `EmailTemplates`
 - `Families`, `InvoiceGroups`, `Invoices`, `PaymentMethods`, `Payments`
 - `Products`, `Quotes`, `Reports`, `Reservations`
-- `TaxRates`, `Units`, `Users`
+- `TaxRates`, `Units`, `Users`, `Webmail`
 
 Ein Feature besitzt nur die Verzeichnisse, die es benötigt, beispielsweise:
 
@@ -90,19 +90,52 @@ app/Features/Invoices/
 - `Http/`: Controller für klassische Responses wie PDF, Vorschau und XRechnung
 - `lang/`: feature-lokale Übersetzungen
 
-Neue fachliche Klassen gehören in das passende Feature. `app/Filament` ist für
-feature-übergreifende Seiten, Widgets, Concerns und UI-Bausteine vorgesehen. Allgemeine
-Laravel-Provider bleiben in `app/Providers`. Erzeuge keine neuen globalen Sammelordner,
-wenn der Code eindeutig einem Feature gehört.
+### Verbindliches Feature-First-Prinzip
+
+- Neue Seiten, Resources, Widgets, Livewire-Komponenten, Actions, Services, Queries, Models,
+  Policies und Übersetzungen gehören grundsätzlich unter `app/Features/<Feature>`.
+- Auch technisch oder fachlich übergreifende Anwendungsbereiche wie Dashboard und
+  Authentifizierung werden als eigenes Feature geführt, wenn sie eine eigenständige
+  Benutzerfunktion darstellen.
+- Bestehende Feature-Grenzen sind zu erweitern, statt fachlichen Code unter `app/Filament`,
+  `app/Support`, `app/Helpers` oder einem neuen globalen Sammelordner abzulegen.
+- `app/Filament` enthält ausschließlich kleine, tatsächlich featureübergreifend
+  wiederverwendete Filament-Bausteine wie gemeinsame Concerns oder Form-Komponenten. Dort
+  werden keine fachlichen Pages, Resources, Widgets oder Services angelegt.
+- Featureübergreifende lesende Zugriffe sind erlaubt, wenn ein Feature wie das Dashboard
+  Informationen mehrerer Features zusammenführt. Dabei darf keine fremde Fachlogik
+  dupliziert werden.
+- Allgemeine Laravel-Provider bleiben in `app/Providers` und dienen nur der Registrierung
+  beziehungsweise Infrastruktur, nicht der Fachlogik.
+- Vor dem Anlegen einer globalen Klasse ist zu prüfen, ob sie einem bestehenden Feature
+  zugeordnet oder als klar benanntes neues Feature modelliert werden kann.
 
 ## Filament und Livewire
 
-Filament entdeckt Feature-Resources automatisch über `app/Features`; globale Seiten und
-Widgets werden über `app/Filament/Pages` und `app/Filament/Widgets` entdeckt.
+Filament-Resources werden unter `app/Features` entdeckt. Eigenständige Feature-Pages werden
+bei Bedarf explizit im `AdminPanelProvider` registriert. Fachliche Seiten und Widgets dürfen
+nicht allein wegen der automatischen Discovery nach `app/Filament` verschoben werden.
 
-- Bevorzuge Filament-Komponenten, Layouts, Actions, Tabellen und Formulare.
-- Ergänze eigenes Blade, JavaScript oder CSS nur, wenn Filament den Anwendungsfall nicht
-  angemessen abbilden kann.
+### Filament als verbindlicher UI-Standard
+
+- Verwende für die Administrationsoberfläche zuerst die vorhandenen Filament-Komponenten,
+  Schemas, Layouts, Sections, Tabs, Actions, Infolists, Tabellen, Formulare, Widgets,
+  Notifications, Modals und Slide-overs.
+- Prüfe vor eigenem Markup, ob Filament oder eine bereits vorhandene Projektkomponente den
+  Anwendungsfall abdeckt. Bestehende Filament-Konventionen haben Vorrang vor individuellen
+  UI-Lösungen.
+- Eigenes HTML beziehungsweise umfangreiches Blade-Markup ist nur zulässig, wenn der
+  Anwendungsfall mit Filament-Komponenten nicht sinnvoll umgesetzt werden kann. Die
+  Ausnahme soll im Code oder in der Abschlussbeschreibung nachvollziehbar begründet sein.
+- Eigenes CSS ist auf notwendige, lokal begrenzte Ergänzungen zu beschränken. Filament-
+  Design-Tokens, Farbkonfiguration, Komponentenvarianten und Utility-Klassen sind zuerst zu
+  verwenden. Globale Überschreibungen interner Filament-Klassen sind zu vermeiden.
+- Eigenes JavaScript ist nur einzusetzen, wenn Filament, Livewire und Alpine den benötigten
+  Ablauf nicht bereits bereitstellen. Parallele Zustandslogik außerhalb von Livewire ist zu
+  vermeiden.
+- Öffentliche Seiten außerhalb der Administrationsoberfläche dürfen eigenes semantisches
+  HTML und CSS verwenden. Sie sollen visuell an das Filament-Theme angelehnt bleiben und
+  vorhandene Brand-Assets sowie Design-Tokens wiederverwenden.
 - Tabellen in verschachtelten Livewire-Komponenten oder Modals müssen einen eindeutigen
   Filament-Tabellen-Identifier erhalten, damit Pagination und Query-String-Zustand nicht mit
   der Haupttabelle kollidieren.
