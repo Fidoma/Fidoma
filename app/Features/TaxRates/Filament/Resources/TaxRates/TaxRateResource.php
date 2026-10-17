@@ -2,6 +2,7 @@
 
 namespace App\Features\TaxRates\Filament\Resources\TaxRates;
 
+use App\Features\Settings\Filament\Clusters\SettingsCluster;
 use App\Features\TaxRates\Filament\Resources\TaxRates\Pages\CreateTaxRate;
 use App\Features\TaxRates\Filament\Resources\TaxRates\Pages\EditTaxRate;
 use App\Features\TaxRates\Filament\Resources\TaxRates\Pages\ListTaxRates;
@@ -13,12 +14,9 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use UnitEnum;
 
 class TaxRateResource extends Resource
 {
-    protected static bool $shouldRegisterNavigation = false;
-
     protected static ?string $model = TaxRate::class;
 
     protected static ?string $modelLabel = 'Steuersatz';
@@ -27,7 +25,7 @@ class TaxRateResource extends Resource
 
     protected static ?string $navigationLabel = 'Steuersätze';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Settings';
+    protected static ?string $cluster = SettingsCluster::class;
 
     protected static ?int $navigationSort = 3;
 

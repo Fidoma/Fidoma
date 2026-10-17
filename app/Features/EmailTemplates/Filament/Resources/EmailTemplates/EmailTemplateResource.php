@@ -8,17 +8,15 @@ use App\Features\EmailTemplates\Filament\Resources\EmailTemplates\Pages\ListEmai
 use App\Features\EmailTemplates\Filament\Resources\EmailTemplates\Schemas\EmailTemplateForm;
 use App\Features\EmailTemplates\Filament\Resources\EmailTemplates\Tables\EmailTemplatesTable;
 use App\Features\EmailTemplates\Models\EmailTemplate;
+use App\Features\Settings\Filament\Clusters\SettingsCluster;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use UnitEnum;
 
 class EmailTemplateResource extends Resource
 {
-    protected static bool $shouldRegisterNavigation = false;
-
     protected static ?string $model = EmailTemplate::class;
 
     protected static ?string $modelLabel = 'E-Mail-Vorlage';
@@ -27,7 +25,7 @@ class EmailTemplateResource extends Resource
 
     protected static ?string $navigationLabel = 'E-Mail-Vorlagen';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Settings';
+    protected static ?string $cluster = SettingsCluster::class;
 
     protected static ?int $navigationSort = 1;
 

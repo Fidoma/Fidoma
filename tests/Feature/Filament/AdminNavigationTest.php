@@ -10,6 +10,7 @@ use App\Features\InvoiceGroups\Filament\Resources\InvoiceGroups\InvoiceGroupReso
 use App\Features\Invoices\Filament\Pages\InvoiceLayout;
 use App\Features\Products\Filament\Resources\Products\ProductResource;
 use App\Features\Quotes\Filament\Resources\Quotes\QuoteResource;
+use App\Features\Settings\Filament\Clusters\SettingsCluster;
 use App\Features\TaxRates\Filament\Resources\TaxRates\TaxRateResource;
 use App\Features\Units\Filament\Resources\Units\UnitResource;
 use App\Features\Users\Filament\Resources\Users\UserResource;
@@ -81,16 +82,21 @@ class AdminNavigationTest extends TestCase
 
         $this->assertCount(2, $groups);
         $this->assertSame(['profile', 'logout'], array_keys($groups[0]));
-        $this->assertSame(
-            ['pdfLayouts', 'emailTemplates', 'invoiceGroups', 'taxRates', 'users'],
-            array_keys($groups[1]),
-        );
+        $this->assertSame(['settings'], array_keys($groups[1]));
+        $this->assertFalse(SettingsCluster::shouldRegisterNavigation());
 
-        $this->assertFalse(InvoiceLayout::shouldRegisterNavigation());
-        $this->assertFalse(EmailTemplateResource::shouldRegisterNavigation());
-        $this->assertFalse(InvoiceGroupResource::shouldRegisterNavigation());
-        $this->assertFalse(TaxRateResource::shouldRegisterNavigation());
-        $this->assertFalse(UserResource::shouldRegisterNavigation());
+        $this->get(SettingsCluster::getUrl())
+            ->assertRedirect(InvoiceLayout::getUrl());
+
+        $this->get(InvoiceLayout::getUrl())
+            ->assertOk()
+            ->assertSeeTextInOrder([
+                'PDF-Layout',
+                EmailTemplateResource::getNavigationLabel(),
+                InvoiceGroupResource::getNavigationLabel(),
+                TaxRateResource::getNavigationLabel(),
+                UserResource::getNavigationLabel(),
+            ]);
     }
 
     public function test_paperless_documents_link_reuses_a_named_browser_tab(): void

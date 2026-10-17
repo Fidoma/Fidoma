@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Features\Users\Filament\Resources\Users\UserResource;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -15,9 +16,9 @@ class UserManagementTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $this->actingAs($user)->get('/admin/users')->assertOk();
-        $this->actingAs($user)->get('/admin/users/create')->assertOk();
-        $this->actingAs($user)->get("/admin/users/{$user->getKey()}/edit")->assertOk();
+        $this->actingAs($user)->get(UserResource::getUrl())->assertOk();
+        $this->actingAs($user)->get(UserResource::getUrl('create'))->assertOk();
+        $this->actingAs($user)->get(UserResource::getUrl('edit', ['record' => $user]))->assertOk();
     }
 
     public function test_company_and_billing_details_can_be_stored_on_a_user(): void

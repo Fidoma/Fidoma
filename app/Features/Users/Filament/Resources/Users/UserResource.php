@@ -2,6 +2,7 @@
 
 namespace App\Features\Users\Filament\Resources\Users;
 
+use App\Features\Settings\Filament\Clusters\SettingsCluster;
 use App\Features\Users\Filament\Resources\Users\Pages\CreateUser;
 use App\Features\Users\Filament\Resources\Users\Pages\EditUser;
 use App\Features\Users\Filament\Resources\Users\Pages\ListUsers;
@@ -13,12 +14,9 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use UnitEnum;
 
 class UserResource extends Resource
 {
-    protected static bool $shouldRegisterNavigation = false;
-
     protected static ?string $model = User::class;
 
     protected static ?string $modelLabel = 'Benutzer';
@@ -27,7 +25,7 @@ class UserResource extends Resource
 
     protected static ?string $navigationLabel = 'Benutzer';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Settings';
+    protected static ?string $cluster = SettingsCluster::class;
 
     protected static ?int $navigationSort = 4;
 

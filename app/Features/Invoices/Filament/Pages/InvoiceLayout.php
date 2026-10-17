@@ -6,25 +6,25 @@ use App\Features\Invoices\Models\InvoiceLayout as InvoiceLayoutModel;
 use App\Features\Invoices\Services\InvoiceLayoutDefaults;
 use App\Features\Invoices\Services\InvoiceTemplateData;
 use App\Features\Invoices\Services\InvoiceTemplateRenderer;
+use App\Features\Settings\Filament\Clusters\SettingsCluster;
 use BackedEnum;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 use Livewire\Attributes\Renderless;
-use UnitEnum;
 
 class InvoiceLayout extends Page
 {
-    protected static bool $shouldRegisterNavigation = false;
-
     protected static ?string $title = 'PDF-Layouts';
 
-    protected static ?string $navigationLabel = 'PDF-Layouts';
+    protected static ?string $navigationLabel = 'PDF-Layout';
 
     protected static ?string $slug = 'pdf-layouts';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Settings';
+    protected static ?string $cluster = SettingsCluster::class;
+
+    protected static ?int $navigationSort = 0;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
 

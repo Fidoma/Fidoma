@@ -8,17 +8,15 @@ use App\Features\InvoiceGroups\Filament\Resources\InvoiceGroups\Pages\ListInvoic
 use App\Features\InvoiceGroups\Filament\Resources\InvoiceGroups\Schemas\InvoiceGroupForm;
 use App\Features\InvoiceGroups\Filament\Resources\InvoiceGroups\Tables\InvoiceGroupsTable;
 use App\Features\InvoiceGroups\Models\InvoiceGroup;
+use App\Features\Settings\Filament\Clusters\SettingsCluster;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use UnitEnum;
 
 class InvoiceGroupResource extends Resource
 {
-    protected static bool $shouldRegisterNavigation = false;
-
     protected static ?string $model = InvoiceGroup::class;
 
     protected static ?string $modelLabel = 'Nummernkreis';
@@ -27,7 +25,7 @@ class InvoiceGroupResource extends Resource
 
     protected static ?string $navigationLabel = 'Nummernkreise';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Settings';
+    protected static ?string $cluster = SettingsCluster::class;
 
     protected static ?int $navigationSort = 2;
 

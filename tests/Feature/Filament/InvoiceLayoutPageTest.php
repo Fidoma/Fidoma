@@ -16,13 +16,13 @@ class InvoiceLayoutPageTest extends TestCase
 
     public function test_unauthenticated_user_is_redirected_to_login(): void
     {
-        $this->get('/admin/pdf-layouts')->assertRedirect('/admin/login');
+        $this->get(InvoiceLayoutPage::getUrl())->assertRedirect('/admin/login');
     }
 
     public function test_layout_page_shows_editor_preview_and_sample_invoice(): void
     {
         $this->actingAs(User::factory()->create())
-            ->get('/admin/pdf-layouts')
+            ->get(InvoiceLayoutPage::getUrl())
             ->assertOk()
             ->assertSee('PDF-Layouts')
             ->assertSee('Rechnungen')
