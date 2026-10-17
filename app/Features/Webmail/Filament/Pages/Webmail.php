@@ -35,6 +35,14 @@ class Webmail extends Page
         $this->installed = $installer->installed();
     }
 
+    /** @return array<string> */
+    public function getPageClasses(): array
+    {
+        return $this->installed
+            ? ['webmail-page', 'webmail-page-installed']
+            : ['webmail-page'];
+    }
+
     protected function getHeaderActions(): array
     {
         return [

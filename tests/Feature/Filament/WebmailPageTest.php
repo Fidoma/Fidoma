@@ -5,12 +5,20 @@ namespace Tests\Feature\Filament;
 use App\Features\Webmail\Filament\Pages\Webmail;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Config;
 use Livewire\Livewire;
 use Tests\TestCase;
 
 class WebmailPageTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Config::set('webmail.private_dir', storage_path('framework/testing/roundcube-missing'));
+    }
 
     public function test_unauthenticated_user_is_redirected_to_login(): void
     {
@@ -24,6 +32,7 @@ class WebmailPageTest extends TestCase
             ->test(Webmail::class)
             ->assertSet('installed', false)
             ->assertSee('Roundcube ist noch nicht installiert')
+            ->assertSeeHtml('webmail-page')
             ->assertActionVisible('install');
     }
 

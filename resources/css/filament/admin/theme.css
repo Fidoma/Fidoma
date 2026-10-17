@@ -344,6 +344,47 @@
     background: white;
 }
 
+/* Webmail is an application surface of its own, so it fills the complete
+   workspace below the Filament topbar instead of behaving like a form page. */
+.fi-main:has(> .webmail-page-installed) {
+    padding-inline: 0;
+}
+
+.webmail-page-installed .fi-page-header-main-ctn {
+    height: 100%;
+    gap: 0;
+    padding-block: 0;
+}
+
+.webmail-page-installed .fi-header {
+    display: none;
+}
+
+.webmail-page-installed .fi-page-main,
+.webmail-page-installed .fi-page-content,
+.webmail-shell,
+.webmail-frame {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+}
+
+.webmail-page-installed .fi-page-content {
+    gap: 0;
+}
+
+.webmail-shell {
+    overflow: hidden;
+    background: white;
+}
+
+.webmail-frame {
+    display: block;
+    min-height: calc(100dvh - var(--topbar-height, 4rem));
+    border: 0;
+    background: white;
+}
+
 @media (min-width: 64rem) {
     .invoice-layout-grid {
         grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);

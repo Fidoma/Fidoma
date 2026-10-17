@@ -12,7 +12,7 @@ class RoundcubeConfiguration
         $username = trim((string) config('webmail.imap.username'));
         $password = (string) config('webmail.imap.password');
 
-        if ($username === '' || $password === '') {
+        if ($username === '' || $password === '' || config('mail.default') !== 'smtp') {
             throw new RuntimeException('settings_required');
         }
 
@@ -53,6 +53,10 @@ class RoundcubeConfiguration
             'identities_level' => 3,
         ];
         $config['dont_override'] = array_keys($config);
+
+        if ($config['smtp_user'] === '' || $config['smtp_pass'] === '') {
+            throw new RuntimeException('settings_required');
+        }
 
         return [
             'config' => $config,

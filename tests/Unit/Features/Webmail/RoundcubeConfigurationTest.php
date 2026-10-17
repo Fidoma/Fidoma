@@ -22,6 +22,7 @@ class RoundcubeConfigurationTest extends TestCase
             'verify_certificates' => true,
         ]);
         Config::set('webmail.smtp_verify_certificates', true);
+        Config::set('mail.default', 'smtp');
         Config::set('mail.mailers.smtp', [
             'host' => 'smtp.example.test',
             'port' => 587,
@@ -55,6 +56,7 @@ class RoundcubeConfigurationTest extends TestCase
             'port' => 587,
             'scheme' => 'tls',
         ]);
+        Config::set('mail.default', 'smtp');
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('settings_invalid');

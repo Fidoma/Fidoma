@@ -1,12 +1,11 @@
-<x-filament-panels::page>
+<x-filament-panels::page :full-height="$installed">
     @if ($installed)
-        <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10">
+        <div class="webmail-shell">
             <iframe
                 src="{{ route('webmail.client') }}"
                 title="{{ __('webmail::messages.feature') }}"
                 referrerpolicy="same-origin"
-                class="block min-h-[560px] w-full border-0"
-                style="height: calc(100dvh - 11rem)"
+                class="webmail-frame"
             ></iframe>
         </div>
     @else
