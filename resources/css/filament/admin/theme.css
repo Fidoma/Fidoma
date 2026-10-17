@@ -5,6 +5,82 @@
 @source '../../../../resources/views/filament/**/*.blade.php';
 @source '../../../../resources/views/livewire/**/*.blade.php';
 
+/* A restrained modern surface treatment on top of Filament's native theme. */
+.fi-body {
+    background:
+        radial-gradient(circle at top right, rgb(255 0 146 / 0.08), transparent 28rem),
+        rgb(248 250 252);
+}
+
+.dark .fi-body {
+    background:
+        radial-gradient(circle at top right, rgb(255 0 146 / 0.09), transparent 30rem),
+        rgb(9 9 11);
+}
+
+.fi-topbar {
+    background-color: rgb(255 255 255 / 0.88);
+    border-bottom: 1px solid rgb(226 232 240 / 0.85);
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.03);
+    backdrop-filter: blur(14px);
+}
+
+.dark .fi-topbar {
+    background-color: rgb(24 24 27 / 0.88);
+    border-bottom-color: rgb(255 255 255 / 0.08);
+}
+
+.fi-sidebar {
+    border-right: 1px solid rgb(226 232 240 / 0.8);
+    background-color: rgb(255 255 255 / 0.78);
+    backdrop-filter: blur(14px);
+}
+
+.dark .fi-sidebar {
+    border-right-color: rgb(255 255 255 / 0.08);
+    background-color: rgb(24 24 27 / 0.82);
+}
+
+.fi-sidebar-item-btn,
+.fi-tabs-item,
+.fi-btn,
+.fi-input-wrp {
+    border-radius: 0.7rem;
+}
+
+.fi-sidebar-item.fi-active > .fi-sidebar-item-btn {
+    box-shadow: inset 0 0 0 1px rgb(255 0 146 / 0.18);
+}
+
+.fi-section,
+.fi-ta-ctn,
+.fi-modal-window {
+    border-radius: 1rem;
+    border-color: rgb(226 232 240 / 0.85);
+    box-shadow:
+        0 1px 2px rgb(15 23 42 / 0.03),
+        0 10px 28px rgb(15 23 42 / 0.045);
+}
+
+.dark .fi-section,
+.dark .fi-ta-ctn,
+.dark .fi-modal-window {
+    border-color: rgb(255 255 255 / 0.09);
+    box-shadow: 0 12px 32px rgb(0 0 0 / 0.18);
+}
+
+.fi-btn.fi-color-primary {
+    box-shadow: 0 5px 14px rgb(255 0 146 / 0.2);
+}
+
+.fi-header-heading {
+    letter-spacing: -0.025em;
+}
+
+.fi-input-wrp:focus-within {
+    box-shadow: 0 0 0 3px rgb(255 0 146 / 0.13);
+}
+
 .document-information .fi-in-entry-label {
     @apply font-bold;
 }

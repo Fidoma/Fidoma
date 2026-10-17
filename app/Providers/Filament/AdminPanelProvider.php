@@ -36,7 +36,7 @@ class AdminPanelProvider extends PanelProvider
             ->breadcrumbs(false)
             ->globalSearch(false)
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::hex('#FF0092'),
             ])
             ->userMenuItems([
                 [
