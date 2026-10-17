@@ -121,6 +121,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverResources(in: app_path('Features'), for: 'App\Features')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
+            ->discoverClusters(in: app_path('Features/Products/Filament/Clusters'), for: 'App\\Features\\Products\\Filament\\Clusters')
             ->pages([
                 Dashboard::class,
                 Documents::class,

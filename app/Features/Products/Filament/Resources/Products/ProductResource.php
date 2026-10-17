@@ -2,6 +2,7 @@
 
 namespace App\Features\Products\Filament\Resources\Products;
 
+use App\Features\Products\Filament\Clusters\ProductsCluster;
 use App\Features\Products\Filament\Resources\Products\Pages\CreateProduct;
 use App\Features\Products\Filament\Resources\Products\Pages\EditProduct;
 use App\Features\Products\Filament\Resources\Products\Pages\ListProducts;
@@ -13,7 +14,6 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use UnitEnum;
 
 class ProductResource extends Resource
 {
@@ -23,9 +23,9 @@ class ProductResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Produkte';
 
-    protected static ?string $navigationLabel = 'Produktübersicht';
+    protected static ?string $navigationLabel = 'Produkte';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Produkte';
+    protected static ?string $cluster = ProductsCluster::class;
 
     protected static ?int $navigationSort = 1;
 

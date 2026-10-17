@@ -2,6 +2,7 @@
 
 namespace App\Features\Units\Filament\Resources\Units;
 
+use App\Features\Products\Filament\Clusters\ProductsCluster;
 use App\Features\Units\Filament\Resources\Units\Pages\CreateUnit;
 use App\Features\Units\Filament\Resources\Units\Pages\EditUnit;
 use App\Features\Units\Filament\Resources\Units\Pages\ListUnits;
@@ -13,7 +14,6 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use UnitEnum;
 
 class UnitResource extends Resource
 {
@@ -25,7 +25,7 @@ class UnitResource extends Resource
 
     protected static ?string $navigationLabel = 'Einheiten';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Produkte';
+    protected static ?string $cluster = ProductsCluster::class;
 
     protected static ?int $navigationSort = 3;
 

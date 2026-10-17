@@ -8,12 +8,12 @@ use App\Features\Families\Filament\Resources\Families\Pages\ListFamilies;
 use App\Features\Families\Filament\Resources\Families\Schemas\FamilyForm;
 use App\Features\Families\Filament\Resources\Families\Tables\FamiliesTable;
 use App\Features\Families\Models\Family;
+use App\Features\Products\Filament\Clusters\ProductsCluster;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use UnitEnum;
 
 class FamilyResource extends Resource
 {
@@ -23,9 +23,9 @@ class FamilyResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Produktfamilien';
 
-    protected static ?string $navigationLabel = 'Produktfamilien';
+    protected static ?string $navigationLabel = 'Familien';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Produkte';
+    protected static ?string $cluster = ProductsCluster::class;
 
     protected static ?int $navigationSort = 2;
 

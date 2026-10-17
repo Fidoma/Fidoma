@@ -5,9 +5,13 @@ namespace Tests\Feature\Filament;
 use App\Features\Clients\Filament\Resources\Clients\ClientResource;
 use App\Features\Documents\Services\PaperlessClient;
 use App\Features\EmailTemplates\Filament\Resources\EmailTemplates\EmailTemplateResource;
+use App\Features\Families\Filament\Resources\Families\FamilyResource;
 use App\Features\InvoiceGroups\Filament\Resources\InvoiceGroups\InvoiceGroupResource;
 use App\Features\Invoices\Filament\Pages\InvoiceLayout;
+use App\Features\Products\Filament\Resources\Products\ProductResource;
+use App\Features\Quotes\Filament\Resources\Quotes\QuoteResource;
 use App\Features\TaxRates\Filament\Resources\TaxRates\TaxRateResource;
+use App\Features\Units\Filament\Resources\Units\UnitResource;
 use App\Features\Users\Filament\Resources\Users\UserResource;
 use App\Models\User;
 use Filament\Facades\Filament;
@@ -34,6 +38,36 @@ class AdminNavigationTest extends TestCase
     {
         $this->assertSame('Kunden', ClientResource::getNavigationLabel());
         $this->assertSame(Heroicon::OutlinedUserGroup, ClientResource::getNavigationIcon());
+    }
+
+    public function test_products_resources_share_one_navigation_item_and_top_tabs(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $panel = Filament::getPanel('admin');
+        Filament::setCurrentPanel($panel);
+
+        $navigationLabels = collect($panel->getNavigation())
+            ->flatMap(fn ($group) => $group->getItems())
+            ->map(fn ($item): string => $item->getLabel())
+            ->all();
+
+        $this->assertContains('Angebote', $navigationLabels);
+        $this->assertContains('Produkte', $navigationLabels);
+        $this->assertLessThan(
+            array_search('Produkte', $navigationLabels, true),
+            array_search('Angebote', $navigationLabels, true),
+        );
+        $this->assertNotContains('Familien', $navigationLabels);
+        $this->assertNotContains('Einheiten', $navigationLabels);
+
+        $this->get(ProductResource::getUrl())
+            ->assertOk()
+            ->assertSeeTextInOrder(['Produkte', 'Familien', 'Einheiten']);
+
+        $this->assertSame('Familien', FamilyResource::getNavigationLabel());
+        $this->assertSame('Einheiten', UnitResource::getNavigationLabel());
+        $this->assertSame('Angebote', QuoteResource::getNavigationLabel());
     }
 
     public function test_settings_are_in_the_user_menu_instead_of_the_sidebar(): void

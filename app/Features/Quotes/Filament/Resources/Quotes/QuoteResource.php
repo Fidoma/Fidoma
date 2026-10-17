@@ -22,6 +22,8 @@ class QuoteResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Angebote';
 
+    protected static ?int $navigationSort = 1;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
 
     protected static ?string $recordTitleAttribute = 'quote_number';
