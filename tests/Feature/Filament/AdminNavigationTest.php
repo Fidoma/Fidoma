@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Features\Clients\Filament\Resources\Clients\ClientResource;
 use App\Features\Documents\Services\PaperlessClient;
 use App\Features\EmailTemplates\Filament\Resources\EmailTemplates\EmailTemplateResource;
 use App\Features\InvoiceGroups\Filament\Resources\InvoiceGroups\InvoiceGroupResource;
@@ -10,6 +11,7 @@ use App\Features\Users\Filament\Resources\Users\UserResource;
 use App\Filament\Pages\InvoiceLayout;
 use App\Models\User;
 use Filament\Facades\Filament;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Tests\TestCase;
@@ -26,6 +28,12 @@ class AdminNavigationTest extends TestCase
         $this->assertSame('4.5rem', $panel->getCollapsedSidebarWidth());
         $this->assertTrue($panel->isSidebarCollapsibleOnDesktop());
         $this->assertFalse($panel->isSidebarFullyCollapsibleOnDesktop());
+    }
+
+    public function test_clients_navigation_uses_the_german_label_and_people_icon(): void
+    {
+        $this->assertSame('Kunden', ClientResource::getNavigationLabel());
+        $this->assertSame(Heroicon::OutlinedUserGroup, ClientResource::getNavigationIcon());
     }
 
     public function test_settings_are_in_the_user_menu_instead_of_the_sidebar(): void

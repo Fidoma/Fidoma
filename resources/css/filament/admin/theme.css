@@ -5,6 +5,149 @@
 @source '../../../../resources/views/filament/**/*.blade.php';
 @source '../../../../resources/views/livewire/**/*.blade.php';
 
+.fidoma-brand {
+    display: inline-flex;
+    height: 100%;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.fidoma-brand-mark {
+    width: 2rem;
+    height: 2rem;
+    object-fit: contain;
+}
+
+.fidoma-brand-name {
+    color: rgb(23 32 51);
+    font-size: 1.15rem;
+    font-weight: 750;
+    letter-spacing: -0.035em;
+}
+
+.dark .fidoma-brand-name {
+    color: white;
+}
+
+.fi-simple-layout:has(.fidoma-login-story) {
+    position: relative;
+    isolation: isolate;
+    min-height: 100dvh;
+    overflow: hidden;
+    background:
+        linear-gradient(90deg, rgb(248 250 252 / 0.98) 0%, rgb(248 250 252 / 0.92) 34%, rgb(23 32 51 / 0.08) 62%, rgb(23 32 51 / 0.2) 100%),
+        url('/images/brand/login-workspace.png') center / cover no-repeat;
+}
+
+.fi-simple-layout:has(.fidoma-login-story)::after {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 55%, rgb(23 32 51 / 0.38));
+    content: '';
+    pointer-events: none;
+}
+
+.fi-simple-layout:has(.fidoma-login-story) .fi-simple-main-ctn {
+    align-items: center;
+    justify-content: flex-start;
+    padding: clamp(1.5rem, 5vw, 5rem);
+}
+
+.fi-simple-layout:has(.fidoma-login-story) .fi-simple-main {
+    width: min(100%, 29rem);
+    margin-inline: 0;
+    border: 1px solid rgb(255 255 255 / 0.86);
+    border-radius: 1.5rem;
+    background: rgb(255 255 255 / 0.91);
+    padding: clamp(1.6rem, 4vw, 2.6rem);
+    box-shadow: 0 28px 80px rgb(23 32 51 / 0.16);
+    backdrop-filter: blur(18px);
+}
+
+.dark .fi-simple-layout:has(.fidoma-login-story) .fi-simple-main {
+    border-color: rgb(255 255 255 / 0.1);
+    background: rgb(24 24 27 / 0.9);
+    box-shadow: 0 28px 80px rgb(0 0 0 / 0.38);
+}
+
+.fi-simple-layout:has(.fidoma-login-story) .fi-simple-header {
+    align-items: flex-start;
+    text-align: left;
+}
+
+.fi-simple-layout:has(.fidoma-login-story) .fi-logo {
+    align-self: flex-start;
+    margin-bottom: 0.75rem;
+}
+
+.fidoma-login-story {
+    position: absolute;
+    z-index: 1;
+    right: clamp(2rem, 6vw, 7rem);
+    bottom: clamp(2rem, 7vh, 5rem);
+    width: min(34rem, 38vw);
+    color: white;
+    text-shadow: 0 2px 18px rgb(23 32 51 / 0.3);
+}
+
+.fidoma-login-eyebrow {
+    display: inline-flex;
+    margin-bottom: 1rem;
+    border: 1px solid rgb(255 255 255 / 0.3);
+    border-radius: 9999px;
+    background: rgb(23 32 51 / 0.22);
+    padding: 0.45rem 0.75rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    backdrop-filter: blur(10px);
+}
+
+.fidoma-login-story h1 {
+    margin: 0;
+    font-size: clamp(2.4rem, 4.5vw, 4.75rem);
+    font-weight: 650;
+    line-height: 0.98;
+    letter-spacing: -0.055em;
+}
+
+.fidoma-login-story p {
+    max-width: 32rem;
+    margin-top: 1.25rem;
+    color: rgb(255 255 255 / 0.84);
+    font-size: 0.95rem;
+    line-height: 1.65;
+}
+
+@media (max-width: 64rem) {
+    .fi-simple-layout:has(.fidoma-login-story) {
+        background-position: 64% center;
+    }
+
+    .fidoma-login-story {
+        display: none;
+    }
+}
+
+@media (max-width: 40rem) {
+    .fi-simple-layout:has(.fidoma-login-story) {
+        background:
+            linear-gradient(rgb(248 250 252 / 0.9), rgb(248 250 252 / 0.96)),
+            url('/images/brand/login-workspace.png') 72% center / cover no-repeat;
+    }
+
+    .fi-simple-layout:has(.fidoma-login-story) .fi-simple-main-ctn {
+        padding: 1rem;
+    }
+
+    .fi-simple-layout:has(.fidoma-login-story) .fi-simple-main {
+        border-radius: 1.2rem;
+        padding: 1.5rem;
+    }
+}
+
 /* A restrained modern surface treatment on top of Filament's native theme. */
 .fi-body {
     background:

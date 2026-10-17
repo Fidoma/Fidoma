@@ -8,6 +8,7 @@ use App\Features\InvoiceGroups\Filament\Resources\InvoiceGroups\InvoiceGroupReso
 use App\Features\TaxRates\Filament\Resources\TaxRates\TaxRateResource;
 use App\Features\Users\Filament\Resources\Users\UserResource;
 use App\Features\Webmail\Filament\Pages\Webmail;
+use App\Filament\Pages\Auth\Login;
 use App\Filament\Pages\InvoiceLayout;
 use Filament\Actions\Action;
 use Filament\Http\Middleware\Authenticate;
@@ -19,11 +20,13 @@ use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\Support\Icons\Heroicon;
+use Filament\View\PanelsRenderHook;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\HtmlString;
 use Illuminate\Support\Js;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
@@ -35,7 +38,21 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->login()
+            ->login(Login::class)
+            ->brandName('Fidoma')
+            ->brandLogo(fn (): HtmlString => new HtmlString(
+                '<span class="fidoma-brand">'
+                .'<img src="'.e(asset('images/brand/fidoma-mark.png')).'" alt="" class="fidoma-brand-mark">'
+                .'<span class="fidoma-brand-name">Fidoma</span>'
+                .'</span>',
+            ))
+            ->brandLogoHeight('2rem')
+            ->favicon(asset('images/brand/fidoma-mark.png'))
+            ->renderHook(
+                PanelsRenderHook::SIMPLE_LAYOUT_START,
+                fn () => view('filament.auth.login-story'),
+                scopes: Login::class,
+            )
             ->sidebarWidth('17rem')
             ->collapsedSidebarWidth('4.5rem')
             ->sidebarCollapsibleOnDesktop()
