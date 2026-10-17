@@ -3,7 +3,6 @@
 namespace App\Providers\Filament;
 
 use App\Features\Authentication\Filament\Pages\Login;
-use App\Features\Contracts\Filament\Pages\Contract;
 use App\Features\Dashboard\Filament\Pages\Dashboard;
 use App\Features\Documents\Filament\Pages\Documents;
 use App\Features\Documents\Services\PaperlessClient;
@@ -99,7 +98,6 @@ class AdminPanelProvider extends PanelProvider
             ->discoverClusters(in: app_path('Features/Settings/Filament/Clusters'), for: 'App\\Features\\Settings\\Filament\\Clusters')
             ->pages([
                 Dashboard::class,
-                Contract::class,
                 Documents::class,
                 InvoiceLayout::class,
                 Reports::class,
