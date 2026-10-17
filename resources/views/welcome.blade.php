@@ -55,6 +55,7 @@
         <article class="feature-card"><span class="feature-icon">□</span><h3>Belege & Dokumente</h3><p>Mit automatisiertem Zuordnungsprozess und entsprechender Trefferquote.</p></article>
         <article class="feature-card"><span class="feature-icon">◫</span><h3>Reservierungen</h3><p>Planung, Leistungen und Abrechnung in einem durchgängigen Ablauf verwalten.</p></article>
         <article class="feature-card"><span class="feature-icon">⌁</span><h3>Auswertungen</h3><p>Umsatz, Zahlungseingänge und steuerrelevante Daten getrennt nachvollziehen.</p></article>
+        <article class="feature-card"><span class="feature-icon">%</span><h3>Umsatzsteuervoranmeldung</h3><p>Umsatzsteuerwerte periodenbezogen aufbereiten, Details nachvollziehen und die Voranmeldung als PDF ausgeben.</p></article>
     </div>
 </div></section>
 

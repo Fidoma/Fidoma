@@ -15,6 +15,8 @@ class HomepageTest extends TestCase
             ->assertSee('Vom Bankumsatz zum passenden Vorgang.')
             ->assertSee('Rechnungen & Angebote', escape: false)
             ->assertSee('Mit automatisiertem Zuordnungsprozess und entsprechender Trefferquote.')
+            ->assertSee('Umsatzsteuervoranmeldung')
+            ->assertSee('Umsatzsteuerwerte periodenbezogen aufbereiten')
             ->assertSee('Fidoma läuft dort, wo Sie es möchten.')
             ->assertSee('/admin/login', escape: false)
             ->assertSee('images/brand/fidoma-mark.png', escape: false);
