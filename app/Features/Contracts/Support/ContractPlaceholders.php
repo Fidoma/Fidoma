@@ -10,45 +10,28 @@ final class ContractPlaceholders
     public static function groups(): array
     {
         return [
-            'Vertragsparteien' => [
-                '{{text:vermieter_name}}' => 'Text',
-                '{{text:vermieter_strasse}}' => 'Text',
-                '{{text:vermieter_plz}}' => 'Text',
-                '{{text:vermieter_ort}}' => 'Text',
-                '{{text:vermieter_telefon}}' => 'Text',
-                '{{text:mieter_name}}' => 'Text',
-                '{{text:mieter_strasse}}' => 'Text',
-                '{{text:mieter_plz}}' => 'Text',
-                '{{text:mieter_ort}}' => 'Text',
-                '{{text:mitbewohner_name}}' => 'Text',
+            'Kundendaten' => [
+                '{{text:client_number}}' => 'Text',
+                '{{text:client_company}}' => 'Text',
+                '{{text:client_name}}' => 'Text',
+                '{{text:client_address}}' => 'Text',
+                '{{text:client_city}}' => 'Text',
+                '{{text:client_email}}' => 'Text',
             ],
-            'Mietobjekt (§1)' => [
-                '{{text:objekt_adresse}}' => 'Text',
-                '{{number:wohnflaeche}}' => 'Zahl',
-                '{{number:zimmer}}' => 'Zahl',
-                '{{number:keller}}' => 'Zahl',
-                '{{number:terrasse}}' => 'Zahl',
-                '{{number:kueche}}' => 'Zahl',
-                '{{number:garage}}' => 'Zahl',
-                '{{number:balkon}}' => 'Zahl',
-                '{{number:bad}}' => 'Zahl',
-                '{{number:wc}}' => 'Zahl',
-                '{{number:stellplatz}}' => 'Zahl',
+            'Ausstellerdaten' => [
+                '{{text:issuer_company}}' => 'Text',
+                '{{text:issuer_name}}' => 'Text',
+                '{{text:issuer_address}}' => 'Text',
+                '{{text:issuer_city}}' => 'Text',
+                '{{text:issuer_email}}' => 'Text',
+                '{{text:issuer_vat_id}}' => 'Text',
+                '{{text:issuer_iban}}' => 'Text',
             ],
-            'Mietkosten (§2–§5)' => [
-                '{{amount:kaltmiete}}' => 'Betrag',
-                '{{amount:nebenkosten}}' => 'Betrag',
-                '{{amount:gesamtmiete}}' => 'Berechnet',
-                '{{text:vermieter_iban}}' => 'Text',
-                '{{amount:kaution}}' => 'Betrag',
-                '{{select:kaution_zahlungsart}}' => 'Auswahl',
-                '{{amount:kleinreparatur_grenze}}' => 'Betrag',
-            ],
-            'Vertragslaufzeit und Unterschrift' => [
-                '{{date:vertragsbeginn}}' => 'Datum',
-                '{{date:vertragsende}}' => 'Datum',
-                '{{text:vertragsort}}' => 'Text',
-                '{{date:vertragsdatum}}' => 'Datum',
+            'Vertragsdaten' => [
+                '{{date:contract_create_date}}' => 'Datum',
+                '{{date:contract_start_date}}' => 'Datum',
+                '{{date:contract_end_date}}' => 'Datum',
+                '{{text:contract_location}}' => 'Text',
             ],
         ];
     }

@@ -1,31 +1,32 @@
-<div class="contract-placeholders">
-    @foreach ($groups as $title => $placeholders)
-        <x-filament::section :heading="$loop->iteration . '. ' . $title" compact>
-            <div class="contract-placeholders-table-wrapper">
-                <table class="contract-placeholders-table">
-                    <thead>
+<x-filament::section heading="Platzhalter" compact>
+    <div class="contract-placeholders-table-wrapper">
+        <table class="contract-placeholders-table">
+            <thead>
+                <tr>
+                    <th scope="col" class="contract-placeholder-copy-column">
+                        <span class="sr-only">Kopieren</span>
+                    </th>
+                    <th scope="col">Platzhalter</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($groups as $placeholders)
+                    @foreach ($placeholders as $placeholder => $type)
                         <tr>
-                            <th scope="col">Platzhalter</th>
+                            <td class="contract-placeholder-copy-column">
+                                <x-filament::icon-button
+                                    icon="heroicon-o-clipboard-document"
+                                    color="gray"
+                                    size="sm"
+                                    label="Platzhalter kopieren"
+                                    x-on:click="navigator.clipboard.writeText({{ \Illuminate\Support\Js::from($placeholder) }})"
+                                />
+                            </td>
+                            <td><code>{{ $placeholder }}</code></td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($placeholders as $placeholder => $type)
-                            <tr>
-                                <td>
-                                    <button
-                                        type="button"
-                                        class="contract-placeholder-button"
-                                        title="An der Cursorposition einfügen"
-                                        x-on:click="window.dispatchEvent(new CustomEvent('run-rich-editor-commands', { detail: { livewireId: $wire.__instance.id, key: 'content', commands: [{ name: 'focus' }, { name: 'insertContent', arguments: [@js($placeholder)] }] } }))"
-                                    >
-                                        <code>{{ $placeholder }}</code>
-                                    </button>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </x-filament::section>
-    @endforeach
-</div>
+                    @endforeach
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+</x-filament::section>
