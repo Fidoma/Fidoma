@@ -16,6 +16,16 @@ class AdminNavigationTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_sidebar_is_compact_and_collapses_to_an_icon_rail_on_desktop(): void
+    {
+        $panel = Filament::getPanel('admin');
+
+        $this->assertSame('17rem', $panel->getSidebarWidth());
+        $this->assertSame('4.5rem', $panel->getCollapsedSidebarWidth());
+        $this->assertTrue($panel->isSidebarCollapsibleOnDesktop());
+        $this->assertFalse($panel->isSidebarFullyCollapsibleOnDesktop());
+    }
+
     public function test_settings_are_in_the_user_menu_instead_of_the_sidebar(): void
     {
         $this->actingAs(User::factory()->create());
