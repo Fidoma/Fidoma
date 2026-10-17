@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Filament\Widgets;
+namespace App\Features\Dashboard\Filament\Widgets;
 
 use App\Features\BankTransactions\Filament\Resources\BankTransactions\BankTransactionResource;
+use App\Features\Dashboard\Services\DashboardMetrics;
+use App\Features\Dashboard\Support\DashboardPeriod;
 use App\Features\Documents\Filament\Pages\Documents;
 use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
 use App\Features\Quotes\Filament\Resources\Quotes\QuoteResource;
-use App\Filament\Support\DashboardMetrics;
-use App\Filament\Support\DashboardPeriod;
 use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Filament\Widgets\Widget;
 
@@ -17,7 +17,7 @@ class DashboardTasks extends Widget
 
     protected static ?int $sort = 5;
 
-    protected string $view = 'filament.widgets.dashboard-tasks';
+    protected string $view = 'features.dashboard.widgets.dashboard-tasks';
 
     protected int|string|array $columnSpan = 'full';
 

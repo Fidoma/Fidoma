@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Filament\Support;
+namespace App\Features\Dashboard\Services;
 
 use App\Features\BankTransactions\Models\BankTransaction;
 use App\Features\BankTransactions\Models\BankTransactionMapping;
+use App\Features\Dashboard\Support\DashboardPeriod;
 use App\Features\Documents\Services\PaperlessClient;
 use App\Features\Invoices\Enums\InvoiceStatus;
 use App\Features\Invoices\Enums\InvoiceType;

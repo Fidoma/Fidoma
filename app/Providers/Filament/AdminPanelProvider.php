@@ -2,6 +2,8 @@
 
 namespace App\Providers\Filament;
 
+use App\Features\Authentication\Filament\Pages\Login;
+use App\Features\Dashboard\Filament\Pages\Dashboard;
 use App\Features\Documents\Filament\Pages\Documents;
 use App\Features\Documents\Services\PaperlessClient;
 use App\Features\EmailTemplates\Filament\Resources\EmailTemplates\EmailTemplateResource;
@@ -11,7 +13,6 @@ use App\Features\Reports\Filament\Pages\Reports;
 use App\Features\TaxRates\Filament\Resources\TaxRates\TaxRateResource;
 use App\Features\Users\Filament\Resources\Users\UserResource;
 use App\Features\Webmail\Filament\Pages\Webmail;
-use App\Filament\Pages\Auth\Login;
 use Filament\Actions\Action;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -52,7 +53,7 @@ class AdminPanelProvider extends PanelProvider
             ->favicon(asset('images/brand/fidoma-mark.png'))
             ->renderHook(
                 PanelsRenderHook::SIMPLE_LAYOUT_START,
-                fn () => view('filament.auth.login-story'),
+                fn () => view('features.authentication.login-story'),
                 scopes: Login::class,
             )
             ->sidebarWidth('17rem')
@@ -121,6 +122,7 @@ class AdminPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Features'), for: 'App\Features')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
+                Dashboard::class,
                 Documents::class,
                 InvoiceLayout::class,
                 Reports::class,

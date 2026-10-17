@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Filament\Widgets;
+namespace App\Features\Dashboard\Filament\Widgets;
 
 use App\Features\BankTransactions\Filament\Resources\BankTransactions\BankTransactionResource;
+use App\Features\Dashboard\Services\DashboardMetrics;
+use App\Features\Dashboard\Support\DashboardPeriod;
 use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
-use App\Filament\Support\DashboardMetrics;
-use App\Filament\Support\DashboardPeriod;
 use Filament\Support\Icons\Heroicon;
 use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Filament\Widgets\StatsOverviewWidget;

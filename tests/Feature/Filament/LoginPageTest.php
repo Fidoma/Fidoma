@@ -2,12 +2,16 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Features\Authentication\Filament\Pages\Login;
+use Filament\Facades\Filament;
 use Tests\TestCase;
 
 class LoginPageTest extends TestCase
 {
     public function test_login_page_uses_fidoma_branding(): void
     {
+        $this->assertSame(Login::class, Filament::getPanel('admin')->getLoginRouteAction());
+
         $this->get('/admin/login')
             ->assertOk()
             ->assertSee('Fidoma')

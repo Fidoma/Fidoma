@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Filament\Widgets;
+namespace App\Features\Dashboard\Filament\Widgets;
 
-use App\Filament\Support\DashboardMetrics;
-use App\Filament\Support\DashboardPeriod;
+use App\Features\Dashboard\Services\DashboardMetrics;
+use App\Features\Dashboard\Support\DashboardPeriod;
 use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Filament\Widgets\Widget;
 
@@ -13,7 +13,7 @@ class OperationsOverview extends Widget
 
     protected static ?int $sort = 4;
 
-    protected string $view = 'filament.widgets.operations-overview';
+    protected string $view = 'features.dashboard.widgets.operations-overview';
 
     protected int|string|array $columnSpan = 'full';
 

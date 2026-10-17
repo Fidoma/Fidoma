@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Filament\Widgets;
+namespace App\Features\Dashboard\Filament\Widgets;
 
-use App\Filament\Support\DashboardMetrics;
-use App\Filament\Support\DashboardPeriod;
+use App\Features\Dashboard\Services\DashboardMetrics;
+use App\Features\Dashboard\Support\DashboardPeriod;
 use Filament\Widgets\ChartWidget;
 use Filament\Widgets\Concerns\InteractsWithPageFilters;
 

@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Filament\Pages;
+namespace App\Features\Dashboard\Filament\Pages;
 
 use App\Features\BankTransactions\Models\BankTransaction;
+use App\Features\Dashboard\Filament\Widgets\CashflowChart;
+use App\Features\Dashboard\Filament\Widgets\DashboardKpis;
+use App\Features\Dashboard\Filament\Widgets\DashboardTasks;
+use App\Features\Dashboard\Filament\Widgets\OperationsOverview;
+use App\Features\Dashboard\Filament\Widgets\RevenueChart;
 use App\Features\Invoices\Models\Invoice;
 use App\Features\Quotes\Models\Quote;
-use App\Filament\Widgets\CashflowChart;
-use App\Filament\Widgets\DashboardKpis;
-use App\Filament\Widgets\DashboardTasks;
-use App\Filament\Widgets\OperationsOverview;
-use App\Filament\Widgets\RevenueChart;
 use Carbon\CarbonImmutable;
 use Filament\Pages\Dashboard as BaseDashboard;
 use Filament\Widgets\Widget;
@@ -101,6 +101,6 @@ class Dashboard extends BaseDashboard
 
     public function getHeader(): ?View
     {
-        return view('filament.pages.dashboard-header');
+        return view('features.dashboard.dashboard-header');
     }
 }

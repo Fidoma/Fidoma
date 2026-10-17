@@ -3,6 +3,7 @@
 @source '../../../../app/Filament/**/*.php';
 @source '../../../../app/Features/**/*.php';
 @source '../../../../resources/views/filament/**/*.blade.php';
+@source '../../../../resources/views/features/**/*.blade.php';
 @source '../../../../resources/views/livewire/**/*.blade.php';
 
 .fidoma-brand {

@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Filament;
 
-use App\Filament\Pages\Dashboard;
+use App\Features\Dashboard\Filament\Pages\Dashboard;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Support;
+namespace App\Features\Dashboard\Support;
 
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
