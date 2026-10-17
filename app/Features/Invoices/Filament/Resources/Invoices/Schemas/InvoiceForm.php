@@ -80,7 +80,8 @@ class InvoiceForm
                 ->afterHeader([
                     Toggle::make('issue_invoice')
                         ->label('Ausgestellt')
-                        ->default(fn (?Invoice $record): bool => $record !== null && $record->invoice_status_id !== InvoiceStatus::Draft)
+                        ->formatStateUsing(fn (?Invoice $record): bool => $record !== null
+                            && $record->invoice_status_id !== InvoiceStatus::Draft)
                         ->dehydrated(false)
                         ->live()
                         ->afterStateUpdated(function (bool $state, EditInvoice $livewire): void {
@@ -113,8 +114,7 @@ class InvoiceForm
                         ->label('Rechnungsnummer')
                         ->placeholder('Wird beim Ausstellen vergeben')
                         ->disabled(fn (?Invoice $record): bool => $record !== null
-                            && ($record->is_archived
-                                || ! in_array($record->invoice_status_id, [InvoiceStatus::Draft, InvoiceStatus::Open], true)))
+                            && ($record->is_archived || $record->invoice_status_id !== InvoiceStatus::Draft))
                         ->required(fn (?Invoice $record): bool => $record?->invoice_status_id === InvoiceStatus::Open)
                         ->maxLength(100)
                         ->columnSpan(['default' => 1, 'xl' => 2]),
@@ -242,6 +242,8 @@ class InvoiceForm
                                 ->label('Zahlungsbedingungen')
                                 ->hiddenLabel()
                                 ->placeholder('Zahlungsbedingungen ...')
+                                ->disabled(fn ($livewire): bool => $livewire instanceof EditInvoice
+                                    && $livewire->getRecord()->invoice_status_id !== InvoiceStatus::Draft)
                                 ->extraAttributes([
                                     'class' => 'ring-1! ring-gray-950/10! shadow-sm! dark:ring-white/20!',
                                 ])
