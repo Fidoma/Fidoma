@@ -42,7 +42,7 @@ class UstvaReportServiceTest extends TestCase
     {
         $rate19 = $this->taxRate('Standard', 19);
         $rate7 = $this->taxRate('Ermäßigt', 7);
-        $invoice = $this->invoice('RE-100', InvoiceType::Invoice, InvoiceStatus::Sent, '2030-10-10');
+        $invoice = $this->invoice('RE-100', InvoiceType::Invoice, InvoiceStatus::Open, '2030-10-10');
         $item19 = $this->item($invoice, $rate19, 100);
         $this->item($invoice, $rate7, 200, 2);
         app(RecalculateInvoice::class)->handle($invoice);
@@ -89,7 +89,7 @@ class UstvaReportServiceTest extends TestCase
             ['GU-200', InvoiceType::Credit, 20],
             ['ST-200', InvoiceType::Cancellation, 10],
         ] as [$number, $type, $price]) {
-            $invoice = $this->invoice($number, $type, InvoiceStatus::Sent, '2026-11-10');
+            $invoice = $this->invoice($number, $type, InvoiceStatus::Open, '2026-11-10');
             $this->item($invoice, $rate, $price);
             app(RecalculateInvoice::class)->handle($invoice);
         }
@@ -108,7 +108,7 @@ class UstvaReportServiceTest extends TestCase
     public function test_ist_report_allocates_a_partial_payment_to_net_and_tax(): void
     {
         $rate = $this->taxRate('Standard', 19);
-        $invoice = $this->invoice('RE-300', InvoiceType::Invoice, InvoiceStatus::Sent, '2026-09-10');
+        $invoice = $this->invoice('RE-300', InvoiceType::Invoice, InvoiceStatus::Open, '2026-09-10');
         $this->item($invoice, $rate, 100);
         app(RecalculateInvoice::class)->handle($invoice);
         $method = PaymentMethod::query()->create(['payment_method_name' => 'Überweisung']);
@@ -135,7 +135,7 @@ class UstvaReportServiceTest extends TestCase
     public function test_unknown_and_zero_percent_rates_are_not_silently_classified(): void
     {
         $rate = $this->taxRate('Nullsatz ohne Steuerkennzeichen', 0);
-        $invoice = $this->invoice('RE-400', InvoiceType::Invoice, InvoiceStatus::Sent, '2026-12-10');
+        $invoice = $this->invoice('RE-400', InvoiceType::Invoice, InvoiceStatus::Open, '2026-12-10');
         $this->item($invoice, $rate, 100);
         app(RecalculateInvoice::class)->handle($invoice);
 

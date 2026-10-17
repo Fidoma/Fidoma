@@ -3,6 +3,7 @@
 namespace Tests\Feature\Filament;
 
 use App\Features\Clients\Models\Client;
+use App\Features\Invoices\Actions\IssueInvoice;
 use App\Features\Invoices\Actions\RecalculateInvoice;
 use App\Features\Invoices\Enums\InvoiceStatus;
 use App\Features\Invoices\Enums\InvoiceType;
@@ -100,7 +101,7 @@ class PaymentsPageTest extends TestCase
         );
     }
 
-    public function test_a_payment_can_be_added_for_a_draft_invoice(): void
+    public function test_a_payment_can_be_added_for_an_open_invoice(): void
     {
         $user = User::factory()->create();
         $client = Client::query()->create([
@@ -114,7 +115,7 @@ class PaymentsPageTest extends TestCase
             'invoice_type' => InvoiceType::Invoice,
             'user_id' => $user->getKey(),
             'client_id' => $client->getKey(),
-            'invoice_group_id' => 1,
+            'invoice_group_id' => 3,
             'invoice_status_id' => InvoiceStatus::Draft,
             'is_read_only' => false,
             'is_archived' => false,
@@ -122,7 +123,7 @@ class PaymentsPageTest extends TestCase
             'invoice_date_created' => '2026-10-14',
             'invoice_time_created' => '10:00:00',
             'invoice_date_due' => '2026-10-28',
-            'invoice_number' => 'RE-2026-3002',
+            'invoice_number' => null,
             'invoice_discount_amount' => 0,
             'invoice_discount_percent' => 0,
             'invoice_terms' => '',
@@ -142,6 +143,7 @@ class PaymentsPageTest extends TestCase
             'item_order' => 1,
         ]);
         app(RecalculateInvoice::class)->handle($invoice);
+        app(IssueInvoice::class)->handle($invoice);
 
         Livewire::actingAs($user)
             ->test(ListPayments::class)
@@ -163,7 +165,8 @@ class PaymentsPageTest extends TestCase
             'payment_note' => 'Erste Teilzahlung',
         ]);
         $this->assertSame('69.00', $invoice->refresh()->amount->invoice_balance);
-        $this->assertSame(InvoiceStatus::Draft, $invoice->invoice_status_id);
+        $this->assertSame(InvoiceStatus::Open, $invoice->invoice_status_id);
+        $this->assertNotNull($invoice->invoice_number);
 
         Livewire::actingAs($user)
             ->test(ListPayments::class)

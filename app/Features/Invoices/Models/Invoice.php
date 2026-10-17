@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use LogicException;
 
 class Invoice extends Model
 {
@@ -52,6 +53,10 @@ class Invoice extends Model
     {
         static::saving(function (Invoice $invoice): void {
             $invoice->invoice_terms ??= '';
+
+            if ($invoice->invoice_status_id !== InvoiceStatus::Draft && blank($invoice->invoice_number)) {
+                throw new LogicException('An issued invoice must have an invoice number.');
+            }
         });
 
         static::deleting(function (Invoice $invoice): void {
@@ -131,7 +136,7 @@ class Invoice extends Model
 
     public function isOverdue(): bool
     {
-        return $this->invoice_status_id === InvoiceStatus::Sent
+        return $this->invoice_status_id === InvoiceStatus::Open
             && $this->invoice_date_due->isPast()
             && (float) ($this->amount?->invoice_balance ?? 0) > 0;
     }

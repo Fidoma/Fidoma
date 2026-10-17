@@ -45,7 +45,7 @@ class ListInvoices extends ListRecords
 
         $overdueQuery = fn (Builder $query): Builder => $query
             ->where('is_archived', false)
-            ->where('invoice_status_id', InvoiceStatus::Sent->value)
+            ->where('invoice_status_id', InvoiceStatus::Open->value)
             ->whereDate('invoice_date_due', '<', today())
             ->whereHas('amount', fn (Builder $query): Builder => $query
                 ->where('invoice_balance', '>', 0));

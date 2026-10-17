@@ -5,14 +5,14 @@ namespace App\Features\Invoices\Enums;
 enum InvoiceStatus: int
 {
     case Draft = 1;
-    case Sent = 2;
+    case Open = 2;
     case Paid = 4;
 
     public function label(): string
     {
         return match ($this) {
             self::Draft => 'Entwurf',
-            self::Sent => 'Versendet',
+            self::Open => 'Offen',
             self::Paid => 'Bezahlt',
         };
     }
@@ -21,7 +21,7 @@ enum InvoiceStatus: int
     {
         return match ($this) {
             self::Draft => 'gray',
-            self::Sent => 'info',
+            self::Open => 'info',
             self::Paid => 'success',
         };
     }

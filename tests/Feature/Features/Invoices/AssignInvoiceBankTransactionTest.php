@@ -32,7 +32,7 @@ class AssignInvoiceBankTransactionTest extends TestCase
             'user_id' => $user->getKey(),
             'client_id' => $client->getKey(),
             'invoice_group_id' => 1,
-            'invoice_status_id' => InvoiceStatus::Sent,
+            'invoice_status_id' => InvoiceStatus::Open,
             'is_read_only' => false,
             'is_archived' => false,
             'invoice_password' => '',
@@ -96,7 +96,7 @@ class AssignInvoiceBankTransactionTest extends TestCase
             'payment_id' => $mapping->payment_id,
         ]);
         $this->assertSame('119.00', $invoice->refresh()->amount->invoice_balance);
-        $this->assertSame(InvoiceStatus::Sent, $invoice->invoice_status_id);
+        $this->assertSame(InvoiceStatus::Open, $invoice->invoice_status_id);
         $this->assertFalse($transaction->refresh()->validated);
     }
 }

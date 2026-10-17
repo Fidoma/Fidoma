@@ -2,6 +2,7 @@
 
 namespace App\Features\Invoices\Actions;
 
+use App\Features\Invoices\Enums\InvoiceStatus;
 use App\Features\Invoices\Enums\InvoiceType;
 use App\Features\Invoices\Models\Invoice;
 use App\Features\Payments\Models\Payment;
@@ -10,7 +11,10 @@ use LogicException;
 
 final class RecordInvoicePayment
 {
-    public function __construct(private readonly RecalculateInvoice $recalculate) {}
+    public function __construct(
+        private readonly RecalculateInvoice $recalculate,
+        private readonly IssueInvoice $issueInvoice,
+    ) {}
 
     /** @param array<string, mixed> $attributes */
     public function handle(Invoice $invoice, array $attributes): Payment
@@ -20,6 +24,10 @@ final class RecordInvoicePayment
 
             if ($invoice->invoice_type !== InvoiceType::Invoice) {
                 throw new LogicException('Payments can only be recorded for regular invoices.');
+            }
+
+            if ($invoice->invoice_status_id === InvoiceStatus::Draft) {
+                $invoice = $this->issueInvoice->handle($invoice)->load('amount');
             }
 
             $amount = round((float) ($attributes['payment_amount'] ?? 0), 2);

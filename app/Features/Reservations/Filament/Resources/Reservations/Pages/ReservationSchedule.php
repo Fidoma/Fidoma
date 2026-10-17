@@ -156,7 +156,7 @@ class ReservationSchedule extends Page
                 $invoiceStatus = $reservation->invoice?->invoice_status_id?->value ?? 0;
                 $billing = match ($invoiceStatus) {
                     1 => ['label' => 'Entwurf', 'class' => 'open'],
-                    2 => ['label' => 'Versendet', 'class' => 'open'],
+                    2 => ['label' => 'Offen', 'class' => 'open'],
                     4 => ['label' => 'Bezahlt', 'class' => 'paid'],
                     default => ['label' => 'Nicht berechnet', 'class' => 'open'],
                 };

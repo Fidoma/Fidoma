@@ -29,8 +29,8 @@ class ContractPageTest extends TestCase
             ->assertSeeText('{{text:vermieter_name}}')
             ->assertSeeText('{{amount:gesamtmiete}}')
             ->assertSeeText('{{date:vertragsdatum}}')
-            ->assertSee('contract-placeholder-insert', false)
-            ->assertSee('insertContent($event.detail.placeholder)', false)
+            ->assertSee('run-rich-editor-commands', false)
+            ->assertSee('insertContent', false)
             ->assertSee('fi-fo-rich-editor', false);
     }
 }

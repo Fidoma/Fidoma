@@ -3,7 +3,6 @@
 namespace App\Features\Invoices\Actions;
 
 use App\Features\EmailTemplates\Services\SmtpConfiguration;
-use App\Features\Invoices\Enums\InvoiceStatus;
 use App\Features\Invoices\Models\Invoice;
 use Illuminate\Mail\Message;
 use Illuminate\Support\Facades\Auth;
@@ -16,6 +15,7 @@ final class SendInvoiceEmail
     public function __construct(
         private readonly GenerateInvoicePdf $generateInvoicePdf,
         private readonly SmtpConfiguration $smtpConfiguration,
+        private readonly IssueInvoice $issueInvoice,
     ) {}
 
     /** @param array<string, mixed> $data */
@@ -24,6 +24,8 @@ final class SendInvoiceEmail
         if (! $this->smtpConfiguration->isReady()) {
             throw new LogicException('SMTP ist nicht konfiguriert.');
         }
+
+        $invoice = $this->issueInvoice->handle($invoice);
 
         $pdf = ! empty($data['attach_pdf'])
             ? $this->generateInvoicePdf->handle($invoice)->output()
@@ -52,13 +54,6 @@ final class SendInvoiceEmail
                     );
                 }
             });
-
-            if ($invoice->invoice_status_id === InvoiceStatus::Draft) {
-                $invoice->update([
-                    'invoice_status_id' => InvoiceStatus::Sent,
-                    'is_read_only' => true,
-                ]);
-            }
 
             $this->audit(
                 $invoice,

@@ -16,7 +16,7 @@
                                         type="button"
                                         class="contract-placeholder-button"
                                         title="An der Cursorposition einfügen"
-                                        x-on:click="$dispatch('contract-placeholder-insert', { placeholder: @js($placeholder) })"
+                                        x-on:click="window.dispatchEvent(new CustomEvent('run-rich-editor-commands', { detail: { livewireId: $wire.__instance.id, key: 'content', commands: [{ name: 'focus' }, { name: 'insertContent', arguments: [@js($placeholder)] }] } }))"
                                     >
                                         <code>{{ $placeholder }}</code>
                                     </button>

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Features\Clients\Filament\Resources\Clients\ClientResource;
 use App\Features\Clients\Models\Client;
 use App\Features\Invoices\Actions\ArchiveInvoice;
+use App\Features\Invoices\Actions\IssueInvoice;
 use App\Features\Invoices\Enums\InvoiceStatus;
 use App\Features\Invoices\Enums\InvoiceType;
 use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
@@ -26,6 +27,7 @@ class InvoiceArchiveTest extends TestCase
     public function test_archiving_an_invoice_keeps_the_record_and_makes_it_read_only(): void
     {
         $invoice = $this->createInvoice();
+        $invoice = app(IssueInvoice::class)->handle($invoice);
 
         app(ArchiveInvoice::class)->handle($invoice);
 
@@ -39,7 +41,7 @@ class InvoiceArchiveTest extends TestCase
     public function test_invoice_index_offers_archiving_instead_of_deletion(): void
     {
         $user = User::factory()->create();
-        $this->createInvoice();
+        app(IssueInvoice::class)->handle($this->createInvoice());
 
         $this->actingAs($user)
             ->get('/admin/invoices')
@@ -49,7 +51,20 @@ class InvoiceArchiveTest extends TestCase
             ->assertDontSeeText('Löschen');
     }
 
-    public function test_draft_invoice_can_be_saved_as_sent_and_becomes_read_only(): void
+    public function test_a_draft_invoice_can_be_deleted(): void
+    {
+        $user = User::factory()->create();
+        $invoice = $this->createInvoice();
+
+        Livewire::actingAs($user)
+            ->test(ListInvoices::class)
+            ->assertTableActionVisible('delete', $invoice)
+            ->callTableAction('delete', $invoice);
+
+        $this->assertModelMissing($invoice);
+    }
+
+    public function test_draft_invoice_can_be_issued_and_becomes_numbered_and_read_only(): void
     {
         $user = User::factory()->create();
         $invoice = $this->createInvoice();
@@ -79,17 +94,18 @@ class InvoiceArchiveTest extends TestCase
 
         Livewire::actingAs($user)
             ->test(EditInvoice::class, ['record' => $invoice->getRouteKey()])
-            ->assertSee('Versendet')
+            ->assertSee('Ausgestellt')
             ->assertSee('Zeile hinzufügen')
             ->assertSee('fi-fo-summary-table-actions')
             ->set('data.invoice_terms', 'Zahlbar innerhalb von 14 Tagen.')
-            ->set('data.mark_as_sent', true)
+            ->set('data.issue_invoice', true)
             ->assertHasNoErrors()
-            ->assertNotified('Rechnung wurde als versendet markiert.');
+            ->assertNotified('Rechnung wurde ausgestellt.');
 
         $invoice->refresh();
 
-        $this->assertSame(InvoiceStatus::Sent, $invoice->invoice_status_id);
+        $this->assertSame(InvoiceStatus::Open, $invoice->invoice_status_id);
+        $this->assertNotNull($invoice->invoice_number);
         $this->assertTrue($invoice->is_read_only);
         $this->assertSame('Zahlbar innerhalb von 14 Tagen.', $invoice->invoice_terms);
     }
@@ -148,13 +164,13 @@ class InvoiceArchiveTest extends TestCase
             'invoice_type' => InvoiceType::Invoice,
             'user_id' => 1,
             'client_id' => 1,
-            'invoice_group_id' => 1,
+            'invoice_group_id' => 3,
             'invoice_status_id' => InvoiceStatus::Draft,
             'is_read_only' => false,
             'invoice_date_created' => '2026-10-13',
             'invoice_time_created' => '12:00:00',
             'invoice_date_due' => '2026-11-12',
-            'invoice_number' => 'RE-TEST-1',
+            'invoice_number' => null,
             'invoice_discount_amount' => 0,
             'invoice_discount_percent' => 0,
             'invoice_terms' => '',

@@ -16,6 +16,7 @@ use App\Features\PaymentMethods\Models\PaymentMethod;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -76,6 +77,9 @@ class InvoicesTable
                     self::recordPaymentAction(),
                     self::counterpartAction('createCredit', InvoiceType::Credit),
                     self::counterpartAction('createCancellation', InvoiceType::Cancellation),
+                    DeleteAction::make()
+                        ->label('Entwurf löschen')
+                        ->visible(fn (Invoice $record): bool => $record->invoice_status_id === InvoiceStatus::Draft),
                     Action::make('archive')
                         ->label('Archivieren')
                         ->icon(Heroicon::OutlinedArchiveBox)
@@ -84,7 +88,8 @@ class InvoicesTable
                         ->modalHeading('Rechnung archivieren')
                         ->modalDescription('Die Rechnung und alle zugehörigen Positionen, Steuern und Zahlungen bleiben vollständig erhalten.')
                         ->modalSubmitActionLabel('Archivieren')
-                        ->visible(fn (Invoice $record): bool => ! $record->is_archived)
+                        ->visible(fn (Invoice $record): bool => ! $record->is_archived
+                            && $record->invoice_status_id !== InvoiceStatus::Draft)
                         ->action(function (Invoice $record): void {
                             app(ArchiveInvoice::class)->handle($record);
 

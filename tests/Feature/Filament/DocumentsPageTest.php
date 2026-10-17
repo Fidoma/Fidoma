@@ -119,7 +119,7 @@ class DocumentsPageTest extends TestCase
             'user_id' => $user->getKey(),
             'client_id' => $client->getKey(),
             'invoice_group_id' => 1,
-            'invoice_status_id' => InvoiceStatus::Sent,
+            'invoice_status_id' => InvoiceStatus::Open,
             'is_read_only' => false,
             'is_archived' => false,
             'invoice_password' => '',

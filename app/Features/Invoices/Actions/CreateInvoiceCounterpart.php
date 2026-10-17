@@ -2,7 +2,6 @@
 
 namespace App\Features\Invoices\Actions;
 
-use App\Features\InvoiceGroups\Actions\GenerateInvoiceGroupNumber;
 use App\Features\Invoices\Enums\InvoiceStatus;
 use App\Features\Invoices\Enums\InvoiceType;
 use App\Features\Invoices\Models\Invoice;
@@ -15,7 +14,6 @@ use LogicException;
 final class CreateInvoiceCounterpart
 {
     public function __construct(
-        private readonly GenerateInvoiceGroupNumber $generateNumber,
         private readonly InvoiceDefaults $defaults,
         private readonly RecalculateInvoice $recalculate,
     ) {}
@@ -30,7 +28,7 @@ final class CreateInvoiceCounterpart
             throw new LogicException('Only a regular invoice can be used as the source document.');
         }
 
-        if (! in_array($source->invoice_status_id, [InvoiceStatus::Sent, InvoiceStatus::Paid], true)) {
+        if (! in_array($source->invoice_status_id, [InvoiceStatus::Open, InvoiceStatus::Paid], true)) {
             throw new LogicException('Only an issued invoice can be credited or cancelled.');
         }
 
@@ -60,7 +58,7 @@ final class CreateInvoiceCounterpart
                 'invoice_date_created' => today(),
                 'invoice_time_created' => now()->format('H:i:s'),
                 'invoice_date_due' => today()->addDays($this->defaults->dueDays()),
-                'invoice_number' => $this->generateNumber->handle($invoiceGroupId),
+                'invoice_number' => null,
                 'invoice_discount_amount' => -abs((float) $source->invoice_discount_amount),
                 'invoice_discount_percent' => $source->invoice_discount_percent,
                 'invoice_terms' => $source->invoice_terms,

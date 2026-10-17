@@ -2,6 +2,7 @@
 
 namespace App\Features\Invoices\Filament\Resources\Invoices\Pages;
 
+use App\Features\Invoices\Actions\IssueInvoice;
 use App\Features\Invoices\Actions\RecalculateInvoice;
 use App\Features\Invoices\Enums\InvoiceStatus;
 use App\Features\Invoices\Filament\Actions\InvoiceEmailAction;
@@ -38,26 +39,19 @@ class EditInvoice extends EditRecord
         abort_unless($this->isDraft(), 403, 'Nur Rechnungen im Status Entwurf können bearbeitet werden.');
     }
 
-    public function markAsSent(): void
+    public function issue(): void
     {
-        abort_unless($this->isDraft(), 422, 'Nur Rechnungen im Status Entwurf können auf Versendet gesetzt werden.');
+        abort_unless($this->isDraft(), 422, 'Nur Rechnungen im Status Entwurf können ausgestellt werden.');
 
         $this->save(shouldRedirect: false, shouldSendSavedNotification: false);
         $this->record->refresh();
 
-        if ($this->record->invoice_status_id === InvoiceStatus::Draft) {
-            $this->record->update([
-                'invoice_status_id' => InvoiceStatus::Sent,
-                'is_read_only' => true,
-            ]);
-        } else {
-            $this->record->update(['is_read_only' => true]);
-        }
+        $this->record = app(IssueInvoice::class)->handle($this->record);
 
         Notification::make()
             ->success()
-            ->title('Rechnung wurde als versendet markiert.')
-            ->body('Die Rechnung ist jetzt schreibgeschützt.')
+            ->title('Rechnung wurde ausgestellt.')
+            ->body('Die Rechnungsnummer wurde vergeben und die Rechnung ist jetzt offen.')
             ->send();
     }
 

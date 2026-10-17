@@ -9,7 +9,10 @@ use App\Features\Quotes\Services\QuoteAmountCalculator;
 
 final class RecalculateInvoice
 {
-    public function __construct(private readonly QuoteAmountCalculator $calculator) {}
+    public function __construct(
+        private readonly QuoteAmountCalculator $calculator,
+        private readonly IssueInvoice $issueInvoice,
+    ) {}
 
     public function handle(Invoice $invoice): Invoice
     {
@@ -55,9 +58,13 @@ final class RecalculateInvoice
         ]);
 
         if ($amounts['total'] > 0 && $balance <= 0) {
+            if ($invoice->invoice_status_id === InvoiceStatus::Draft) {
+                $invoice = $this->issueInvoice->handle($invoice);
+            }
+
             $invoice->updateQuietly(['invoice_status_id' => InvoiceStatus::Paid, 'is_read_only' => true]);
         } elseif ($balance > 0 && $invoice->invoice_status_id === InvoiceStatus::Paid) {
-            $invoice->updateQuietly(['invoice_status_id' => InvoiceStatus::Sent, 'is_read_only' => false]);
+            $invoice->updateQuietly(['invoice_status_id' => InvoiceStatus::Open, 'is_read_only' => true]);
         }
 
         return $invoice->refresh()->load('amount');

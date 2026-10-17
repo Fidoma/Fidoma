@@ -44,9 +44,6 @@ class Contract extends Page
                     ->label('Vertragstext')
                     ->placeholder('Vertragstext eingeben …')
                     ->minHeight('32rem')
-                    ->extraAttributes([
-                        'x-on:contract-placeholder-insert.window' => '$getEditor()?.chain().focus().insertContent($event.detail.placeholder).run()',
-                    ])
                     ->columnSpanFull(),
                 View::make('features.contracts.placeholders')
                     ->viewData(['groups' => ContractPlaceholders::groups()])

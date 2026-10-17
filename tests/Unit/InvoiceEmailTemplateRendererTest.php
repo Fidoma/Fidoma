@@ -19,7 +19,7 @@ class InvoiceEmailTemplateRendererTest extends TestCase
     {
         $invoice = new Invoice([
             'invoice_type' => InvoiceType::Invoice,
-            'invoice_status_id' => InvoiceStatus::Sent,
+            'invoice_status_id' => InvoiceStatus::Open,
             'invoice_number' => 'RE-1001',
             'invoice_date_created' => '2026-10-13',
             'invoice_date_due' => '2026-11-12',

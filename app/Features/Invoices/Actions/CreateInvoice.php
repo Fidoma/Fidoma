@@ -2,7 +2,6 @@
 
 namespace App\Features\Invoices\Actions;
 
-use App\Features\InvoiceGroups\Actions\GenerateInvoiceGroupNumber;
 use App\Features\Invoices\Enums\InvoiceStatus;
 use App\Features\Invoices\Enums\InvoiceType;
 use App\Features\Invoices\Models\Invoice;
@@ -14,7 +13,6 @@ use LogicException;
 final class CreateInvoice
 {
     public function __construct(
-        private readonly GenerateInvoiceGroupNumber $generateNumber,
         private readonly InvoiceDefaults $defaults,
     ) {}
 
@@ -33,18 +31,14 @@ final class CreateInvoice
             throw new LogicException('No number group is configured for invoices.');
         }
 
-        $invoiceNumber = trim((string) ($attributes['invoice_number'] ?? ''));
-
         return Invoice::query()->create([
             ...$attributes,
             'invoice_type' => InvoiceType::Invoice,
             'creditinvoice_parent_id' => null,
             'user_id' => $userId,
             'invoice_group_id' => $invoiceGroupId,
-            'invoice_status_id' => $attributes['invoice_status_id'] ?? InvoiceStatus::Draft->value,
-            'invoice_number' => $invoiceNumber !== ''
-                ? $invoiceNumber
-                : $this->generateNumber->handle($invoiceGroupId),
+            'invoice_status_id' => InvoiceStatus::Draft,
+            'invoice_number' => null,
             'invoice_time_created' => now()->format('H:i:s'),
             'invoice_url_key' => Str::random(32),
             'is_read_only' => false,

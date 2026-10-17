@@ -77,14 +77,14 @@ class InvoiceForm
                 ? 'Rechnung - '.$record->invoice_number
                 : 'Rechnung')
                 ->afterHeader([
-                    Toggle::make('mark_as_sent')
-                        ->label('Versendet')
+                    Toggle::make('issue_invoice')
+                        ->label('Ausgestellt')
                         ->default(fn (?Invoice $record): bool => $record !== null && $record->invoice_status_id !== InvoiceStatus::Draft)
                         ->dehydrated(false)
                         ->live()
                         ->afterStateUpdated(function (bool $state, EditInvoice $livewire): void {
                             if ($state) {
-                                $livewire->markAsSent();
+                                $livewire->issue();
                             }
                         })
                         ->visible(fn (?Invoice $record): bool => $record !== null && ! $record->is_archived),
@@ -106,10 +106,9 @@ class InvoiceForm
                         ->createOptionUsing(fn (array $data): int => app(CreateClient::class)->handle($data)->getKey())
                         ->disabled(fn (Get $get): bool => self::invoiceType($get) !== InvoiceType::Invoice)
                         ->columnSpan(['default' => 1, 'xl' => 4]),
-                    TextInput::make('invoice_number')
+                    Placeholder::make('invoice_number_display')
                         ->label('Rechnungsnummer')
-                        ->placeholder('Wird automatisch vergeben')
-                        ->maxLength(20)
+                        ->content(fn (?Invoice $record): string => $record?->invoice_number ?: 'Wird beim Ausstellen vergeben')
                         ->columnSpan(['default' => 1, 'xl' => 2]),
                     DatePicker::make('invoice_date_created')
                         ->label('Rechnungsdatum')
