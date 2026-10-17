@@ -27,8 +27,12 @@ final class IssueInvoice
                 throw new LogicException('No number group is configured for this invoice.');
             }
 
+            $invoiceNumber = trim((string) $invoice->invoice_number);
+
             $invoice->update([
-                'invoice_number' => $this->generateNumber->handle($invoice->invoice_group_id),
+                'invoice_number' => $invoiceNumber !== ''
+                    ? $invoiceNumber
+                    : $this->generateNumber->handle($invoice->invoice_group_id),
                 'invoice_status_id' => InvoiceStatus::Open,
                 'is_read_only' => true,
             ]);

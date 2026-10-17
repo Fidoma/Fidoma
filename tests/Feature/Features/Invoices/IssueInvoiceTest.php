@@ -59,6 +59,24 @@ class IssueInvoiceTest extends TestCase
         $this->assertSame($nextNumber + 1, $group->refresh()->invoice_group_next_id);
     }
 
+    public function test_issuing_a_draft_keeps_a_manually_entered_number(): void
+    {
+        $user = User::factory()->create();
+        $client = Client::query()->create([
+            'client_name' => 'Testkunde',
+            'client_active' => true,
+        ]);
+        $invoice = $this->actingAs($user)->createInvoice($client->getKey(), 'RE-MANUELL-42');
+        $group = InvoiceGroup::query()->findOrFail($invoice->invoice_group_id);
+        $nextNumber = $group->invoice_group_next_id;
+
+        $issued = app(IssueInvoice::class)->handle($invoice);
+
+        $this->assertSame(InvoiceStatus::Open, $issued->invoice_status_id);
+        $this->assertSame('RE-MANUELL-42', $issued->invoice_number);
+        $this->assertSame($nextNumber, $group->refresh()->invoice_group_next_id);
+    }
+
     public function test_a_draft_that_becomes_paid_is_numbered_before_the_status_changes(): void
     {
         $user = User::factory()->create();
@@ -91,13 +109,13 @@ class IssueInvoiceTest extends TestCase
         $this->assertTrue($invoice->is_read_only);
     }
 
-    private function createInvoice(int $clientId): Invoice
+    private function createInvoice(int $clientId, ?string $invoiceNumber = null): Invoice
     {
         return app(CreateInvoice::class)->handle([
             'client_id' => $clientId,
             'invoice_date_created' => '2026-10-17',
             'invoice_date_due' => '2026-11-16',
-            'invoice_number' => 'MUST-NOT-BE-USED',
+            'invoice_number' => $invoiceNumber,
             'invoice_status_id' => InvoiceStatus::Paid,
             'invoice_discount_amount' => 0,
             'invoice_discount_percent' => 0,

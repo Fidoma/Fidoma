@@ -47,6 +47,7 @@ class InvoiceForm
             Hidden::make('invoice_terms')->default(fn (): string => app(InvoiceDefaults::class)->terms()),
             Repeater::make('invoiceTaxRates')
                 ->relationship()
+                ->disabled(fn (?Invoice $record): bool => $record !== null && $record->invoice_status_id !== InvoiceStatus::Draft)
                 ->defaultItems(0)
                 ->hidden()
                 ->dehydratedWhenHidden()
@@ -87,6 +88,7 @@ class InvoiceForm
                                 $livewire->issue();
                             }
                         })
+                        ->disabled(fn (?Invoice $record): bool => $record?->invoice_status_id !== InvoiceStatus::Draft)
                         ->visible(fn (?Invoice $record): bool => $record !== null && ! $record->is_archived),
                 ])
                 ->columns(['default' => 1, 'md' => 2, 'xl' => 12])
@@ -104,25 +106,34 @@ class InvoiceForm
                             TextInput::make('client_phone')->label('Telefon')->tel()->maxLength(20),
                         ])
                         ->createOptionUsing(fn (array $data): int => app(CreateClient::class)->handle($data)->getKey())
-                        ->disabled(fn (Get $get): bool => self::invoiceType($get) !== InvoiceType::Invoice)
+                        ->disabled(fn (Get $get, ?Invoice $record): bool => self::invoiceType($get) !== InvoiceType::Invoice
+                            || ($record !== null && $record->invoice_status_id !== InvoiceStatus::Draft))
                         ->columnSpan(['default' => 1, 'xl' => 4]),
-                    Placeholder::make('invoice_number_display')
+                    TextInput::make('invoice_number')
                         ->label('Rechnungsnummer')
-                        ->content(fn (?Invoice $record): string => $record?->invoice_number ?: 'Wird beim Ausstellen vergeben')
+                        ->placeholder('Wird beim Ausstellen vergeben')
+                        ->disabled(fn (?Invoice $record): bool => $record !== null
+                            && ($record->is_archived
+                                || ! in_array($record->invoice_status_id, [InvoiceStatus::Draft, InvoiceStatus::Open], true)))
+                        ->required(fn (?Invoice $record): bool => $record?->invoice_status_id === InvoiceStatus::Open)
+                        ->maxLength(100)
                         ->columnSpan(['default' => 1, 'xl' => 2]),
                     DatePicker::make('invoice_date_created')
                         ->label('Rechnungsdatum')
                         ->default(now()->toDateString())
+                        ->disabled(fn (?Invoice $record): bool => $record !== null && $record->invoice_status_id !== InvoiceStatus::Draft)
                         ->required()
                         ->columnSpan(['default' => 1, 'xl' => 3]),
                     DatePicker::make('invoice_date_due')
                         ->label('Fällig am')
                         ->default(fn (): string => now()->addDays(app(InvoiceDefaults::class)->dueDays())->toDateString())
+                        ->disabled(fn (?Invoice $record): bool => $record !== null && $record->invoice_status_id !== InvoiceStatus::Draft)
                         ->afterOrEqual('invoice_date_created')
                         ->required()
                         ->columnSpan(['default' => 1, 'xl' => 3]),
                 ]),
             Section::make('Positionen')
+                ->disabled(fn (?Invoice $record): bool => $record !== null && $record->invoice_status_id !== InvoiceStatus::Draft)
                 ->columnSpan(['default' => 12])
                 ->schema([
                     SummaryTableRepeater::make('items')
@@ -130,7 +141,7 @@ class InvoiceForm
                         ->relationship()
                         ->orderColumn('item_order')
                         ->defaultItems(1)
-                        ->minItems(1)
+                        ->minItems(fn (?Invoice $record): int => $record === null || $record->invoice_status_id === InvoiceStatus::Draft ? 1 : 0)
                         ->addable(false)
                         ->deletable(false)
                         ->reorderable()

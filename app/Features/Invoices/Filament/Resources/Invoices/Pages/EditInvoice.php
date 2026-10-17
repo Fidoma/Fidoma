@@ -14,6 +14,7 @@ use Filament\Resources\Pages\EditRecord;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Database\Eloquent\Model;
 
 class EditInvoice extends EditRecord
 {
@@ -25,8 +26,7 @@ class EditInvoice extends EditRecord
 
     public function form(Schema $schema): Schema
     {
-        return parent::form($schema)
-            ->disabled(fn (): bool => ! $this->isDraft());
+        return parent::form($schema);
     }
 
     protected function afterSave(): void
@@ -36,7 +36,19 @@ class EditInvoice extends EditRecord
 
     protected function beforeSave(): void
     {
-        abort_unless($this->isDraft(), 403, 'Nur Rechnungen im Status Entwurf können bearbeitet werden.');
+        abort_unless($this->isDraft() || $this->canEditInvoiceNumber(), 403, 'Diese Rechnung kann nicht bearbeitet werden.');
+    }
+
+    /** @param array<string, mixed> $data */
+    protected function handleRecordUpdate(Model $record, array $data): Model
+    {
+        if ($this->isDraft()) {
+            return parent::handleRecordUpdate($record, $data);
+        }
+
+        $record->update(['invoice_number' => $data['invoice_number']]);
+
+        return $record;
     }
 
     public function issue(): void
@@ -59,7 +71,7 @@ class EditInvoice extends EditRecord
     protected function getFormActions(): array
     {
         return [
-            ...($this->isDraft() ? parent::getFormActions() : []),
+            ...($this->isDraft() || $this->canEditInvoiceNumber() ? parent::getFormActions() : []),
             InvoiceEmailAction::make()->outlined(),
             Action::make('createPdf')
                 ->label('PDF erstellen')
@@ -82,5 +94,11 @@ class EditInvoice extends EditRecord
     {
         return ! $this->record->is_archived
             && $this->record->invoice_status_id === InvoiceStatus::Draft;
+    }
+
+    private function canEditInvoiceNumber(): bool
+    {
+        return ! $this->record->is_archived
+            && $this->record->invoice_status_id === InvoiceStatus::Open;
     }
 }

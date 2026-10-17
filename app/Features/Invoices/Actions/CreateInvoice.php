@@ -31,6 +31,8 @@ final class CreateInvoice
             throw new LogicException('No number group is configured for invoices.');
         }
 
+        $invoiceNumber = trim((string) ($attributes['invoice_number'] ?? ''));
+
         return Invoice::query()->create([
             ...$attributes,
             'invoice_type' => InvoiceType::Invoice,
@@ -38,7 +40,7 @@ final class CreateInvoice
             'user_id' => $userId,
             'invoice_group_id' => $invoiceGroupId,
             'invoice_status_id' => InvoiceStatus::Draft,
-            'invoice_number' => null,
+            'invoice_number' => $invoiceNumber !== '' ? $invoiceNumber : null,
             'invoice_time_created' => now()->format('H:i:s'),
             'invoice_url_key' => Str::random(32),
             'is_read_only' => false,

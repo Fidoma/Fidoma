@@ -94,6 +94,7 @@ class InvoiceArchiveTest extends TestCase
 
         Livewire::actingAs($user)
             ->test(EditInvoice::class, ['record' => $invoice->getRouteKey()])
+            ->assertFormFieldEnabled('invoice_number')
             ->assertSee('Ausgestellt')
             ->assertSee('Zeile hinzufügen')
             ->assertSee('fi-fo-summary-table-actions')
@@ -108,6 +109,34 @@ class InvoiceArchiveTest extends TestCase
         $this->assertNotNull($invoice->invoice_number);
         $this->assertTrue($invoice->is_read_only);
         $this->assertSame('Zahlbar innerhalb von 14 Tagen.', $invoice->invoice_terms);
+    }
+
+    public function test_invoice_number_remains_editable_after_the_invoice_is_issued(): void
+    {
+        $user = User::factory()->create();
+        $client = Client::query()->create([
+            'client_name' => 'Testkunde',
+            'client_active' => true,
+        ]);
+        $invoice = $this->createInvoice();
+        $invoice->update(['client_id' => $client->getKey()]);
+        $invoice = app(IssueInvoice::class)->handle($invoice);
+        $originalDueDate = $invoice->invoice_date_due->toDateString();
+
+        Livewire::actingAs($user)
+            ->test(EditInvoice::class, ['record' => $invoice->getRouteKey()])
+            ->assertFormFieldEnabled('invoice_number')
+            ->assertFormFieldDisabled('client_id')
+            ->assertFormFieldDisabled('invoice_date_due')
+            ->set('data.invoice_number', 'RE-MANUELL-2026-1')
+            ->set('data.invoice_date_due', '2027-12-31')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $invoice->refresh();
+
+        $this->assertSame('RE-MANUELL-2026-1', $invoice->invoice_number);
+        $this->assertSame($originalDueDate, $invoice->invoice_date_due->toDateString());
     }
 
     public function test_invoice_list_uses_colored_numbers_and_filters_counterparts_by_type(): void
