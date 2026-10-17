@@ -85,8 +85,9 @@
     position: absolute;
     z-index: 1;
     right: clamp(2rem, 6vw, 7rem);
-    bottom: clamp(2rem, 7vh, 5rem);
-    width: min(34rem, 38vw);
+    top: 50%;
+    width: min(38rem, 42vw);
+    transform: translateY(-50%);
     color: white;
     text-shadow: 0 2px 18px rgb(23 32 51 / 0.3);
 }
@@ -107,7 +108,7 @@
 
 .fidoma-login-story h1 {
     margin: 0;
-    font-size: clamp(2.4rem, 4.5vw, 4.75rem);
+    font-size: clamp(2.35rem, 4vw, 4.3rem);
     font-weight: 650;
     line-height: 0.98;
     letter-spacing: -0.055em;
@@ -119,6 +120,49 @@
     color: rgb(255 255 255 / 0.84);
     font-size: 0.95rem;
     line-height: 1.65;
+}
+
+.fidoma-login-features {
+    display: grid;
+    gap: 0.65rem;
+    margin-top: 1.5rem;
+}
+
+.fidoma-login-feature {
+    display: grid;
+    grid-template-columns: 2.35rem 1fr;
+    gap: 0.85rem;
+    align-items: center;
+    border: 1px solid rgb(255 255 255 / 0.2);
+    border-radius: 1rem;
+    background: rgb(23 32 51 / 0.32);
+    padding: 0.85rem 1rem;
+    box-shadow: 0 12px 32px rgb(23 32 51 / 0.12);
+    backdrop-filter: blur(14px);
+}
+
+.fidoma-login-feature > svg {
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: 0.7rem;
+    background: rgb(255 0 146 / 0.16);
+    padding: 0.45rem;
+    color: rgb(255 89 184);
+}
+
+.fidoma-login-feature h2 {
+    margin: 0;
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+}
+
+.fidoma-login-feature p {
+    margin: 0.15rem 0 0;
+    color: rgb(255 255 255 / 0.7);
+    font-size: 0.74rem;
+    line-height: 1.45;
 }
 
 @media (max-width: 64rem) {

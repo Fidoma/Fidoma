@@ -15,6 +15,10 @@ class LoginPageTest extends TestCase
             ->assertSee('Willkommen zurück')
             ->assertSee('ERP, klar organisiert')
             ->assertSee('Mehr Überblick.')
-            ->assertSee('Kunden, Rechnungen, Belege und Finanzen');
+            ->assertSee('Kunden, Rechnungen, Belege und Finanzen')
+            ->assertSee('Rechnungen & Angebote', escape: false)
+            ->assertSee('Bank & Zahlungen', escape: false)
+            ->assertSee('Belege & Dokumente', escape: false)
+            ->assertSee('Mit automatisiertem Zuordnungsprozess und entsprechender Trefferquote.');
     }
 }
