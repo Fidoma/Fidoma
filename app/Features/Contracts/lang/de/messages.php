@@ -8,9 +8,16 @@ return [
             'modal_heading' => 'Eigenen Platzhalter hinzufügen',
             'save' => 'Speichern',
             'label' => 'Bezeichnung',
-            'helper' => 'Aus der Bezeichnung wird automatisch ein Text-Platzhalter erzeugt.',
+            'type' => 'Typ',
+            'types' => [
+                'text' => 'Text',
+                'date' => 'Datum',
+            ],
+            'helper' => 'Aus der Bezeichnung wird automatisch ein Platzhalter erzeugt.',
             'duplicate' => 'Dieser Platzhalter ist bereits vorhanden.',
             'copy' => 'Platzhalter kopieren',
+            'delete' => 'Platzhalter löschen',
+            'cannot_delete' => 'Der Platzhalter wird bereits in einem Vertrag verwendet und kann nicht gelöscht werden.',
         ],
     ],
 ];

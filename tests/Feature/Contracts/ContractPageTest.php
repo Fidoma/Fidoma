@@ -84,14 +84,17 @@ class ContractPageTest extends TestCase
             ->assertFormComponentActionExists('contract-template-placeholders', 'addPlaceholder')
             ->callFormComponentAction('contract-template-placeholders', 'addPlaceholder', [
                 'label' => 'Monatliche Miete',
+                'field_type' => 'date',
             ])
             ->assertSet('data.custom_placeholders', [[
                 'field_key' => 'monatliche_miete',
                 'label' => 'Monatliche Miete',
+                'field_type' => 'date',
+                'can_delete' => true,
             ]])
             ->fillForm([
                 'name' => 'Mietvertrag mit Platzhalter',
-                'content' => '<p>{{text:monatliche_miete}}</p>',
+                'content' => '<p>{{date:monatliche_miete}}</p>',
             ])
             ->call('create')
             ->assertHasNoFormErrors();
@@ -102,7 +105,7 @@ class ContractPageTest extends TestCase
             'template_id' => $template->getKey(),
             'field_key' => 'monatliche_miete',
             'label' => 'Monatliche Miete',
-            'field_type' => 'text',
+            'field_type' => 'date',
         ]);
     }
 
@@ -129,9 +132,12 @@ class ContractPageTest extends TestCase
             ->assertSet('data.custom_placeholders', [[
                 'field_key' => 'service_level',
                 'label' => 'Service-Level',
+                'field_type' => 'text',
+                'can_delete' => true,
             ]])
             ->callFormComponentAction('contract-template-placeholders', 'addPlaceholder', [
                 'label' => 'Ansprechpartner',
+                'field_type' => 'text',
             ])
             ->call('save')
             ->assertHasNoFormErrors();
@@ -141,6 +147,37 @@ class ContractPageTest extends TestCase
             'field_key' => 'ansprechpartner',
             'label' => 'Ansprechpartner',
             'field_type' => 'text',
+        ]);
+    }
+
+    public function test_custom_placeholder_can_be_removed_while_editing_a_template(): void
+    {
+        $user = User::factory()->create();
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        $template = ContractTemplate::query()->create([
+            'name' => 'Vorlage mit altem Feld',
+            'content' => '<p>Inhalt</p>',
+            'status' => 'draft',
+            'version' => 1,
+        ]);
+        ContractTemplateField::query()->create([
+            'template_id' => $template->getKey(),
+            'field_key' => 'altes_feld',
+            'label' => 'Altes Feld',
+            'field_type' => 'text',
+            'sort_order' => 0,
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(EditContractTemplate::class, ['record' => $template->getRouteKey()])
+            ->assertSee('Platzhalter löschen')
+            ->set('data.custom_placeholders', [])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertDatabaseMissing('contract_template_fields', [
+            'template_id' => $template->getKey(),
+            'field_key' => 'altes_feld',
         ]);
     }
 }

@@ -8,9 +8,16 @@ return [
             'modal_heading' => 'Add custom placeholder',
             'save' => 'Save',
             'label' => 'Label',
-            'helper' => 'A text placeholder is generated automatically from the label.',
+            'type' => 'Type',
+            'types' => [
+                'text' => 'Text',
+                'date' => 'Date',
+            ],
+            'helper' => 'A placeholder is generated automatically from the label.',
             'duplicate' => 'This placeholder already exists.',
             'copy' => 'Copy placeholder',
+            'delete' => 'Delete placeholder',
+            'cannot_delete' => 'This placeholder is already used by a contract and cannot be deleted.',
         ],
     ],
 ];

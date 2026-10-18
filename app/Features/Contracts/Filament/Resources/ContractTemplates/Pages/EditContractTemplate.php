@@ -31,10 +31,13 @@ class EditContractTemplate extends EditRecord
     protected function mutateFormDataBeforeFill(array $data): array
     {
         $data['custom_placeholders'] = $this->record->fields()
-            ->get(['field_key', 'label'])
+            ->withCount('values')
+            ->get(['field_key', 'label', 'field_type'])
             ->map(fn ($field): array => [
                 'field_key' => $field->field_key,
                 'label' => $field->label,
+                'field_type' => $field->field_type,
+                'can_delete' => $field->values_count === 0,
             ])
             ->all();
 

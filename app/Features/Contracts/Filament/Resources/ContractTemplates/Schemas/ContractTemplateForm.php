@@ -9,6 +9,7 @@ use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
@@ -51,11 +52,26 @@ class ContractTemplateForm
                             ->modalHeading(__('contracts::messages.template.placeholders.modal_heading'))
                             ->modalSubmitActionLabel(__('contracts::messages.template.placeholders.save'))
                             ->schema([
-                                TextInput::make('label')
-                                    ->label(__('contracts::messages.template.placeholders.label'))
-                                    ->helperText(__('contracts::messages.template.placeholders.helper'))
-                                    ->required()
-                                    ->maxLength(255),
+                                Grid::make(['default' => 1, 'md' => 3])
+                                    ->schema([
+                                        Select::make('field_type')
+                                            ->label(__('contracts::messages.template.placeholders.type'))
+                                            ->options([
+                                                'text' => __('contracts::messages.template.placeholders.types.text'),
+                                                'date' => __('contracts::messages.template.placeholders.types.date'),
+                                            ])
+                                            ->default('text')
+                                            ->native()
+                                            ->selectablePlaceholder(false)
+                                            ->required()
+                                            ->columnSpan(['default' => 1, 'md' => 1]),
+                                        TextInput::make('label')
+                                            ->label(__('contracts::messages.template.placeholders.label'))
+                                            ->helperText(__('contracts::messages.template.placeholders.helper'))
+                                            ->required()
+                                            ->maxLength(255)
+                                            ->columnSpan(['default' => 1, 'md' => 2]),
+                                    ]),
                             ])
                             ->action(function (array $data, Get $get, Set $set): void {
                                 $label = trim($data['label']);
@@ -79,6 +95,8 @@ class ContractTemplateForm
                                 $customPlaceholders[] = [
                                     'field_key' => $fieldKey,
                                     'label' => $label,
+                                    'field_type' => $data['field_type'],
+                                    'can_delete' => true,
                                 ];
 
                                 $set('custom_placeholders', $customPlaceholders);

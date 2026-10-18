@@ -6,7 +6,7 @@ use App\Features\Contracts\Actions\SyncContractTemplateFields;
 
 trait ManagesContractTemplateFields
 {
-    /** @var array<int, array{field_key: string, label: string}> */
+    /** @var array<int, array{field_key: string, label: string, field_type: string, can_delete?: bool}> */
     private array $customPlaceholders = [];
 
     /**

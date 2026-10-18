@@ -2,8 +2,8 @@
     class="contract-placeholders-table-wrapper"
     x-data="{
         customPlaceholders: $wire.entangle('data.custom_placeholders'),
-        formatPlaceholder(fieldKey) {
-            return `\u007b\u007btext:${fieldKey}\u007d\u007d`;
+        formatPlaceholder(placeholder) {
+            return `\u007b\u007b${placeholder.field_type}:${placeholder.field_key}\u007d\u007d`;
         },
     }"
 >
@@ -14,6 +14,9 @@
                     <span class="sr-only">{{ __('contracts::messages.template.placeholders.copy') }}</span>
                 </th>
                 <th scope="col">{{ __('contracts::messages.template.placeholders.heading') }}</th>
+                <th scope="col" class="contract-placeholder-copy-column">
+                    <span class="sr-only">{{ __('contracts::messages.template.placeholders.delete') }}</span>
+                </th>
             </tr>
         </thead>
         <tbody>
@@ -25,10 +28,27 @@
                             color="gray"
                             size="sm"
                             :label="__('contracts::messages.template.placeholders.copy')"
-                            x-on:click="navigator.clipboard.writeText(formatPlaceholder(customPlaceholder.field_key))"
+                            x-on:click="navigator.clipboard.writeText(formatPlaceholder(customPlaceholder))"
                         />
                     </td>
-                    <td><code x-text="formatPlaceholder(customPlaceholder.field_key)"></code></td>
+                    <td><code x-text="formatPlaceholder(customPlaceholder)"></code></td>
+                    <td class="contract-placeholder-copy-column">
+                        <x-filament::icon-button
+                            icon="heroicon-o-trash"
+                            color="danger"
+                            size="sm"
+                            :label="__('contracts::messages.template.placeholders.delete')"
+                            x-bind:disabled="! customPlaceholder.can_delete"
+                            x-bind:title="customPlaceholder.can_delete
+                                ? @js(__('contracts::messages.template.placeholders.delete'))
+                                : @js(__('contracts::messages.template.placeholders.cannot_delete'))"
+                            x-on:click="if (customPlaceholder.can_delete) {
+                                customPlaceholders = customPlaceholders.filter(
+                                    (placeholder) => placeholder.field_key !== customPlaceholder.field_key,
+                                );
+                            }"
+                        />
+                    </td>
                 </tr>
             </template>
 
@@ -45,6 +65,7 @@
                             />
                         </td>
                         <td><code>{{ $placeholder }}</code></td>
+                        <td></td>
                     </tr>
                 @endforeach
             @endforeach
