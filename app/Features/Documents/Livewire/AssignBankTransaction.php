@@ -271,13 +271,8 @@ class AssignBankTransaction extends Component implements HasActions, HasSchemas,
             ->deferFilters(false)
             ->toolbarActions([
                 BulkAction::make('assignSelected')
-                    ->label('Link')
+                    ->label('Zuordnen')
                     ->icon(Heroicon::OutlinedLink)
-                    ->requiresConfirmation()
-                    ->modalHeading('Ausgewählte Banktransaktionen zuordnen')
-                    ->modalDescription(fn (Collection $records): string => $records->count().' '.($records->count() === 1
-                        ? 'Banktransaktion wird dem Dokument zugeordnet.'
-                        : 'Banktransaktionen werden dem Dokument zugeordnet.'))
                     ->action(fn (Collection $records) => $this->assignSelected($records)),
             ])
             ->checkIfRecordIsSelectableUsing(fn (BankTransaction $record): bool => ! $record->mapped_to_current_document)

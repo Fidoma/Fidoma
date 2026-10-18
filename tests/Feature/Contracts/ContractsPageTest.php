@@ -6,6 +6,7 @@ use App\Features\Clients\Models\Client;
 use App\Features\Contracts\Filament\Resources\Contracts\ContractResource;
 use App\Features\Contracts\Filament\Resources\Contracts\Pages\CreateContract;
 use App\Features\Contracts\Filament\Resources\Contracts\Pages\ListContracts;
+use App\Features\Contracts\Models\Contract;
 use App\Features\Contracts\Models\ContractTemplate;
 use App\Features\Contracts\Models\ContractTemplateField;
 use App\Features\InvoiceGroups\Models\InvoiceGroup;
@@ -134,6 +135,16 @@ class ContractsPageTest extends TestCase
             'template_field_id' => $field->getKey(),
             'value' => 'Premium',
         ]);
+
+        $contract = Contract::query()->where('number', 'V-0042')->firstOrFail();
+
+        $this->actingAs($user)
+            ->get(ContractResource::getUrl('view', ['record' => $contract]))
+            ->assertOk()
+            ->assertSeeText('Vertrag V-0042')
+            ->assertSeeText('Vertragskunde')
+            ->assertSeeText('Service-Level')
+            ->assertSeeText('Premium');
     }
 
     public function test_a_manually_entered_contract_number_is_preserved(): void

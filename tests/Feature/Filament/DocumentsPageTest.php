@@ -12,6 +12,7 @@ use App\Features\Invoices\Enums\InvoiceStatus;
 use App\Features\Invoices\Enums\InvoiceType;
 use App\Features\Invoices\Livewire\AssignInvoiceBankTransaction;
 use App\Features\Invoices\Livewire\InvoiceMappings;
+use App\Features\Invoices\Livewire\LinkedInvoiceBankTransactions;
 use App\Features\Invoices\Models\Invoice;
 use App\Features\Invoices\Models\InvoiceAmount;
 use App\Models\User;
@@ -181,6 +182,10 @@ class DocumentsPageTest extends TestCase
         $this->assertTrue($mountedAction->isModalSlideOver());
         $this->assertSame(Width::TwoExtraLarge, $mountedAction->getModalWidth());
 
+        $linkedTransactions = Livewire::actingAs($user)
+            ->test(LinkedInvoiceBankTransactions::class, ['invoiceId' => $invoice->getKey()])
+            ->assertCanNotSeeTableRecords([$incoming]);
+
         Livewire::actingAs($user)
             ->test(AssignInvoiceBankTransaction::class, ['invoiceId' => $invoice->getKey()])
             ->assertSee('Rechnungsinformationen')
@@ -190,7 +195,22 @@ class DocumentsPageTest extends TestCase
             ->assertCanNotSeeTableRecords([$outgoing])
             ->call('applyTableSearch', '119.00')
             ->assertSet('tableSearch', '119.00')
+            ->assertCanSeeTableRecords([$incoming])
+            ->callTableBulkAction('assignSelected', [$incoming])
+            ->assertHasNoActionErrors();
+
+        $linkedTransactions
+            ->dispatch('invoice-linked-tab-opened')
             ->assertCanSeeTableRecords([$incoming]);
+
+        $this->assertDatabaseHas('ip_bank_transaction_mappings', [
+            'bank_transaction_id' => $incoming->getKey(),
+        ]);
+        $this->assertDatabaseHas('ip_payments', [
+            'invoice_id' => $invoice->getKey(),
+            'payment_external_id' => 'bank-transaction:'.$incoming->getKey(),
+            'payment_amount' => 119,
+        ]);
     }
 
     public function test_paperless_documents_are_not_filtered_by_path_or_type_when_settings_are_empty(): void

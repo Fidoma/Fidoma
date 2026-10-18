@@ -70,8 +70,6 @@ final class AssignInvoiceBankTransactions
                 ->get()
                 ->keyBy->getKey();
 
-            $total = 0.0;
-
             foreach ($transactionIds as $transactionId) {
                 /** @var BankTransaction|null $transaction */
                 $transaction = $transactions->get($transactionId);
@@ -96,7 +94,6 @@ final class AssignInvoiceBankTransactions
                     ]);
                 }
 
-                $total += round((float) $transaction->amount, 2);
             }
 
             $balance = round((float) ($invoice->amount?->invoice_balance ?? 0), 2);
@@ -104,12 +101,6 @@ final class AssignInvoiceBankTransactions
             if ($balance <= 0) {
                 throw ValidationException::withMessages([
                     'invoice' => 'Die Rechnung hat keinen offenen Betrag.',
-                ]);
-            }
-
-            if (round($total, 2) > $balance) {
-                throw ValidationException::withMessages([
-                    'transaction' => 'Die ausgewählten Zahlungseingänge übersteigen den offenen Rechnungsbetrag.',
                 ]);
             }
 

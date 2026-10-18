@@ -161,6 +161,7 @@ class LinkedBankTransactions extends Component implements HasActions, HasSchemas
     }
 
     #[On('paperless-mapping-created')]
+    #[On('paperless-linked-tab-opened')]
     public function refreshLinkedTransactions(): void
     {
         $this->resetTable();

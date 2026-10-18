@@ -63,7 +63,7 @@ class AssignInvoiceBankTransactionTest extends TestCase
         $transaction = app(CreateBankTransaction::class)->handle([
             'account_iban' => 'DE02120300000000202051',
             'booking_date' => '2026-10-15',
-            'amount' => '119.0000',
+            'amount' => '1119.0000',
             'currency' => 'EUR',
             'counterparty_name' => 'Musterkunde GmbH',
             'purpose' => 'Zahlung RE-2026-2001',
@@ -78,10 +78,10 @@ class AssignInvoiceBankTransactionTest extends TestCase
         $this->assertDatabaseHas('ip_payments', [
             'payment_id' => $mapping->payment_id,
             'invoice_id' => $invoice->getKey(),
-            'payment_amount' => 119,
+            'payment_amount' => 1119,
             'payment_external_id' => 'bank-transaction:'.$transaction->getKey(),
         ]);
-        $this->assertSame('0.00', $invoice->refresh()->amount->invoice_balance);
+        $this->assertSame('-1000.00', $invoice->refresh()->amount->invoice_balance);
         $this->assertSame(InvoiceStatus::Paid, $invoice->invoice_status_id);
         $this->assertTrue($transaction->refresh()->validated);
 

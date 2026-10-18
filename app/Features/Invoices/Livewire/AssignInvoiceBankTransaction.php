@@ -166,13 +166,8 @@ class AssignInvoiceBankTransaction extends Component implements HasActions, HasS
             ])
             ->toolbarActions([
                 BulkAction::make('assignSelected')
-                    ->label('Link')
+                    ->label('Zuordnen')
                     ->icon(Heroicon::OutlinedLink)
-                    ->requiresConfirmation()
-                    ->modalHeading('Ausgewählte Zahlungseingänge zuordnen')
-                    ->modalDescription(fn (Collection $records): string => $records->count().' '.($records->count() === 1
-                        ? 'Banktransaktion wird als Zahlung der Rechnung zugeordnet.'
-                        : 'Banktransaktionen werden als Zahlungen der Rechnung zugeordnet.'))
                     ->action(fn (Collection $records) => $this->assignSelected($records)),
             ])
             ->selectCurrentPageOnly()

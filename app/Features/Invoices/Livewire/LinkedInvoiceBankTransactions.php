@@ -23,6 +23,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Throwable;
 
@@ -152,6 +153,13 @@ class LinkedInvoiceBankTransactions extends Component implements HasActions, Has
             ->send();
 
         $this->dispatch('invoice-mapping-removed');
+    }
+
+    #[On('invoice-mapping-created')]
+    #[On('invoice-linked-tab-opened')]
+    public function refreshLinkedTransactions(): void
+    {
+        $this->resetTable();
     }
 
     public function render(): View

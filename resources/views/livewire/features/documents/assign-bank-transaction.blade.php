@@ -9,7 +9,7 @@
 
         <x-filament::tabs.item
             alpine-active="activeTab === 'linked'"
-            x-on:click="activeTab = 'linked'"
+            x-on:click="activeTab = 'linked'; $wire.$dispatch('paperless-linked-tab-opened')"
         >
             Verknüpft
         </x-filament::tabs.item>
