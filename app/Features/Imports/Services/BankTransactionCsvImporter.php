@@ -61,30 +61,22 @@ final class BankTransactionCsvImporter
      * @param  array<string, string>  $mapping
      * @param  array<string, mixed>  $defaults
      * @param  array{column?: string|null, negative_value?: string|null, positive_value?: string|null}  $signRule
+     * @param  list<int>  $excludedLines
      */
-    public function import(string $path, array $mapping, array $defaults, array $signRule = []): int
+    public function import(string $path, array $mapping, array $defaults, array $signRule = [], array $excludedLines = []): int
     {
         $headers = $this->reader->inspect($path, 0)['headers'];
         $this->validateMapping($headers, $mapping, $signRule);
 
-        return DB::transaction(function () use ($path, $mapping, $defaults, $signRule): int {
+        return DB::transaction(function () use ($path, $mapping, $defaults, $signRule, $excludedLines): int {
             $count = 0;
 
             foreach ($this->reader->rows($path) as $line => $sourceRow) {
-                if ($line === 1) {
+                if ($line === 1 || in_array($line, $excludedLines, true)) {
                     continue;
                 }
 
-                $attributes = [];
-
-                foreach (self::FIELDS as $field) {
-                    $source = (string) ($mapping[$field] ?? '');
-                    $value = $source !== '' ? ($sourceRow[$source] ?? '') : '';
-                    $attributes[$field] = $this->normalize($field, $value !== '' ? $value : ($defaults[$field] ?? ''));
-                }
-
-                $attributes['transaction_reference'] = $this->reference($attributes, $sourceRow);
-                $attributes['amount'] = $this->applySignRule((string) $attributes['amount'], $sourceRow, $signRule, $line);
+                $attributes = $this->prepareRow($sourceRow, $mapping, $defaults, $signRule, $line);
                 $this->validateRow($attributes, $line);
 
                 if (BankTransaction::query()->where('transaction_reference', $attributes['transaction_reference'])->exists()) {
@@ -103,6 +95,29 @@ final class BankTransactionCsvImporter
 
             return $count;
         });
+    }
+
+    /**
+     * @param  array<string, string>  $sourceRow
+     * @param  array<string, string|null>  $mapping
+     * @param  array<string, mixed>  $defaults
+     * @param  array<string, mixed>  $signRule
+     * @return array<string, mixed>
+     */
+    public function prepareRow(array $sourceRow, array $mapping, array $defaults, array $signRule, int $line): array
+    {
+        $attributes = [];
+
+        foreach (self::FIELDS as $field) {
+            $source = (string) ($mapping[$field] ?? '');
+            $value = $source !== '' ? ($sourceRow[$source] ?? '') : '';
+            $attributes[$field] = $this->normalize($field, $value !== '' ? $value : ($defaults[$field] ?? ''));
+        }
+
+        $attributes['transaction_reference'] = $this->reference($attributes, $sourceRow);
+        $attributes['amount'] = $this->applySignRule((string) $attributes['amount'], $sourceRow, $signRule, $line);
+
+        return $attributes;
     }
 
     /** @param list<string> $headers

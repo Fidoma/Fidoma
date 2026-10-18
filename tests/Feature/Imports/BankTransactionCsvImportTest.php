@@ -4,6 +4,7 @@ namespace Tests\Feature\Imports;
 
 use App\Features\BankTransactions\Models\BankTransaction;
 use App\Features\Imports\Filament\Pages\DataImport;
+use App\Features\Imports\Livewire\BankTransactionCsvPreview;
 use App\Features\Imports\Services\BankTransactionCsvImporter;
 use App\Features\Imports\Services\CsvReader;
 use App\Models\User;
@@ -146,5 +147,163 @@ class BankTransactionCsvImportTest extends TestCase
         }
 
         $this->assertSame(0, BankTransaction::query()->count());
+    }
+
+    public function test_the_preview_uses_paginated_status_tabs_for_new_and_possible_duplicate_rows(): void
+    {
+        Storage::fake('local');
+        $rows = ['account_iban;booking_date;amount;currency;purpose'];
+
+        for ($index = 1; $index <= 12; $index++) {
+            $rows[] = sprintf('DE1234567890;2026-10-%02d;%d,00;EUR;Vorschau %02d', $index, $index, $index);
+        }
+
+        Storage::disk('local')->put('imports/bank-transactions/preview.csv', implode("\n", $rows));
+        BankTransaction::query()->create([
+            'account_iban' => 'DE1234567890',
+            'booking_date' => '2026-10-01',
+            'amount' => '1.0000',
+            'currency' => 'EUR',
+            'transaction_reference' => hash('sha256', 'existing-transaction'),
+            'pending' => false,
+            'validated' => false,
+        ]);
+
+        Livewire::test(BankTransactionCsvPreview::class, [
+            'path' => 'imports/bank-transactions/preview.csv',
+            'mapping' => [
+                'account_iban' => 'account_iban',
+                'booking_date' => 'booking_date',
+                'amount' => 'amount',
+                'currency' => 'currency',
+                'purpose' => 'purpose',
+            ],
+            'defaults' => ['pending' => '0', 'validated' => '0'],
+            'signRule' => [],
+        ])
+            ->assertSeeText('Alle')
+            ->assertSeeText('Neu')
+            ->assertSeeText('Mögliche Duplikate')
+            ->assertSeeText('Vorschau 10')
+            ->assertDontSeeText('Vorschau 11')
+            ->call('showTab', 'duplicates')
+            ->assertSet('activeTab', 'duplicates')
+            ->assertSeeText('Vorschau 01')
+            ->assertSeeText('Mögliches Duplikat')
+            ->assertDontSeeText('Vorschau 02')
+            ->call('showTab', 'new')
+            ->assertSet('activeTab', 'new')
+            ->assertDontSeeText('Vorschau 01')
+            ->assertSeeText('Vorschau 02');
+    }
+
+    public function test_selected_preview_rows_can_be_removed_and_are_skipped_during_import(): void
+    {
+        Storage::fake('local');
+        Storage::disk('local')->put('imports/bank-transactions/remove.csv', implode("\n", [
+            'account_iban;booking_date;amount;currency;purpose',
+            'DE1234567890;2026-10-17;10,00;EUR;Entfernen',
+            'DE1234567890;2026-10-18;20,00;EUR;Importieren',
+        ]));
+        $mapping = [
+            'account_iban' => 'account_iban',
+            'booking_date' => 'booking_date',
+            'amount' => 'amount',
+            'currency' => 'currency',
+            'purpose' => 'purpose',
+        ];
+
+        $component = Livewire::test(BankTransactionCsvPreview::class, [
+            'path' => 'imports/bank-transactions/remove.csv',
+            'mapping' => $mapping,
+            'defaults' => ['pending' => '0', 'validated' => '0'],
+            'signRule' => [],
+        ]);
+        $records = $component->get('previewRecords');
+        $firstRecordId = $records[0]['id'];
+        $secondRecordId = $records[1]['id'];
+
+        $this->assertNotSame($firstRecordId, $secondRecordId);
+        $this->assertSame($firstRecordId, $records[0]['__key']);
+        $this->assertSame($secondRecordId, $records[1]['__key']);
+        $this->assertSame(
+            [$firstRecordId, $secondRecordId],
+            $component->instance()->getTableRecords()->getCollection()->keys()->all(),
+        );
+
+        $component
+            ->assertTableBulkActionExists('removeSelected')
+            ->callTableBulkAction('removeSelected', [$firstRecordId])
+            ->assertSet('excludedLines', [2])
+            ->assertSet('previewRecords.0.id', $secondRecordId)
+            ->assertSet('previewRecords.0.line', 3)
+            ->assertSet('selectedTableRecords', [])
+            ->assertSet('deselectedTableRecords', [])
+            ->assertSet('isTrackingDeselectedTableRecords', false)
+            ->assertDispatched('csv-preview-rows-removed')
+            ->assertDontSeeText('Entfernen')
+            ->assertSeeText('Importieren')
+            ->callTableBulkAction('removeSelected', [$secondRecordId])
+            ->assertSet('excludedLines', [2, 3])
+            ->assertSet('previewRecords', [])
+            ->assertDontSeeText('Importieren');
+
+        $count = app(BankTransactionCsvImporter::class)->import(
+            Storage::disk('local')->path('imports/bank-transactions/remove.csv'),
+            $mapping,
+            ['pending' => '0', 'validated' => '0'],
+            [],
+            [2],
+        );
+
+        $this->assertSame(1, $count);
+        $this->assertDatabaseMissing('ip_bank_transactions', ['purpose' => 'Entfernen']);
+        $this->assertDatabaseHas('ip_bank_transactions', ['purpose' => 'Importieren']);
+    }
+
+    public function test_the_import_page_keeps_rows_removed_by_the_preview_excluded(): void
+    {
+        Livewire::actingAs(User::factory()->create())
+            ->test(DataImport::class)
+            ->dispatch('csv-preview-rows-removed', lines: [4, 2, 4])
+            ->assertSet('excludedLines', [2, 4]);
+    }
+
+    public function test_select_all_can_remove_multiple_consecutive_pages(): void
+    {
+        Storage::fake('local');
+        Storage::disk('local')->put('imports/bank-transactions/select-all.csv', implode("\n", [
+            'account_iban;booking_date;amount;currency;purpose',
+            'DE1234567890;2026-10-17;10,00;EUR;Zeile 1',
+            'DE1234567890;2026-10-18;20,00;EUR;Zeile 2',
+            'DE1234567890;2026-10-19;30,00;EUR;Zeile 3',
+            'DE1234567890;2026-10-20;40,00;EUR;Zeile 4',
+        ]));
+        $mapping = [
+            'account_iban' => 'account_iban',
+            'booking_date' => 'booking_date',
+            'amount' => 'amount',
+            'currency' => 'currency',
+            'purpose' => 'purpose',
+        ];
+
+        $component = Livewire::test(BankTransactionCsvPreview::class, [
+            'path' => 'imports/bank-transactions/select-all.csv',
+            'mapping' => $mapping,
+            'defaults' => ['pending' => '0', 'validated' => '0'],
+            'signRule' => [],
+        ]);
+        $recordIds = collect($component->get('previewRecords'))->pluck('id')->all();
+
+        $component
+            ->set('isTrackingDeselectedTableRecords', true)
+            ->callTableBulkAction('removeSelected', array_slice($recordIds, 0, 2))
+            ->assertSet('excludedLines', [2, 3])
+            ->assertSet('isTrackingDeselectedTableRecords', false)
+            ->assertSet('deselectedTableRecords', [])
+            ->callTableBulkAction('removeSelected', array_slice($recordIds, 2, 2))
+            ->assertSet('excludedLines', [2, 3, 4, 5])
+            ->assertSeeText('Keine CSV-Zeilen in diesem Bereich')
+            ->assertDontSeeText('0 Transaktionen wurden entfernt.');
     }
 }

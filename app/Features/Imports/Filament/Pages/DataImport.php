@@ -3,6 +3,7 @@
 namespace App\Features\Imports\Filament\Pages;
 
 use App\Features\BankTransactions\Models\BankTransaction;
+use App\Features\Imports\Livewire\BankTransactionCsvPreview;
 use App\Features\Imports\Services\BankTransactionCsvImporter;
 use App\Features\Imports\Services\CsvReader;
 use BackedEnum;
@@ -14,6 +15,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Actions;
+use Filament\Schemas\Components\Livewire as LivewireComponent;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
@@ -21,6 +23,7 @@ use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Attributes\On;
 use Throwable;
 use UnitEnum;
 
@@ -48,8 +51,8 @@ class DataImport extends Page
     /** @var list<string> */
     public array $csvHeaders = [];
 
-    /** @var list<array<string, string>> */
-    public array $previewRows = [];
+    /** @var list<int> */
+    public array $excludedLines = [];
 
     public function mount(): void
     {
@@ -106,10 +109,23 @@ class DataImport extends Page
                                 TextInput::make('sign_rule.negative_value')->label('Wert für Ausgabe'),
                                 TextInput::make('sign_rule.positive_value')->label('Wert für Einnahme'),
                             ]),
-                        View::make('features.imports.csv-preview')
-                            ->viewData(fn (): array => [
-                                'csvHeaders' => $this->csvHeaders,
-                                'previewRows' => $this->previewRows,
+                        Section::make('CSV-Vorschau')
+                            ->schema([
+                                LivewireComponent::make(
+                                    BankTransactionCsvPreview::class,
+                                    fn (): array => [
+                                        'path' => $this->uploadedPath($this->data['csv_file'] ?? null),
+                                        'mapping' => $this->data['mapping'] ?? [],
+                                        'defaults' => $this->data['defaults'] ?? [],
+                                        'signRule' => $this->data['sign_rule'] ?? [],
+                                        'excludedLines' => $this->excludedLines,
+                                    ],
+                                )->key(fn (): string => 'csv-preview-'.md5(serialize([
+                                    $this->data['csv_file'] ?? null,
+                                    $this->data['mapping'] ?? [],
+                                    $this->data['defaults'] ?? [],
+                                    $this->data['sign_rule'] ?? [],
+                                ]))),
                             ]),
                         Actions::make([
                             Action::make('importCsv')
@@ -129,12 +145,12 @@ class DataImport extends Page
     public function inspectCsv(): void
     {
         $state = $this->form->getState();
-        $path = $this->absolutePath((string) $state['csv_file']);
+        $path = $this->absolutePath($this->uploadedPath($state['csv_file'] ?? null));
 
         try {
             $inspection = app(CsvReader::class)->inspect($path);
             $this->csvHeaders = $inspection['headers'];
-            $this->previewRows = $inspection['rows'];
+            $this->excludedLines = [];
             $state['mapping'] = app(BankTransactionCsvImporter::class)->suggestMapping($this->csvHeaders);
             $state['defaults'] = array_replace(
                 ['currency' => 'EUR', 'pending' => '0', 'validated' => '0'],
@@ -157,10 +173,11 @@ class DataImport extends Page
 
         try {
             $count = app(BankTransactionCsvImporter::class)->import(
-                $this->absolutePath((string) $state['csv_file']),
+                $this->absolutePath($this->uploadedPath($state['csv_file'] ?? null)),
                 $state['mapping'] ?? [],
                 $state['defaults'] ?? [],
                 $state['sign_rule'] ?? [],
+                $this->excludedLines,
             );
         } catch (Throwable $exception) {
             if (method_exists($exception, 'errors')) {
@@ -173,7 +190,7 @@ class DataImport extends Page
             return;
         }
 
-        Storage::disk('local')->delete((string) $state['csv_file']);
+        Storage::disk('local')->delete($this->uploadedPath($state['csv_file'] ?? null));
         $this->resetImport();
 
         Notification::make()
@@ -185,11 +202,23 @@ class DataImport extends Page
     public function resetImport(): void
     {
         $this->csvHeaders = [];
-        $this->previewRows = [];
+        $this->excludedLines = [];
         $this->form->fill([
             'defaults' => ['currency' => 'EUR', 'pending' => '0', 'validated' => '0'],
             'sign_rule' => ['negative_value' => 'DEBIT', 'positive_value' => 'CREDIT'],
         ]);
+    }
+
+    /** @param list<int> $lines */
+    #[On('csv-preview-rows-removed')]
+    public function excludeCsvRows(array $lines): void
+    {
+        $this->excludedLines = collect([...$this->excludedLines, ...$lines])
+            ->map(fn (mixed $line): int => (int) $line)
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
     }
 
     /** @return list<Hidden> */
@@ -237,6 +266,15 @@ class DataImport extends Page
         );
 
         return Storage::disk('local')->path($path);
+    }
+
+    private function uploadedPath(mixed $state): string
+    {
+        if (is_array($state)) {
+            $state = reset($state);
+        }
+
+        return is_string($state) ? $state : '';
     }
 
     private function fieldLabel(string $field): string
