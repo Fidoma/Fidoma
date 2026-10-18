@@ -5,6 +5,8 @@ namespace App\Features\Reports\Filament\Pages;
 use App\Features\Clients\Models\Client;
 use App\Features\Invoices\Actions\GenerateInvoicePdf;
 use App\Features\Invoices\Actions\GenerateInvoiceXRechnung;
+use App\Features\Invoices\Enums\InvoiceStatus;
+use App\Features\Invoices\Enums\InvoiceType;
 use App\Features\Invoices\Models\Invoice;
 use App\Features\Invoices\Models\InvoiceItem;
 use App\Features\PaymentMethods\Models\PaymentMethod;
@@ -12,8 +14,10 @@ use App\Features\Payments\Models\Payment;
 use App\Features\Reports\Services\InvoiceReportService;
 use App\Features\Reports\Services\PaymentReportService;
 use App\Features\Reports\Services\ReportExportService;
+use App\Features\Reports\Services\SalesReportService;
 use App\Features\Reports\Services\TaxReportService;
 use App\Features\Reports\Services\UstvaReportService;
+use App\Features\TaxRates\Models\TaxRate;
 use App\Filament\Concerns\WithoutPageHeading;
 use BackedEnum;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -28,6 +32,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -65,12 +70,6 @@ class Reports extends Page implements HasTable
 
     public ?string $endDate = null;
 
-    public ?int $paymentMethodId = null;
-
-    public ?int $invoiceStatus = null;
-
-    public ?int $clientId = null;
-
     public function mount(): void
     {
         $this->resetTable();
@@ -83,7 +82,7 @@ class Reports extends Page implements HasTable
 
     public function setTab(string $tab): void
     {
-        abort_unless(in_array($tab, ['tax', 'payments', 'invoices'], true), 404);
+        abort_unless(in_array($tab, ['tax', 'payments', 'invoices', 'sales'], true), 404);
 
         $this->activeTab = $tab;
         $this->resetTable();
@@ -114,26 +113,12 @@ class Reports extends Page implements HasTable
         $this->taxationType = $type;
     }
 
-    public function updatedPaymentMethodId(): void
-    {
-        $this->resetTable();
-    }
-
-    public function updatedInvoiceStatus(): void
-    {
-        $this->resetTable();
-    }
-
-    public function updatedClientId(): void
-    {
-        $this->resetTable();
-    }
-
     public function table(Table $table): Table
     {
         return match ($this->activeTab) {
             'payments' => $this->paymentsTable($table),
             'invoices' => $this->invoicesTable($table),
+            'sales' => $this->salesTable($table),
             default => $this->taxTable($table),
         };
     }
@@ -145,10 +130,22 @@ class Reports extends Page implements HasTable
 
         return match ($this->activeTab) {
             'payments' => app(PaymentReportService::class)->summary(
-                $start, $end, $this->paymentMethodId,
+                $start, $end, $this->integerTableFilterValue('payment_method_id'),
             ),
             'invoices' => app(InvoiceReportService::class)->summary(
-                $start, $end, $this->invoiceStatus, $this->clientId,
+                $start,
+                $end,
+                $this->integerTableFilterValue('invoice_status_id'),
+                $this->integerTableFilterValue('client_id'),
+                $this->tableFilterValue('invoice_type'),
+            ),
+            'sales' => app(SalesReportService::class)->summary(
+                $start,
+                $end,
+                $this->integerTableFilterValue('invoice_status_id'),
+                $this->integerTableFilterValue('client_id'),
+                $this->integerTableFilterValue('item_tax_rate_id'),
+                $this->tableFilterValue('invoice_type'),
             ),
             default => app(TaxReportService::class)->summary($start, $end),
         };
@@ -198,6 +195,26 @@ class Reports extends Page implements HasTable
     public function clients(): array
     {
         return Client::query()->orderBy('client_name')->pluck('client_name', 'client_id')->all();
+    }
+
+    /** @return array<string, string> */
+    public function invoiceTypes(): array
+    {
+        return collect(InvoiceType::cases())
+            ->mapWithKeys(fn (InvoiceType $type): array => [$type->value => $type->label()])
+            ->all();
+    }
+
+    /** @return array<int, string> */
+    public function taxRates(): array
+    {
+        return TaxRate::query()
+            ->orderBy('tax_rate_percent')
+            ->get()
+            ->mapWithKeys(fn (TaxRate $rate): array => [
+                $rate->getKey() => rtrim(rtrim(number_format((float) $rate->tax_rate_percent, 2, ',', ''), '0'), ',').' %',
+            ])
+            ->all();
     }
 
     public function exportCsv(): StreamedResponse
@@ -251,7 +268,7 @@ class Reports extends Page implements HasTable
     {
         return $table
             ->query(fn (): Builder => app(PaymentReportService::class)->query(
-                ...[...$this->dates(), $this->paymentMethodId],
+                ...$this->dates(),
             ))
             ->columns([
                 TextColumn::make('payment_date')->label('Zahlungsdatum')->date('d.m.Y')->sortable(),
@@ -260,6 +277,11 @@ class Reports extends Page implements HasTable
                 TextColumn::make('paymentMethod.payment_method_name')->label('Zahlungsart')->placeholder('–'),
                 TextColumn::make('payment_amount')->label('Betrag')->money('EUR', locale: 'de')->sortable(),
                 TextColumn::make('payment_note')->label('Notiz')->placeholder('–')->wrap(),
+            ])
+            ->filters([
+                SelectFilter::make('payment_method_id')
+                    ->label('Zahlungsart')
+                    ->options(fn (): array => $this->paymentMethods()),
             ])
             ->defaultSort('payment_date', 'desc')
             ->searchable(false)
@@ -274,7 +296,7 @@ class Reports extends Page implements HasTable
     {
         return $table
             ->query(fn (): Builder => app(InvoiceReportService::class)->query(
-                ...[...$this->dates(), $this->invoiceStatus, $this->clientId],
+                ...$this->dates(),
             ))
             ->columns([
                 TextColumn::make('invoice_number')->label('Rechnungsnummer')->searchable()->sortable(),
@@ -293,6 +315,7 @@ class Reports extends Page implements HasTable
                         'Bezahlt' => 'success', 'Teilbezahlt' => 'warning', default => 'gray',
                     }),
             ])
+            ->filters($this->invoiceFilters())
             ->recordActions([
                 Action::make('pdf')->label('PDF')->icon(Heroicon::OutlinedDocumentArrowDown)
                     ->url(fn (Invoice $record): string => route('invoices.pdf', ['invoice' => $record]))
@@ -311,6 +334,80 @@ class Reports extends Page implements HasTable
             ->emptyStateHeading('Keine Rechnungen gefunden')
             ->emptyStateDescription('Für den gewählten Zeitraum und die gesetzten Filter liegen keine Rechnungen vor.')
             ->emptyStateIcon(Heroicon::OutlinedDocumentCurrencyEuro);
+    }
+
+    private function salesTable(Table $table): Table
+    {
+        return $table
+            ->query(fn (): Builder => app(SalesReportService::class)->query(
+                ...$this->dates(),
+            ))
+            ->columns([
+                TextColumn::make('invoice.invoice_number')->label('Rechnung')->placeholder('–')->searchable()->sortable(),
+                TextColumn::make('invoice.client.client_name')->label('Kunde / Lieferant')->placeholder('–')->searchable()->sortable(),
+                TextColumn::make('item_name')->label('Position')->placeholder('–')->searchable()->wrap()->sortable(),
+                TextColumn::make('invoice.invoice_date_created')->label('Rechnungsdatum')->date('d.m.Y')->sortable(),
+                TextColumn::make('taxRate.tax_rate_percent')->label('Steuer')->placeholder('–')
+                    ->formatStateUsing(fn (mixed $state): string => rtrim(rtrim(number_format((float) $state, 2, ',', ''), '0'), ',').' %')
+                    ->sortable(),
+                TextColumn::make('amount.item_subtotal')->label('Netto')->money('EUR', locale: 'de')->sortable(),
+                TextColumn::make('amount.item_tax_total')->label('Umsatzsteuer')->money('EUR', locale: 'de')->sortable(),
+                TextColumn::make('amount.item_total')->label('Brutto')->money('EUR', locale: 'de')->sortable(),
+            ])
+            ->filters([
+                ...$this->invoiceFilters(forItems: true),
+                SelectFilter::make('item_tax_rate_id')
+                    ->label('Steuer')
+                    ->options(fn (): array => $this->taxRates()),
+            ])
+            ->defaultSort('item_id', 'desc')
+            ->searchable(false)
+            ->paginated([10, 25, 50])
+            ->defaultPaginationPageOption(25)
+            ->emptyStateHeading('Keine Verkaufspositionen gefunden')
+            ->emptyStateDescription('Für den gewählten Zeitraum und die gesetzten Filter liegen keine Rechnungspositionen vor.')
+            ->emptyStateIcon(Heroicon::OutlinedShoppingCart);
+    }
+
+    /** @return list<SelectFilter> */
+    private function invoiceFilters(bool $forItems = false): array
+    {
+        $invoiceQuery = fn (Builder $query, array $data, string $column): Builder => $query->when(
+            filled($data['value'] ?? null),
+            fn (Builder $query): Builder => $forItems
+                ? $query->whereHas('invoice', fn (Builder $query): Builder => $query->where($column, $data['value']))
+                : $query->where($column, $data['value']),
+        );
+
+        return [
+            SelectFilter::make('invoice_type')
+                ->label('Rechnungsart')
+                ->options(fn (): array => $this->invoiceTypes())
+                ->query(fn (Builder $query, array $data): Builder => $invoiceQuery($query, $data, 'invoice_type')),
+            SelectFilter::make('invoice_status_id')
+                ->label('Rechnungsstatus')
+                ->options(InvoiceStatus::options())
+                ->query(fn (Builder $query, array $data): Builder => $invoiceQuery($query, $data, 'invoice_status_id')),
+            SelectFilter::make('client_id')
+                ->label('Kunde')
+                ->options(fn (): array => $this->clients())
+                ->searchable()
+                ->query(fn (Builder $query, array $data): Builder => $invoiceQuery($query, $data, 'client_id')),
+        ];
+    }
+
+    private function tableFilterValue(string $filter): ?string
+    {
+        $value = $this->getTableFilterState($filter)['value'] ?? null;
+
+        return filled($value) ? (string) $value : null;
+    }
+
+    private function integerTableFilterValue(string $filter): ?int
+    {
+        $value = $this->tableFilterValue($filter);
+
+        return $value !== null ? (int) $value : null;
     }
 
     /** @return array{CarbonImmutable, CarbonImmutable} */
@@ -365,6 +462,15 @@ class Reports extends Page implements HasTable
                 (float) ($record->amount?->invoice_item_tax_total ?? 0) + (float) ($record->amount?->invoice_tax_total ?? 0),
                 (float) ($record->amount?->invoice_total ?? 0), app(InvoiceReportService::class)->paymentStatus($record),
             ])],
+            'sales' => [[
+                'Rechnung', 'Kunde / Lieferant', 'Position', 'Rechnungsdatum', 'Steuer', 'Netto', 'Umsatzsteuer', 'Brutto',
+            ], $records->map(fn (InvoiceItem $record): array => [
+                $record->invoice?->invoice_number, $record->invoice?->client?->client_name, $record->item_name,
+                $record->invoice?->invoice_date_created?->format('d.m.Y'),
+                (float) ($record->taxRate?->tax_rate_percent ?? 0),
+                (float) ($record->amount?->item_subtotal ?? 0), (float) ($record->amount?->item_tax_total ?? 0),
+                (float) ($record->amount?->item_total ?? 0),
+            ])],
             default => [[
                 'Steuersatz', 'Netto', 'Umsatzsteuer', 'Brutto',
             ], $records->map(fn (InvoiceItem $record): array => [
@@ -391,7 +497,7 @@ class Reports extends Page implements HasTable
             : 'alle-zeitraeume';
 
         return 'fidoma-'.match ($this->activeTab) {
-            'payments' => 'zahlungen', 'invoices' => 'rechnungen', default => 'umsatzsteuer',
+            'payments' => 'zahlungen', 'invoices' => 'rechnungen', 'sales' => 'verkauf', default => 'umsatzsteuer',
         }."-{$period}";
     }
 

@@ -6,6 +6,7 @@ use App\Features\PaymentMethods\Models\PaymentMethod;
 use App\Features\Payments\Models\Payment;
 use App\Features\Reports\Filament\Pages\Reports;
 use App\Features\Reports\Services\PaymentReportService;
+use App\Features\TaxRates\Models\TaxRate;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -38,6 +39,7 @@ class ReportsPageTest extends TestCase
             ->assertSee('Umsatzsteuer')
             ->assertSee('Zahlungen')
             ->assertSee('Rechnungen')
+            ->assertSee('Verkauf')
             ->assertSee('Gesamter Nettoumsatz')
             ->assertSee('Gesamte Umsatzsteuer')
             ->assertSee('Abziehbare Vorsteuer')
@@ -63,6 +65,7 @@ class ReportsPageTest extends TestCase
             ->assertSee('Anzahl Zahlungen')
             ->assertSee('Zahlungsdatum')
             ->assertSee('Zahlungsart')
+            ->assertTableFilterExists('payment_method_id')
             ->assertSee('Kunde')
             ->assertSee('Notiz')
             ->assertDontSee('Richtung')
@@ -70,10 +73,35 @@ class ReportsPageTest extends TestCase
             ->assertDontSee('Verwendungszweck')
             ->call('setTab', 'invoices')
             ->assertSet('activeTab', 'invoices')
+            ->assertTableFilterExists('invoice_type')
+            ->assertTableFilterExists('invoice_status_id')
+            ->assertTableFilterExists('client_id')
+            ->filterTable('invoice_type', 'credit')
+            ->assertSet('tableFilters.invoice_type.value', 'credit')
             ->assertSee('Teilbezahlt')
             ->assertTableBulkActionExists('downloadPdfs')
             ->assertTableBulkActionExists('downloadXmls')
-            ->assertTableBulkActionHasLabel('downloadXmls', 'XML als ZIP');
+            ->assertTableBulkActionHasLabel('downloadXmls', 'XML als ZIP')
+            ->call('setTab', 'sales')
+            ->assertSet('activeTab', 'sales')
+            ->assertTableFilterExists('invoice_type')
+            ->assertTableFilterExists('invoice_status_id')
+            ->assertTableFilterExists('client_id')
+            ->assertTableFilterExists('item_tax_rate_id')
+            ->assertSee('Kunde / Lieferant')
+            ->assertSee('Position')
+            ->assertSee('Rechnungsdatum')
+            ->assertTableColumnExists('taxRate.tax_rate_percent', fn ($column): bool => $column->isSortable())
+            ->assertTableColumnExists('amount.item_subtotal', fn ($column): bool => $column->isSortable())
+            ->assertTableColumnExists('amount.item_tax_total', fn ($column): bool => $column->isSortable())
+            ->assertTableColumnExists('amount.item_total', fn ($column): bool => $column->isSortable())
+            ->sortTable('taxRate.tax_rate_percent')
+            ->sortTable('amount.item_subtotal')
+            ->sortTable('amount.item_tax_total')
+            ->sortTable('amount.item_total')
+            ->assertSee('Netto')
+            ->assertSee('Umsatzsteuer')
+            ->assertSee('Brutto');
     }
 
     public function test_ustva_preview_can_be_opened_and_exported(): void
@@ -157,6 +185,30 @@ class ReportsPageTest extends TestCase
             ->call('setTab', 'payments')
             ->call('exportExcel')
             ->assertFileDownloaded('fidoma-zahlungen-alle-zeitraeume.xlsx');
+    }
+
+    public function test_sales_export_uses_the_selected_report_and_period(): void
+    {
+        Livewire::actingAs(User::factory()->create())
+            ->test(Reports::class)
+            ->call('setTab', 'sales')
+            ->call('exportCsv')
+            ->assertFileDownloaded('fidoma-verkauf-alle-zeitraeume.csv');
+    }
+
+    public function test_sales_can_be_filtered_by_item_tax_rate(): void
+    {
+        $taxRate = TaxRate::query()->create([
+            'tax_rate_name' => 'Ermäßigt',
+            'tax_rate_percent' => 7,
+        ]);
+
+        Livewire::actingAs(User::factory()->create())
+            ->test(Reports::class)
+            ->call('setTab', 'sales')
+            ->assertTableFilterExists('item_tax_rate_id')
+            ->filterTable('item_tax_rate_id', $taxRate->getKey())
+            ->assertSet('tableFilters.item_tax_rate_id.value', $taxRate->getKey());
     }
 
     public function test_payment_method_filter_uses_payments(): void

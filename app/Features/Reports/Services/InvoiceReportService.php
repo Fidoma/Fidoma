@@ -10,20 +10,31 @@ use Illuminate\Database\Eloquent\Builder;
 final class InvoiceReportService
 {
     /** @return Builder<Invoice> */
-    public function query(CarbonInterface $start, CarbonInterface $end, ?int $status = null, ?int $clientId = null): Builder
-    {
+    public function query(
+        CarbonInterface $start,
+        CarbonInterface $end,
+        ?int $status = null,
+        ?int $clientId = null,
+        ?string $type = null,
+    ): Builder {
         return Invoice::query()
             ->with(['client', 'amount'])
             ->where('is_archived', false)
             ->whereBetween('invoice_date_created', [$start->toDateString(), $end->toDateString()])
+            ->when($type, fn (Builder $query, string $value): Builder => $query->where('invoice_type', $value))
             ->when($status, fn (Builder $query, int $value): Builder => $query->where('invoice_status_id', $value))
             ->when($clientId, fn (Builder $query, int $value): Builder => $query->where('client_id', $value));
     }
 
     /** @return array{count: int, paid: int, open: int, partial: int, total: float} */
-    public function summary(CarbonInterface $start, CarbonInterface $end, ?int $status = null, ?int $clientId = null): array
-    {
-        $invoices = $this->query($start, $end, $status, $clientId)->get();
+    public function summary(
+        CarbonInterface $start,
+        CarbonInterface $end,
+        ?int $status = null,
+        ?int $clientId = null,
+        ?string $type = null,
+    ): array {
+        $invoices = $this->query($start, $end, $status, $clientId, $type)->get();
 
         return [
             'count' => $invoices->count(),

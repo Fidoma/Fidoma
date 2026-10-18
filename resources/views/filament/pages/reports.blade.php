@@ -10,6 +10,9 @@
             <x-filament::tabs.item wire:click="setTab('invoices')" :active="$activeTab === 'invoices'" icon="heroicon-o-document-currency-euro">
                 Rechnungen
             </x-filament::tabs.item>
+            <x-filament::tabs.item wire:click="setTab('sales')" :active="$activeTab === 'sales'" icon="heroicon-o-shopping-cart">
+                Verkauf
+            </x-filament::tabs.item>
         </x-filament::tabs>
 
         <form wire:submit="applyPeriod" class="reports-period-filter">
@@ -59,51 +62,23 @@
             <x-filament::section compact><span>Gesamtzahlungen</span><strong class="reports-positive">{{ number_format($summary['total'], 2, ',', '.') }} €</strong></x-filament::section>
             <x-filament::section compact><span>Anzahl Zahlungen</span><strong>{{ $summary['count'] }}</strong></x-filament::section>
             <x-filament::section compact><span>Durchschnittlicher Zahlbetrag</span><strong>{{ number_format($summary['average'], 2, ',', '.') }} €</strong></x-filament::section>
-        @else
+        @elseif ($activeTab === 'invoices')
             <x-filament::section compact><span>Anzahl Rechnungen</span><strong>{{ $summary['count'] }}</strong></x-filament::section>
             <x-filament::section compact><span>Bezahlt</span><strong class="reports-positive">{{ $summary['paid'] }}</strong></x-filament::section>
             <x-filament::section compact><span>Offen</span><strong>{{ $summary['open'] }}</strong></x-filament::section>
             <x-filament::section compact><span>Teilbezahlt</span><strong class="reports-warning">{{ $summary['partial'] }}</strong></x-filament::section>
             <x-filament::section compact><span>Gesamtbetrag</span><strong>{{ number_format($summary['total'], 2, ',', '.') }} €</strong></x-filament::section>
+        @else
+            <x-filament::section compact><span>Anzahl Positionen</span><strong>{{ $summary['count'] }}</strong></x-filament::section>
+            <x-filament::section compact><span>Netto</span><strong>{{ number_format($summary['net'], 2, ',', '.') }} €</strong></x-filament::section>
+            <x-filament::section compact><span>Umsatzsteuer</span><strong>{{ number_format($summary['tax'], 2, ',', '.') }} €</strong></x-filament::section>
+            <x-filament::section compact><span>Brutto</span><strong>{{ number_format($summary['gross'], 2, ',', '.') }} €</strong></x-filament::section>
         @endif
     </div>
 
     <x-filament::section>
         <div class="reports-table-header">
-            <div class="reports-secondary-filters">
-                @if ($activeTab === 'payments')
-                    <div class="reports-filter-field">
-                        <label for="payment-method">Zahlungsart</label>
-                        <x-filament::input.wrapper>
-                            <x-filament::input.select id="payment-method" wire:model.live="paymentMethodId">
-                                <option value="">Alle Zahlungsarten</option>
-                                @foreach ($this->paymentMethods() as $id => $name)<option value="{{ $id }}">{{ $name }}</option>@endforeach
-                            </x-filament::input.select>
-                        </x-filament::input.wrapper>
-                    </div>
-                @elseif ($activeTab === 'invoices')
-                    <div class="reports-filter-field">
-                        <label for="invoice-status">Rechnungsstatus</label>
-                        <x-filament::input.wrapper>
-                            <x-filament::input.select id="invoice-status" wire:model.live="invoiceStatus">
-                                <option value="">Alle Status</option>
-                                @foreach (\App\Features\Invoices\Enums\InvoiceStatus::options() as $id => $name)<option value="{{ $id }}">{{ $name }}</option>@endforeach
-                            </x-filament::input.select>
-                        </x-filament::input.wrapper>
-                    </div>
-                    <div class="reports-filter-field">
-                        <label for="invoice-client">Kunde</label>
-                        <x-filament::input.wrapper>
-                            <x-filament::input.select id="invoice-client" wire:model.live="clientId">
-                                <option value="">Alle Kunden</option>
-                                @foreach ($this->clients() as $id => $name)<option value="{{ $id }}">{{ $name }}</option>@endforeach
-                            </x-filament::input.select>
-                        </x-filament::input.wrapper>
-                    </div>
-                @endif
-            </div>
-
-            <div class="reports-export-actions">
+            <div class="reports-export-actions ms-auto">
                 @if ($activeTab === 'tax')
                     <x-filament::button color="gray" size="sm" icon="heroicon-o-document-arrow-down" wire:click="exportUstvaPdf">PDF</x-filament::button>
                 @endif
