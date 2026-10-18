@@ -224,13 +224,6 @@ class Reports extends Page implements HasTable
         return app(ReportExportService::class)->csv($this->exportFilename(), $headings, $rows);
     }
 
-    public function exportExcel(): BinaryFileResponse
-    {
-        [$headings, $rows] = $this->exportData();
-
-        return app(ReportExportService::class)->xlsx($this->exportFilename(), $headings, $rows);
-    }
-
     public function exportUstvaPdf(): BinaryFileResponse
     {
         [$start, $end] = $this->dates();
@@ -283,6 +276,7 @@ class Reports extends Page implements HasTable
                     ->label('Zahlungsart')
                     ->options(fn (): array => $this->paymentMethods()),
             ])
+            ->toolbarActions([$this->csvExportAction()])
             ->defaultSort('payment_date', 'desc')
             ->searchable(false)
             ->paginated([10, 25, 50])
@@ -322,6 +316,7 @@ class Reports extends Page implements HasTable
                     ->openUrlInNewTab(),
             ])
             ->toolbarActions([
+                $this->csvExportAction(),
                 BulkAction::make('downloadPdfs')->label('PDFs als ZIP')->icon(Heroicon::OutlinedArchiveBoxArrowDown)
                     ->action(fn (Collection $records): BinaryFileResponse => $this->downloadInvoicePdfs($records)),
                 BulkAction::make('downloadXmls')->label('XML als ZIP')->icon(Heroicon::OutlinedCodeBracketSquare)
@@ -360,6 +355,7 @@ class Reports extends Page implements HasTable
                     ->label('Steuer')
                     ->options(fn (): array => $this->taxRates()),
             ])
+            ->toolbarActions([$this->csvExportAction()])
             ->defaultSort('item_id', 'desc')
             ->searchable(false)
             ->paginated([10, 25, 50])
@@ -408,6 +404,15 @@ class Reports extends Page implements HasTable
         $value = $this->tableFilterValue($filter);
 
         return $value !== null ? (int) $value : null;
+    }
+
+    private function csvExportAction(): Action
+    {
+        return Action::make('exportCsv')
+            ->label('CSV')
+            ->icon(Heroicon::OutlinedDocumentText)
+            ->color('gray')
+            ->action('exportCsv');
     }
 
     /** @return array{CarbonImmutable, CarbonImmutable} */

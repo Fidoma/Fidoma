@@ -130,7 +130,7 @@ class ReportsPageTest extends TestCase
             ->assertSee('Steuerpflichtige Umsätze zum Steuersatz von 7 %');
     }
 
-    public function test_ustva_custom_period_can_be_exported_as_excel_and_pdf(): void
+    public function test_ustva_custom_period_can_be_exported_as_pdf(): void
     {
         CarbonImmutable::setTestNow('2026-10-15');
 
@@ -138,8 +138,6 @@ class ReportsPageTest extends TestCase
             ->test(Reports::class)
             ->set('startDate', '2026-04-01')
             ->set('endDate', '2026-06-30')
-            ->call('exportExcel')
-            ->assertFileDownloaded('fidoma-ustva-2026-04-01-2026-06-30.xlsx')
             ->call('exportUstvaPdf')
             ->assertFileDownloaded('fidoma-ustva-2026-04-01-2026-06-30.pdf');
     }
@@ -174,17 +172,6 @@ class ReportsPageTest extends TestCase
             ->call('setTab', 'invoices')
             ->call('exportCsv')
             ->assertFileDownloaded('fidoma-rechnungen-alle-zeitraeume.csv');
-    }
-
-    public function test_excel_export_uses_the_selected_report_and_period(): void
-    {
-        CarbonImmutable::setTestNow('2026-10-15');
-
-        Livewire::actingAs(User::factory()->create())
-            ->test(Reports::class)
-            ->call('setTab', 'payments')
-            ->call('exportExcel')
-            ->assertFileDownloaded('fidoma-zahlungen-alle-zeitraeume.xlsx');
     }
 
     public function test_sales_export_uses_the_selected_report_and_period(): void

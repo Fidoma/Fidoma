@@ -77,15 +77,14 @@
     </div>
 
     <x-filament::section>
-        <div class="reports-table-header">
-            <div class="reports-export-actions ms-auto">
-                @if ($activeTab === 'tax')
+        @if ($activeTab === 'tax')
+            <div class="reports-table-header">
+                <div class="reports-export-actions ms-auto">
                     <x-filament::button color="gray" size="sm" icon="heroicon-o-document-arrow-down" wire:click="exportUstvaPdf">PDF</x-filament::button>
-                @endif
-                <x-filament::button color="gray" size="sm" icon="heroicon-o-document-text" wire:click="exportCsv">CSV</x-filament::button>
-                <x-filament::button color="gray" size="sm" icon="heroicon-o-table-cells" wire:click="exportExcel">Excel</x-filament::button>
+                    <x-filament::button color="gray" size="sm" icon="heroicon-o-document-text" wire:click="exportCsv">CSV</x-filament::button>
+                </div>
             </div>
-        </div>
+        @endif
 
         @if ($activeTab === 'tax')
             @include('filament.pages.reports-ustva', ['report' => $ustvaReport])
