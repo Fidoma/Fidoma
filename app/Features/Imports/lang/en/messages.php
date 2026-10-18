@@ -1,0 +1,33 @@
+<?php
+
+return [
+    'fields' => [
+        'account_iban' => 'Account IBAN',
+        'booking_date' => 'Booking date',
+        'value_date' => 'Value date',
+        'amount' => 'Amount',
+        'currency' => 'Currency',
+        'purpose' => 'Purpose',
+        'counterparty_name' => 'Counterparty',
+        'counterparty_iban' => 'Counterparty IBAN',
+        'booking_text' => 'Booking text',
+        'transaction_reference' => 'Transaction reference',
+        'bank_transaction_id' => 'Bank transaction ID',
+        'bank_reference' => 'Bank reference',
+        'end_to_end_id' => 'End-to-end ID',
+        'pending' => 'Pending',
+        'validated' => 'Validated',
+    ],
+    'errors' => [
+        'empty' => 'The CSV file is empty.',
+        'unreadable' => 'The CSV file could not be read.',
+        'headers' => 'The header contains empty or duplicate column names.',
+        'columns' => 'Line :line does not contain the same number of columns as the header.',
+        'mapping' => 'The column mapping is invalid. Please create the preview again.',
+        'duplicate' => 'Line :line has already been imported. The entire import was rolled back.',
+        'no_rows' => 'The CSV file contains no importable bank transactions.',
+        'invalid' => 'Line :line contains an invalid value for “:field”. The entire import was rolled back.',
+        'sign_configuration' => 'The income and expense values must be filled and different.',
+        'sign_value' => 'The debit/credit value “:value” on line :line is unknown.',
+    ],
+];

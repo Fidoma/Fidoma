@@ -6,6 +6,7 @@ use App\Features\Authentication\Filament\Pages\Login;
 use App\Features\Dashboard\Filament\Pages\Dashboard;
 use App\Features\Documents\Filament\Pages\Documents;
 use App\Features\Documents\Services\PaperlessClient;
+use App\Features\Imports\Filament\Pages\DataImport;
 use App\Features\Invoices\Filament\Pages\InvoiceLayout;
 use App\Features\Reports\Filament\Pages\Reports;
 use App\Features\Settings\Filament\Clusters\SettingsCluster;
@@ -99,6 +100,7 @@ class AdminPanelProvider extends PanelProvider
             ->pages([
                 Dashboard::class,
                 Documents::class,
+                DataImport::class,
                 InvoiceLayout::class,
                 Reports::class,
                 Webmail::class,
