@@ -8,6 +8,7 @@ use App\Features\EmailTemplates\Filament\Resources\EmailTemplates\EmailTemplateR
 use App\Features\Families\Filament\Resources\Families\FamilyResource;
 use App\Features\InvoiceGroups\Filament\Resources\InvoiceGroups\InvoiceGroupResource;
 use App\Features\Invoices\Filament\Pages\InvoiceLayout;
+use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
 use App\Features\Products\Filament\Resources\Products\ProductResource;
 use App\Features\Quotes\Filament\Resources\Quotes\QuoteResource;
 use App\Features\Settings\Filament\Clusters\SettingsCluster;
@@ -149,6 +150,29 @@ class AdminNavigationTest extends TestCase
             ->assertSee('Billing and tax details')
             ->assertSee('Enable e-invoicing')
             ->assertDontSee('Straße und Hausnummer');
+
+        $this->get(InvoiceResource::getUrl())
+            ->assertOk()
+            ->assertSee('All')
+            ->assertSee('Draft')
+            ->assertSee('Open')
+            ->assertSee('Paid')
+            ->assertSee('Overdue')
+            ->assertSee('Archived')
+            ->assertSee('Billing type')
+            ->assertSee('Due date')
+            ->assertSee('Outstanding')
+            ->assertDontSee('Überfällig');
+
+        $this->get(InvoiceResource::getUrl('create'))
+            ->assertOk()
+            ->assertSee('Billing and project')
+            ->assertSee('Invoice date')
+            ->assertSee('Items')
+            ->assertSee('Quantity')
+            ->assertSee('Unit price')
+            ->assertSee('Payment terms')
+            ->assertDontSee('Positionen');
 
         $this->actingAs($user)
             ->post(route('admin.locale.update', ['locale' => 'de']))

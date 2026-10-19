@@ -26,16 +26,16 @@ final class InvoiceEmailAction
     public static function make(): Action
     {
         return Action::make('sendEmail')
-            ->label('E-Mail versenden')
+            ->label(__('invoices::messages.email.send'))
             ->icon(Heroicon::OutlinedEnvelope)
             ->color('gray')
             ->disabled(fn (): bool => ! app(SmtpConfiguration::class)->isReady())
             ->tooltip(fn (): ?string => app(SmtpConfiguration::class)->isReady()
-                ? 'Rechnung per E-Mail senden'
-                : 'SMTP ist nicht konfiguriert')
-            ->modalHeading(fn (Invoice $record): string => 'Rechnung '.$record->invoice_number.' versenden')
-            ->modalDescription('Versendet wird der zuletzt gespeicherte Stand der Rechnung.')
-            ->modalSubmitActionLabel('E-Mail senden')
+                ? __('invoices::messages.email.tooltip')
+                : __('invoices::messages.email.smtp_missing'))
+            ->modalHeading(fn (Invoice $record): string => __('invoices::messages.email.heading', ['number' => $record->invoice_number]))
+            ->modalDescription(__('invoices::messages.email.description'))
+            ->modalSubmitActionLabel(__('invoices::messages.email.submit'))
             ->modalWidth(Width::FiveExtraLarge)
             ->schema(self::schema())
             ->action(function (Invoice $record, array $data): void {
@@ -44,16 +44,16 @@ final class InvoiceEmailAction
 
                     Notification::make()
                         ->success()
-                        ->title('Der SMTP-Server hat die E-Mail angenommen.')
-                        ->body('Damit ist die endgültige Zustellung an den Empfänger noch nicht bestätigt.')
+                        ->title(__('invoices::messages.email.success'))
+                        ->body(__('invoices::messages.email.success_body'))
                         ->send();
                 } catch (Throwable $exception) {
                     report($exception);
 
                     Notification::make()
                         ->danger()
-                        ->title('Die E-Mail konnte nicht versendet werden.')
-                        ->body('Bitte prüfen Sie die SMTP-Konfiguration und versuchen Sie es erneut.')
+                        ->title(__('invoices::messages.email.failure'))
+                        ->body(__('invoices::messages.email.failure_body'))
                         ->send();
                 }
             });
@@ -64,13 +64,13 @@ final class InvoiceEmailAction
     {
         return [
             Placeholder::make('mail_configuration')
-                ->label('SMTP-Status')
+                ->label(__('invoices::messages.email.smtp_status'))
                 ->content(fn (): string => app(SmtpConfiguration::class)->statusText()),
-            Section::make('Nachricht')
+            Section::make(__('invoices::messages.email.message'))
                 ->columns(2)
                 ->schema([
                     Select::make('email_template_id')
-                        ->label('E-Mail-Vorlage')
+                        ->label(__('invoices::messages.email.template'))
                         ->options(fn () => EmailTemplate::query()
                             ->where('email_template_type', 'invoice')
                             ->orderBy('email_template_title')
@@ -92,16 +92,16 @@ final class InvoiceEmailAction
                             }
                         }),
                     TextInput::make('to')
-                        ->label('An')
+                        ->label(__('invoices::messages.email.to'))
                         ->email()
                         ->default(fn (Invoice $record): ?string => $record->client?->client_email)
                         ->required(),
                     TextInput::make('from_name')
-                        ->label('Absendername')
+                        ->label(__('invoices::messages.email.sender_name'))
                         ->default(fn (Invoice $record): string => self::defaultEmailData($record)['from_name'])
                         ->required(),
                     TextInput::make('from_email')
-                        ->label('Absenderadresse')
+                        ->label(__('invoices::messages.email.sender_address'))
                         ->email()
                         ->default(fn (Invoice $record): string => self::defaultEmailData($record)['from_email'])
                         ->required(),
@@ -114,17 +114,17 @@ final class InvoiceEmailAction
                         ->email()
                         ->default(fn (Invoice $record): ?string => self::defaultEmailData($record)['bcc']),
                     TextInput::make('subject')
-                        ->label('Betreff')
+                        ->label(__('invoices::messages.email.subject'))
                         ->default(fn (Invoice $record): string => self::defaultEmailData($record)['subject'])
                         ->required()
                         ->columnSpanFull(),
                     RichEditor::make('body')
-                        ->label('Nachricht')
+                        ->label(__('invoices::messages.email.message'))
                         ->default(fn (Invoice $record): string => self::defaultEmailData($record)['body'])
                         ->required()
                         ->columnSpanFull(),
                     Toggle::make('attach_pdf')
-                        ->label('PDF-Rechnung anhängen')
+                        ->label(__('invoices::messages.email.attach_pdf'))
                         ->default(true)
                         ->columnSpanFull(),
                 ]),

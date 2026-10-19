@@ -35,12 +35,12 @@ class EditInvoice extends EditRecord
 
     protected function beforeSave(): void
     {
-        abort_unless($this->isDraft(), 403, 'Nur Rechnungen im Status Entwurf können bearbeitet werden.');
+        abort_unless($this->isDraft(), 403, __('invoices::messages.issue.edit_forbidden'));
     }
 
     public function issue(): void
     {
-        abort_unless($this->isDraft(), 422, 'Nur Rechnungen im Status Entwurf können ausgestellt werden.');
+        abort_unless($this->isDraft(), 422, __('invoices::messages.issue.issue_forbidden'));
 
         $this->save(shouldRedirect: false, shouldSendSavedNotification: false);
         $this->record->refresh();
@@ -50,8 +50,8 @@ class EditInvoice extends EditRecord
 
         Notification::make()
             ->success()
-            ->title('Rechnung wurde ausgestellt.')
-            ->body('Die Rechnungsnummer wurde vergeben und die Rechnung ist jetzt offen.')
+            ->title(__('invoices::messages.issue.success'))
+            ->body(__('invoices::messages.issue.success_body'))
             ->send();
     }
 
@@ -62,14 +62,14 @@ class EditInvoice extends EditRecord
             ...($this->isDraft() ? parent::getFormActions() : []),
             InvoiceEmailAction::make()->outlined(),
             Action::make('createPdf')
-                ->label('PDF erstellen')
+                ->label(__('invoices::messages.actions.create_pdf'))
                 ->icon(Heroicon::OutlinedDocumentArrowDown)
                 ->color('gray')
                 ->outlined()
                 ->url(fn (): string => route('invoices.pdf', ['invoice' => $this->record]))
                 ->openUrlInNewTab(),
             Action::make('createXRechnung')
-                ->label('XRechnung herunterladen')
+                ->label(__('invoices::messages.actions.download_xrechnung'))
                 ->icon(Heroicon::OutlinedCodeBracketSquare)
                 ->color('gray')
                 ->outlined()

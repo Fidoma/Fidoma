@@ -10,11 +10,7 @@ enum InvoiceType: string
 
     public function label(): string
     {
-        return match ($this) {
-            self::Invoice => 'Rechnung',
-            self::Credit => 'Gutschrift',
-            self::Cancellation => 'Stornorechnung',
-        };
+        return __('invoices::messages.types.'.$this->value);
     }
 
     public function color(): string

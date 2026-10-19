@@ -26,7 +26,7 @@ class ListInvoices extends ListRecords
             ->pluck('aggregate', 'invoice_status_id');
 
         $tabs = [
-            'all' => Tab::make('Alle')
+            'all' => Tab::make(__('invoices::messages.tabs.all'))
                 ->badge((int) $counts->sum())
                 ->badgeColor('gray')
                 ->modifyQueryUsing(fn (Builder $query): Builder => $query->where('is_archived', false)),
@@ -48,12 +48,12 @@ class ListInvoices extends ListRecords
             ->whereHas('amount', fn (Builder $query): Builder => $query
                 ->where('invoice_balance', '>', 0));
 
-        $tabs['overdue'] = Tab::make('Überfällig')
+        $tabs['overdue'] = Tab::make(__('invoices::messages.tabs.overdue'))
             ->badge($overdueQuery(Invoice::query())->count())
             ->badgeColor('danger')
             ->modifyQueryUsing($overdueQuery);
 
-        $tabs['archived'] = Tab::make('Archiviert')
+        $tabs['archived'] = Tab::make(__('invoices::messages.tabs.archived'))
             ->badge(Invoice::query()->where('is_archived', true)->count())
             ->badgeColor('gray')
             ->modifyQueryUsing(fn (Builder $query): Builder => $query->where('is_archived', true));

@@ -39,7 +39,7 @@ class InvoicesTable
             ->defaultSort('invoice_date_created', 'desc')
             ->columns([
                 TextColumn::make('invoice_number')
-                    ->label('Rechnung')
+                    ->label(__('invoices::messages.fields.invoice'))
                     ->badge()
                     ->color(fn (Invoice $record): string => $record->invoice_type->color())
                     ->url(fn (Invoice $record): string => InvoiceResource::getUrl('edit', ['record' => $record]))
@@ -47,45 +47,45 @@ class InvoicesTable
                     ->sortable()
                     ->toggleable(),
                 TextColumn::make('client.client_name')
-                    ->label('Kunde')
+                    ->label(__('invoices::messages.fields.client'))
                     ->url(fn (Invoice $record): string => ClientResource::getUrl('view', ['record' => $record->client_id]))
                     ->searchable()
                     ->sortable()
                     ->toggleable(),
                 TextColumn::make('project.project_number')
-                    ->label('Projekt')
+                    ->label(__('invoices::messages.fields.project_short'))
                     ->searchable()
                     ->sortable()
                     ->toggleable(),
                 TextColumn::make('billing_type')
-                    ->label('Abrechnungsart')
+                    ->label(__('invoices::messages.fields.billing_type'))
                     ->badge()
                     ->formatStateUsing(fn (InvoiceBillingType $state): string => $state->label())
                     ->color(fn (InvoiceBillingType $state): string => $state->color())
                     ->toggleable(),
-                TextColumn::make('invoice_date_created')->label('Datum')->date('d.m.Y')->sortable()->toggleable(),
-                TextColumn::make('invoice_date_due')->label('Fällig am')->date('d.m.Y')->sortable()
+                TextColumn::make('invoice_date_created')->label(__('invoices::messages.fields.date'))->date('d.m.Y')->sortable()->toggleable(),
+                TextColumn::make('invoice_date_due')->label(__('invoices::messages.fields.due_date'))->date('d.m.Y')->sortable()
                     ->color(fn (Invoice $record): ?string => $record->isOverdue() ? 'danger' : null)
                     ->toggleable(),
-                TextColumn::make('invoice_status_id')->label('Status')->badge()
+                TextColumn::make('invoice_status_id')->label(__('invoices::messages.fields.status'))->badge()
                     ->formatStateUsing(fn (InvoiceStatus $state): string => $state->label())
                     ->color(fn (InvoiceStatus $state): string => $state->color())
                     ->toggleable(),
-                TextColumn::make('amount.invoice_total')->label('Gesamt')->money('EUR', locale: 'de')->sortable()->toggleable(),
-                TextColumn::make('amount.invoice_paid')->label('Bezahlt')->money('EUR', locale: 'de')->toggleable(),
-                TextColumn::make('amount.invoice_balance')->label('Offen')->money('EUR', locale: 'de')->sortable()->toggleable(),
+                TextColumn::make('amount.invoice_total')->label(__('invoices::messages.fields.total'))->money('EUR', locale: app()->getLocale())->sortable()->toggleable(),
+                TextColumn::make('amount.invoice_paid')->label(__('invoices::messages.fields.paid'))->money('EUR', locale: app()->getLocale())->toggleable(),
+                TextColumn::make('amount.invoice_balance')->label(__('invoices::messages.fields.outstanding'))->money('EUR', locale: app()->getLocale())->sortable()->toggleable(),
             ])
             ->filters([
                 Filter::make('invoice_number')
-                    ->label('Rechnungsnummer')
+                    ->label(__('invoices::messages.fields.invoice_number'))
                     ->schema([
-                        TextInput::make('value')->label('Rechnungsnummer'),
+                        TextInput::make('value')->label(__('invoices::messages.fields.invoice_number')),
                     ])
                     ->query(fn (Builder $query, array $data): Builder => filled($data['value'] ?? null)
                         ? $query->where('invoice_number', 'like', '%'.trim((string) $data['value']).'%')
                         : $query),
                 SelectFilter::make('client_id')
-                    ->label('Kunde')
+                    ->label(__('invoices::messages.fields.client'))
                     ->options(fn (): array => Client::query()
                         ->orderBy('client_name')
                         ->pluck('client_name', 'client_id')
@@ -93,7 +93,7 @@ class InvoicesTable
                     ->searchable()
                     ->preload(),
                 SelectFilter::make('project_id')
-                    ->label('Projekt')
+                    ->label(__('invoices::messages.fields.project_short'))
                     ->options(fn (): array => Project::query()
                         ->orderBy('project_number')
                         ->get()
@@ -105,32 +105,32 @@ class InvoicesTable
                     ->searchable()
                     ->preload(),
                 SelectFilter::make('billing_type')
-                    ->label('Abrechnungsart')
+                    ->label(__('invoices::messages.fields.billing_type'))
                     ->options(collect(InvoiceBillingType::cases())->mapWithKeys(
                         fn (InvoiceBillingType $type): array => [$type->value => $type->label()],
                     )->all()),
-                self::dateRangeFilter('invoice_date_created', 'Rechnungsdatum'),
-                self::dateRangeFilter('invoice_date_due', 'Fälligkeitsdatum'),
-                self::amountRangeFilter('invoice_total', 'Gesamtbetrag', 'invoice_total'),
-                self::amountRangeFilter('invoice_paid', 'Bezahlt', 'invoice_paid'),
-                self::amountRangeFilter('invoice_balance', 'Offen', 'invoice_balance'),
+                self::dateRangeFilter('invoice_date_created', __('invoices::messages.fields.invoice_date')),
+                self::dateRangeFilter('invoice_date_due', __('invoices::messages.fields.due_date_filter')),
+                self::amountRangeFilter('invoice_total', __('invoices::messages.fields.total_amount'), 'invoice_total'),
+                self::amountRangeFilter('invoice_paid', __('invoices::messages.fields.paid'), 'invoice_paid'),
+                self::amountRangeFilter('invoice_balance', __('invoices::messages.fields.outstanding'), 'invoice_balance'),
             ])
             ->recordUrl(null)
             ->toolbarActions([
                 CreateAction::make()
-                    ->label('Rechnung')
+                    ->label(__('invoices::messages.singular'))
                     ->icon(Heroicon::Plus)
                     ->url(InvoiceResource::getUrl('create')),
             ])
             ->recordActions([
                 ActionGroup::make([
                     Action::make('viewPdf')
-                        ->label('PDF anzeigen')
+                        ->label(__('invoices::messages.actions.view_pdf'))
                         ->icon(Heroicon::OutlinedDocumentArrowDown)
                         ->url(fn (Invoice $record): string => route('invoices.pdf', ['invoice' => $record]))
                         ->openUrlInNewTab(),
                     Action::make('downloadXRechnung')
-                        ->label('XRechnung herunterladen')
+                        ->label(__('invoices::messages.actions.download_xrechnung'))
                         ->icon(Heroicon::OutlinedCodeBracketSquare)
                         ->url(fn (Invoice $record): string => route('invoices.xrechnung', ['invoice' => $record]))
                         ->openUrlInNewTab(),
@@ -139,16 +139,16 @@ class InvoicesTable
                     self::counterpartAction('createCredit', InvoiceType::Credit),
                     self::counterpartAction('createCancellation', InvoiceType::Cancellation),
                     DeleteAction::make()
-                        ->label('Entwurf löschen')
+                        ->label(__('invoices::messages.actions.delete_draft'))
                         ->visible(fn (Invoice $record): bool => $record->invoice_status_id === InvoiceStatus::Draft),
                     Action::make('archive')
-                        ->label('Archivieren')
+                        ->label(__('invoices::messages.actions.archive'))
                         ->icon(Heroicon::OutlinedArchiveBox)
                         ->color('danger')
                         ->requiresConfirmation()
-                        ->modalHeading('Rechnung archivieren')
-                        ->modalDescription('Die Rechnung und alle zugehörigen Positionen, Steuern und Zahlungen bleiben vollständig erhalten.')
-                        ->modalSubmitActionLabel('Archivieren')
+                        ->modalHeading(__('invoices::messages.archive.heading'))
+                        ->modalDescription(__('invoices::messages.archive.description'))
+                        ->modalSubmitActionLabel(__('invoices::messages.actions.archive'))
                         ->visible(fn (Invoice $record): bool => ! $record->is_archived
                             && $record->invoice_status_id !== InvoiceStatus::Draft)
                         ->action(function (Invoice $record): void {
@@ -156,14 +156,14 @@ class InvoicesTable
 
                             Notification::make()
                                 ->success()
-                                ->title('Rechnung wurde archiviert.')
+                                ->title(__('invoices::messages.archive.success'))
                                 ->send();
                         }),
                 ])
-                    ->label('Optionen')
+                    ->label(__('invoices::messages.actions.options'))
                     ->icon(Heroicon::OutlinedEllipsisVertical)
                     ->color('gray')
-                    ->tooltip('Optionen')
+                    ->tooltip(__('invoices::messages.actions.options'))
                     ->iconButton(),
             ]);
     }
@@ -171,22 +171,22 @@ class InvoicesTable
     private static function recordPaymentAction(): Action
     {
         return Action::make('recordPayment')
-            ->label('Zahlung eingeben')
+            ->label(__('invoices::messages.actions.record_payment'))
             ->icon(Heroicon::OutlinedBanknotes)
             ->color('primary')
             ->visible(fn (Invoice $record): bool => $record->invoice_type === InvoiceType::Invoice
                 && ! $record->is_archived
                 && $record->invoice_status_id !== InvoiceStatus::Paid
                 && (float) ($record->amount?->invoice_balance ?? 0) > 0)
-            ->modalHeading(fn (Invoice $record): string => 'Zahlung für Rechnung '.$record->invoice_number)
-            ->modalSubmitActionLabel('Zahlung speichern')
+            ->modalHeading(fn (Invoice $record): string => __('invoices::messages.payment.heading', ['number' => $record->invoice_number]))
+            ->modalSubmitActionLabel(__('invoices::messages.actions.save_payment'))
             ->schema([
                 DatePicker::make('payment_date')
-                    ->label('Zahlungsdatum')
+                    ->label(__('invoices::messages.fields.payment_date'))
                     ->default(now()->toDateString())
                     ->required(),
                 Select::make('payment_method_id')
-                    ->label('Zahlungsart')
+                    ->label(__('invoices::messages.fields.payment_method'))
                     ->options(fn () => PaymentMethod::query()
                         ->orderBy('payment_method_name')
                         ->pluck('payment_method_name', 'payment_method_id'))
@@ -196,7 +196,7 @@ class InvoicesTable
                     ->preload()
                     ->required(),
                 TextInput::make('payment_amount')
-                    ->label('Betrag')
+                    ->label(__('invoices::messages.fields.amount'))
                     ->numeric()
                     ->minValue(0.01)
                     ->maxValue(fn (Invoice $record): float => (float) ($record->amount?->invoice_balance ?? 0))
@@ -204,7 +204,7 @@ class InvoicesTable
                     ->suffix('€')
                     ->required(),
                 TextInput::make('payment_note')
-                    ->label('Notiz')
+                    ->label(__('invoices::messages.fields.note'))
                     ->default('')
                     ->maxLength(1000),
             ])
@@ -213,7 +213,7 @@ class InvoicesTable
 
                 Notification::make()
                     ->success()
-                    ->title('Zahlung wurde gespeichert.')
+                    ->title(__('invoices::messages.payment.success'))
                     ->send();
             });
     }
@@ -221,28 +221,27 @@ class InvoicesTable
     private static function counterpartAction(string $name, InvoiceType $type): Action
     {
         return Action::make($name)
-            ->label($type === InvoiceType::Credit ? 'Gutschrift erstellen' : 'Rechnung stornieren')
+            ->label($type === InvoiceType::Credit ? __('invoices::messages.actions.create_credit') : __('invoices::messages.actions.cancel_invoice'))
             ->icon($type === InvoiceType::Credit ? Heroicon::OutlinedDocumentMinus : Heroicon::OutlinedNoSymbol)
             ->color($type === InvoiceType::Credit ? 'success' : 'danger')
             ->visible(fn (Invoice $record): bool => $record->invoice_type === InvoiceType::Invoice
                 && ! $record->is_archived)
             ->disabled(fn (Invoice $record): bool => $record->invoice_status_id === InvoiceStatus::Draft)
             ->tooltip(fn (Invoice $record): ?string => $record->invoice_status_id === InvoiceStatus::Draft
-                ? 'Die Rechnung muss zuerst ausgestellt werden.'
+                ? __('invoices::messages.counterpart.must_issue')
                 : null)
             ->requiresConfirmation()
-            ->modalHeading($type === InvoiceType::Credit ? 'Gutschrift erstellen' : 'Rechnung stornieren')
-            ->modalDescription(fn (Invoice $record): string => sprintf(
-                '%s wird als negativer Entwurf mit direktem Bezug zu Rechnung %s erstellt.',
-                $type->label(),
-                $record->invoice_number,
-            ))
+            ->modalHeading($type === InvoiceType::Credit ? __('invoices::messages.actions.create_credit') : __('invoices::messages.actions.cancel_invoice'))
+            ->modalDescription(fn (Invoice $record): string => __('invoices::messages.counterpart.description', [
+                'type' => $type->label(),
+                'number' => $record->invoice_number,
+            ]))
             ->action(function (Action $action, Invoice $record) use ($type): void {
                 $counterpart = app(CreateInvoiceCounterpart::class)->handle($record, $type);
 
                 Notification::make()
                     ->success()
-                    ->title($type->label().' wurde als Entwurf erstellt.')
+                    ->title(__('invoices::messages.counterpart.success', ['type' => $type->label()]))
                     ->send();
 
                 $action->redirect(InvoiceResource::getUrl('edit', ['record' => $counterpart]));
@@ -254,8 +253,8 @@ class InvoicesTable
         return Filter::make($name)
             ->label($label)
             ->schema([
-                DatePicker::make('from')->label('Von')->native(false),
-                DatePicker::make('until')->label('Bis')->native(false),
+                DatePicker::make('from')->label(__('invoices::messages.fields.from'))->native(false),
+                DatePicker::make('until')->label(__('invoices::messages.fields.until'))->native(false),
             ])
             ->columns(2)
             ->query(fn (Builder $query, array $data): Builder => $query
@@ -268,8 +267,8 @@ class InvoicesTable
         return Filter::make($name)
             ->label($label)
             ->schema([
-                TextInput::make('from')->label('Von')->numeric()->prefix('€'),
-                TextInput::make('until')->label('Bis')->numeric()->prefix('€'),
+                TextInput::make('from')->label(__('invoices::messages.fields.from'))->numeric()->prefix('€'),
+                TextInput::make('until')->label(__('invoices::messages.fields.until'))->numeric()->prefix('€'),
             ])
             ->columns(2)
             ->query(fn (Builder $query, array $data): Builder => $query

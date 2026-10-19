@@ -56,8 +56,8 @@ class InvoiceForm
                 ->saveRelationshipsWhenHidden()
                 ->schema(self::invoiceTaxRateFields()),
             Callout::make(fn (?Invoice $record): string => $record?->invoice_type === InvoiceType::Credit
-                ? 'Gutschrift'
-                : 'Stornorechnung')
+                ? InvoiceType::Credit->label()
+                : InvoiceType::Cancellation->label())
                 ->description(fn (?Invoice $record): string => self::counterpartDescription($record))
                 ->icon(fn (?Invoice $record): Heroicon => $record?->invoice_type === InvoiceType::Credit
                     ? Heroicon::OutlinedDocumentMinus
@@ -67,7 +67,9 @@ class InvoiceForm
                     : 'danger')
                 ->actions([
                     Action::make('openOriginalInvoice')
-                        ->label(fn (?Invoice $record): string => 'Originalrechnung '.($record?->parentInvoice?->invoice_number ?? '').' öffnen')
+                        ->label(fn (?Invoice $record): string => __('invoices::messages.actions.open_original', [
+                            'number' => $record?->parentInvoice?->invoice_number ?? '',
+                        ]))
                         ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
                         ->url(fn (?Invoice $record): ?string => $record?->creditinvoice_parent_id
                             ? InvoiceResource::getUrl('edit', ['record' => $record->creditinvoice_parent_id])
@@ -117,11 +119,11 @@ class InvoiceForm
                 ])
                 ->columnSpanFull(),
             Section::make(fn (?Invoice $record): string => filled($record?->invoice_number)
-                ? 'Rechnung - '.$record->invoice_number
-                : 'Rechnung')
+                ? __('invoices::messages.singular').' - '.$record->invoice_number
+                : __('invoices::messages.singular'))
                 ->afterHeader([
                     Toggle::make('issue_invoice')
-                        ->label('Ausgestellt')
+                        ->label(__('invoices::messages.fields.issued'))
                         ->formatStateUsing(fn (?Invoice $record): bool => $record !== null
                             && $record->invoice_status_id !== InvoiceStatus::Draft)
                         ->dehydrated(false)
@@ -138,15 +140,15 @@ class InvoiceForm
                 ->columnSpan(['default' => 12])
                 ->schema([
                     Select::make('client_id')
-                        ->label('Kunde')
+                        ->label(__('invoices::messages.fields.client'))
                         ->relationship('client', 'client_name')
                         ->searchable(['client_name', 'client_email'])
                         ->preload()
                         ->required()
                         ->createOptionForm([
-                            TextInput::make('client_name')->label('Name')->required()->maxLength(100),
-                            TextInput::make('client_email')->label('E-Mail')->email()->maxLength(100),
-                            TextInput::make('client_phone')->label('Telefon')->tel()->maxLength(20),
+                            TextInput::make('client_name')->label(__('invoices::messages.fields.name'))->required()->maxLength(100),
+                            TextInput::make('client_email')->label(__('invoices::messages.fields.email'))->email()->maxLength(100),
+                            TextInput::make('client_phone')->label(__('invoices::messages.fields.phone'))->tel()->maxLength(20),
                         ])
                         ->createOptionUsing(fn (array $data): int => app(CreateClient::class)->handle($data)->getKey())
                         ->disabled(fn (Get $get, ?Invoice $record): bool => filled($get('project_id'))
@@ -154,28 +156,28 @@ class InvoiceForm
                             || ($record !== null && $record->invoice_status_id !== InvoiceStatus::Draft))
                         ->columnSpan(['default' => 1, 'xl' => 4]),
                     TextInput::make('invoice_number')
-                        ->label('Rechnungsnummer')
-                        ->placeholder('Wird beim Ausstellen vergeben')
+                        ->label(__('invoices::messages.fields.invoice_number'))
+                        ->placeholder(__('invoices::messages.placeholders.number_on_issue'))
                         ->disabled(fn (?Invoice $record): bool => $record !== null
                             && ($record->is_archived || $record->invoice_status_id !== InvoiceStatus::Draft))
                         ->required(fn (?Invoice $record): bool => $record?->invoice_status_id === InvoiceStatus::Open)
                         ->maxLength(100)
                         ->columnSpan(['default' => 1, 'xl' => 2]),
                     DatePicker::make('invoice_date_created')
-                        ->label('Rechnungsdatum')
+                        ->label(__('invoices::messages.fields.invoice_date'))
                         ->default(now()->toDateString())
                         ->disabled(fn (?Invoice $record): bool => $record !== null && $record->invoice_status_id !== InvoiceStatus::Draft)
                         ->required()
                         ->columnSpan(['default' => 1, 'xl' => 3]),
                     DatePicker::make('invoice_date_due')
-                        ->label('Fällig am')
+                        ->label(__('invoices::messages.fields.due_date'))
                         ->default(fn (): string => now()->addDays(app(InvoiceDefaults::class)->dueDays())->toDateString())
                         ->disabled(fn (?Invoice $record): bool => $record !== null && $record->invoice_status_id !== InvoiceStatus::Draft)
                         ->afterOrEqual('invoice_date_created')
                         ->required()
                         ->columnSpan(['default' => 1, 'xl' => 3]),
                 ]),
-            Section::make('Positionen')
+            Section::make(__('invoices::messages.sections.items'))
                 ->disabled(fn (?Invoice $record): bool => $record !== null && $record->invoice_status_id !== InvoiceStatus::Draft)
                 ->columnSpan(['default' => 12])
                 ->schema([
@@ -190,19 +192,19 @@ class InvoiceForm
                         ->reorderable()
                         ->compact()
                         ->table([
-                            TableColumn::make('Position')->markAsRequired()->width('190px'),
-                            TableColumn::make('Beschreibung')->width('190px'),
-                            TableColumn::make('Menge')->markAsRequired()->width('100px'),
-                            TableColumn::make('Einheit')->width('130px'),
-                            TableColumn::make('Einzelpreis')->markAsRequired()->width('110px'),
-                            TableColumn::make('Steuersatz')->markAsRequired()->width('120px'),
-                            TableColumn::make('Steuer')->width('110px'),
-                            TableColumn::make('Summe')->width('110px'),
-                            TableColumn::make('Aktionen')->hiddenHeaderLabel()->width('56px'),
+                            TableColumn::make(__('invoices::messages.fields.position'))->markAsRequired()->width('190px'),
+                            TableColumn::make(__('invoices::messages.fields.description'))->width('190px'),
+                            TableColumn::make(__('invoices::messages.fields.quantity'))->markAsRequired()->width('100px'),
+                            TableColumn::make(__('invoices::messages.fields.unit'))->width('130px'),
+                            TableColumn::make(__('invoices::messages.fields.unit_price'))->markAsRequired()->width('110px'),
+                            TableColumn::make(__('invoices::messages.fields.tax_rate'))->markAsRequired()->width('120px'),
+                            TableColumn::make(__('invoices::messages.fields.tax'))->width('110px'),
+                            TableColumn::make(__('invoices::messages.fields.sum'))->width('110px'),
+                            TableColumn::make(__('invoices::messages.fields.actions'))->hiddenHeaderLabel()->width('56px'),
                         ])
                         ->schema([
                             TextInput::make('item_name')
-                                ->label('Position')
+                                ->label(__('invoices::messages.fields.position'))
                                 ->datalist(fn (): array => Product::query()
                                     ->orderBy('product_name')
                                     ->pluck('product_name')
@@ -227,36 +229,36 @@ class InvoiceForm
                                     $set('item_tax_included', $product->product_tax_included);
                                 }),
                             Hidden::make('item_product_id'),
-                            TextInput::make('item_description')->label('Beschreibung'),
-                            TextInput::make('item_quantity')->label('Menge')->numeric()->default(1)->step(0.01)->required()->live(),
-                            Select::make('item_product_unit_id')->label('Einheit')
+                            TextInput::make('item_description')->label(__('invoices::messages.fields.description')),
+                            TextInput::make('item_quantity')->label(__('invoices::messages.fields.quantity'))->numeric()->default(1)->step(0.01)->required()->live(),
+                            Select::make('item_product_unit_id')->label(__('invoices::messages.fields.unit'))
                                 ->options(fn () => Unit::query()->orderBy('unit_name')->pluck('unit_name', 'unit_id'))
                                 ->placeholder('–')
                                 ->searchable()->preload(),
-                            TextInput::make('item_price')->label('Einzelpreis')->numeric()->step(0.01)->required()->live(),
+                            TextInput::make('item_price')->label(__('invoices::messages.fields.unit_price'))->numeric()->step(0.01)->required()->live(),
                             Hidden::make('item_discount_amount')->default(0),
-                            Select::make('item_tax_rate_id')->label('Steuersatz')->relationship('taxRate', 'tax_rate_name')
+                            Select::make('item_tax_rate_id')->label(__('invoices::messages.fields.tax_rate'))->relationship('taxRate', 'tax_rate_name')
                                 ->placeholder('–')
                                 ->searchable()->preload()->required()->live(),
                             Hidden::make('item_tax_included')->default(false),
-                            Placeholder::make('item_tax_preview')->label('Steuer')
+                            Placeholder::make('item_tax_preview')->label(__('invoices::messages.fields.tax'))
                                 ->content(fn (Get $get): string => self::formatAmount(self::calculateItem($get)['tax'])),
-                            Placeholder::make('item_total_preview')->label('Summe')
+                            Placeholder::make('item_total_preview')->label(__('invoices::messages.fields.sum'))
                                 ->content(fn (Get $get): string => self::formatAmount(self::calculateItem($get)['total'])),
                             Actions::make([
                                 ActionGroup::make([
                                     Action::make('duplicateItem')
-                                        ->label('Position duplizieren')
+                                        ->label(__('invoices::messages.actions.duplicate_item'))
                                         ->icon(Heroicon::OutlinedSquare2Stack)
                                         ->color('gray')
                                         ->action(fn (Component $component) => self::duplicateItem($component)),
                                     Action::make('addItem')
-                                        ->label('Zeile hinzufügen')
+                                        ->label(__('invoices::messages.actions.add_item'))
                                         ->icon(Heroicon::Plus)
                                         ->color('gray')
                                         ->action(fn (Component $component) => self::addItem($component)),
                                     Action::make('toggleTaxIncluded')
-                                        ->label('Preis inklusive Steuer')
+                                        ->label(__('invoices::messages.actions.tax_included'))
                                         ->icon(fn (Get $get): Heroicon => $get('item_tax_included')
                                             ? Heroicon::CheckCircle
                                             : Heroicon::OutlinedCheckCircle)
@@ -267,14 +269,14 @@ class InvoiceForm
                                             shouldCallUpdatedHooks: true,
                                         )),
                                     Action::make('deleteItem')
-                                        ->label('Position löschen')
+                                        ->label(__('invoices::messages.actions.delete_item'))
                                         ->icon(Heroicon::OutlinedTrash)
                                         ->color('danger')
                                         ->action(fn (Component $component) => self::deleteItem($component)),
                                 ])
-                                    ->label('Optionen')
+                                    ->label(__('invoices::messages.actions.options'))
                                     ->icon(Heroicon::OutlinedEllipsisVertical)
-                                    ->tooltip('Optionen')
+                                    ->tooltip(__('invoices::messages.actions.options'))
                                     ->iconButton(),
                             ])->alignCenter(),
                         ])
@@ -282,9 +284,9 @@ class InvoiceForm
                         ->summaryActionsInTable()
                         ->summaryLeadingComponent(
                             Textarea::make('invoice_terms')
-                                ->label('Zahlungsbedingungen')
+                                ->label(__('invoices::messages.fields.payment_terms'))
                                 ->hiddenLabel()
-                                ->placeholder('Zahlungsbedingungen ...')
+                                ->placeholder(__('invoices::messages.placeholders.payment_terms'))
                                 ->disabled(fn ($livewire): bool => $livewire instanceof EditInvoice
                                     && $livewire->getRecord()->invoice_status_id !== InvoiceStatus::Draft)
                                 ->extraAttributes([
@@ -294,27 +296,27 @@ class InvoiceForm
                         )
                         ->summaryActions([
                             Action::make('editDiscount')
-                                ->label('Rabatt')
+                                ->label(__('invoices::messages.fields.discount'))
                                 ->icon(Heroicon::OutlinedReceiptPercent)
                                 ->color('gray')
                                 ->button()
                                 ->size(Size::Small)
-                                ->modalHeading('Rabatt')
-                                ->modalSubmitActionLabel('Rabatt übernehmen')
+                                ->modalHeading(__('invoices::messages.fields.discount'))
+                                ->modalSubmitActionLabel(__('invoices::messages.actions.apply_discount'))
                                 ->fillForm(fn (Get $get): array => [
                                     'discount_percent' => $get('invoice_discount_percent') ?? 0,
                                     'discount_amount' => $get('invoice_discount_amount') ?? 0,
                                 ])
                                 ->schema(fn (Get $get): array => [
                                     TextInput::make('discount_percent')
-                                        ->label('Gesamtrabatt in Prozent')
+                                        ->label(__('invoices::messages.fields.discount_percent'))
                                         ->numeric()
                                         ->minValue(0)
                                         ->maxValue(100)
                                         ->suffix('%'),
                                     TextInput::make('discount_amount')
-                                        ->label('Gesamtrabatt als Betrag')
-                                        ->helperText('Ein prozentualer Rabatt hat Vorrang.')
+                                        ->label(__('invoices::messages.fields.discount_amount'))
+                                        ->helperText(__('invoices::messages.hints.percentage_discount_priority'))
                                         ->numeric()
                                         ->minValue(self::invoiceType($get) === InvoiceType::Invoice ? 0 : null)
                                         ->suffix('€'),
@@ -324,22 +326,22 @@ class InvoiceForm
                                     $set('invoice_discount_amount', $data['discount_amount'] ?? 0);
                                 }),
                             Action::make('editTaxes')
-                                ->label('Steuer')
+                                ->label(__('invoices::messages.fields.tax'))
                                 ->icon(Heroicon::OutlinedCalculator)
                                 ->color('gray')
                                 ->button()
                                 ->size(Size::Small)
-                                ->modalHeading('Rechnungssteuer')
-                                ->modalSubmitActionLabel('Steuer übernehmen')
+                                ->modalHeading(__('invoices::messages.fields.tax'))
+                                ->modalSubmitActionLabel(__('invoices::messages.actions.apply_tax'))
                                 ->fillForm(fn (Get $get): array => [
                                     'tax_rates' => $get('invoiceTaxRates') ?? [],
                                 ])
                                 ->schema([
                                     Repeater::make('tax_rates')
-                                        ->label('Steuersätze')
+                                        ->label(__('invoices::messages.fields.tax_rates'))
                                         ->defaultItems(0)
                                         ->columns(2)
-                                        ->addActionLabel('Steuer hinzufügen')
+                                        ->addActionLabel(__('invoices::messages.actions.add_tax'))
                                         ->schema(self::invoiceTaxRateFields()),
                                 ])
                                 ->action(fn (array $data, Set $set) => $set(
@@ -352,15 +354,15 @@ class InvoiceForm
                             $totals = self::calculateTotals($get);
                             $taxRows = collect($totals['taxBreakdown'])
                                 ->mapWithKeys(fn (float $amount, int|string $taxRate): array => [
-                                    'Steuer '.self::formatTaxRate((float) $taxRate).' %' => self::formatAmount($amount),
+                                    __('invoices::messages.summary.tax', ['rate' => self::formatTaxRate((float) $taxRate)]) => self::formatAmount($amount),
                                 ])
                                 ->all();
 
                             return [
-                                'Zwischensumme' => self::formatAmount($totals['subtotal']),
+                                __('invoices::messages.summary.subtotal') => self::formatAmount($totals['subtotal']),
                                 ...$taxRows,
-                                'Steuer gesamt' => self::formatAmount($totals['itemTax'] + $totals['quoteTax']),
-                                'Gesamtsumme' => self::formatAmount($totals['total']),
+                                __('invoices::messages.summary.tax_total') => self::formatAmount($totals['itemTax'] + $totals['quoteTax']),
+                                __('invoices::messages.summary.grand_total') => self::formatAmount($totals['total']),
                             ];
                         })
                         ->columnSpanFull(),
@@ -373,7 +375,7 @@ class InvoiceForm
     {
         return [
             Select::make('tax_rate_id')
-                ->label('Steuersatz')
+                ->label(__('invoices::messages.fields.tax_rate'))
                 ->options(fn (): array => TaxRate::query()
                     ->orderBy('tax_rate_name')
                     ->pluck('tax_rate_name', 'tax_rate_id')
@@ -381,7 +383,7 @@ class InvoiceForm
                 ->searchable()
                 ->preload()
                 ->required(),
-            Toggle::make('include_item_tax')->label('Positionssteuern einbeziehen'),
+            Toggle::make('include_item_tax')->label(__('invoices::messages.fields.include_item_tax')),
             Hidden::make('invoice_tax_rate_amount')->default(0),
         ];
     }
@@ -536,13 +538,17 @@ class InvoiceForm
         $original = $invoice?->parentInvoice;
 
         if (! $original) {
-            return 'Die Originalrechnung ist nicht mehr verfügbar.';
+            return __('invoices::messages.counterpart.missing_original');
         }
 
         $client = $original->client?->client_name ?: '–';
         $date = $original->invoice_date_created?->format('d.m.Y') ?: '–';
         $total = number_format(abs((float) ($original->amount?->invoice_total ?? 0)), 2, ',', '.').' €';
 
-        return "Kunde: {$client} · Rechnungsdatum: {$date} · Betrag: {$total}";
+        return __('invoices::messages.counterpart.details', [
+            'client' => $client,
+            'date' => $date,
+            'total' => $total,
+        ]);
     }
 }

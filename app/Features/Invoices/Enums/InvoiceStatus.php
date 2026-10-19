@@ -10,11 +10,7 @@ enum InvoiceStatus: int
 
     public function label(): string
     {
-        return match ($this) {
-            self::Draft => 'Entwurf',
-            self::Open => 'Offen',
-            self::Paid => 'Bezahlt',
-        };
+        return __('invoices::messages.statuses.'.strtolower($this->name));
     }
 
     public function color(): string
