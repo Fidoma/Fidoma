@@ -2,6 +2,7 @@
 
 return [
     'feature' => 'Webmail',
+    'navigation_group' => 'External services',
     'install' => 'Install Roundcube',
     'install_description' => 'The verified Roundcube release will be downloaded and configured for Fidoma. This can take a few minutes.',
     'installed' => 'Roundcube was installed.',

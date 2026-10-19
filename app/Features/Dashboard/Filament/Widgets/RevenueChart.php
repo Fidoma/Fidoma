@@ -21,6 +21,16 @@ class RevenueChart extends ChartWidget
 
     protected int|string|array $columnSpan = 1;
 
+    public function getHeading(): string
+    {
+        return __('dashboard::messages.charts.revenue');
+    }
+
+    public function getDescription(): string
+    {
+        return __('dashboard::messages.charts.revenue_description');
+    }
+
     protected function getData(): array
     {
         $series = app(DashboardMetrics::class)->revenueSeries(DashboardPeriod::fromFilters($this->pageFilters));
@@ -28,7 +38,7 @@ class RevenueChart extends ChartWidget
         return [
             'datasets' => [
                 [
-                    'label' => 'Aktueller Zeitraum',
+                    'label' => __('dashboard::messages.charts.current'),
                     'data' => $series['current'],
                     'borderColor' => '#f59e0b',
                     'backgroundColor' => 'rgba(245, 158, 11, 0.12)',
@@ -36,7 +46,7 @@ class RevenueChart extends ChartWidget
                     'tension' => 0.35,
                 ],
                 [
-                    'label' => 'Vorjahr',
+                    'label' => __('dashboard::messages.charts.previous'),
                     'data' => $series['previous'],
                     'borderColor' => '#94a3b8',
                     'backgroundColor' => 'transparent',

@@ -2,4 +2,5 @@
 
 return [
     'feature' => 'Angebote',
+    'singular' => 'Angebot',
 ];

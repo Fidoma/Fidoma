@@ -1,5 +1,5 @@
 <x-filament-widgets::widget>
-    <x-filament::section icon="heroicon-o-clipboard-document-check" heading="Aufgaben und Hinweise" description="Offene Vorgänge, die Ihre Aufmerksamkeit benötigen">
+    <x-filament::section icon="heroicon-o-clipboard-document-check" :heading="__('dashboard::messages.tasks.heading')" :description="__('dashboard::messages.tasks.description')">
         <div class="dashboard-task-list">
             @foreach ($tasks as $task)
                 <a href="{{ $task['url'] }}" class="dashboard-task-row">

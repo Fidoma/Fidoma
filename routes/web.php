@@ -1,5 +1,6 @@
 <?php
 
+use App\Features\Authentication\Http\Controllers\LocaleController;
 use App\Features\Invoices\Http\Controllers\InvoiceDocumentController;
 use App\Features\Invoices\Http\Controllers\InvoiceLayoutPreviewController;
 use App\Features\Webmail\Http\Controllers\RoundcubeController;
@@ -8,6 +9,10 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::middleware('auth')->post('admin/locale/{locale}', LocaleController::class)
+    ->whereIn('locale', ['de', 'en'])
+    ->name('admin.locale.update');
 
 Route::middleware('auth')->prefix('admin/invoices/{invoice}')->group(function (): void {
     Route::get('preview', [InvoiceDocumentController::class, 'preview'])

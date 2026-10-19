@@ -72,6 +72,21 @@ class Reports extends Page implements HasTable
 
     public string $selectedPeriod = 'custom';
 
+    public static function getNavigationLabel(): string
+    {
+        return __('reports::messages.feature');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('reports::messages.navigation_group');
+    }
+
+    public function getTitle(): string
+    {
+        return __('reports::messages.feature');
+    }
+
     public function mount(): void
     {
         $this->resetTable();

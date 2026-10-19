@@ -34,6 +34,21 @@ class RoomResource extends Resource
 
     protected static ?int $navigationSort = 3;
 
+    public static function getNavigationGroup(): ?string
+    {
+        return __('reservations::messages.feature');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('reservations::messages.room_singular');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('reservations::messages.rooms');
+    }
+
     protected static ?string $recordTitleAttribute = 'room_number';
 
     public static function form(Schema $schema): Schema

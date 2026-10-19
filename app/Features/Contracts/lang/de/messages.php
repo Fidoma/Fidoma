@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'feature' => 'Verträge',
+    'singular' => 'Vertrag',
     'template' => [
         'placeholders' => [
             'heading' => 'Platzhalter',

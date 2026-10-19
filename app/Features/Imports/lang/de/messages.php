@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'feature' => 'Datenimport',
+    'navigation_group' => 'Finanzen',
     'fields' => [
         'account_iban' => 'Konto-IBAN',
         'booking_date' => 'Buchungsdatum',

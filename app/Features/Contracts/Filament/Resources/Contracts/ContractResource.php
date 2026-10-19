@@ -34,6 +34,21 @@ class ContractResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'number';
 
+    public static function getNavigationLabel(): string
+    {
+        return __('contracts::messages.feature');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('contracts::messages.singular');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('contracts::messages.feature');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return ContractForm::configure($schema);

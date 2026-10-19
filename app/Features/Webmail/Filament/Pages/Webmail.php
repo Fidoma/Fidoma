@@ -30,6 +30,16 @@ class Webmail extends Page
 
     public bool $installed = false;
 
+    public static function getNavigationLabel(): string
+    {
+        return __('webmail::messages.feature');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('webmail::messages.navigation_group');
+    }
+
     public function mount(RoundcubeInstaller $installer): void
     {
         $this->installed = $installer->installed();

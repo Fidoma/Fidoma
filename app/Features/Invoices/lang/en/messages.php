@@ -2,6 +2,7 @@
 
 return [
     'feature' => 'Invoices',
+    'singular' => 'Invoice',
     'billing_types' => [
         'standard' => 'Invoice',
         'progress' => 'Progress invoice',

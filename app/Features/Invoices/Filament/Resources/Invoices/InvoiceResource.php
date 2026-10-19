@@ -26,6 +26,16 @@ class InvoiceResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'invoice_number';
 
+    public static function getModelLabel(): string
+    {
+        return __('invoices::messages.singular');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('invoices::messages.feature');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return InvoiceForm::configure($schema);

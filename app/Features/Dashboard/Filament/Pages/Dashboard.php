@@ -44,7 +44,7 @@ class Dashboard extends BaseDashboard
             'startDate' => ['nullable', 'date', 'required_with:endDate'],
             'endDate' => ['nullable', 'date', 'required_with:startDate', 'after_or_equal:startDate'],
         ], [
-            'endDate.after_or_equal' => 'Das Enddatum muss nach dem Startdatum liegen.',
+            'endDate.after_or_equal' => __('dashboard::messages.validation.end_after_start'),
         ]);
 
         $this->selectedPeriod = 'custom';
@@ -95,8 +95,8 @@ class Dashboard extends BaseDashboard
             'q2' => 'Q2',
             'q3' => 'Q3',
             'q4' => 'Q4',
-            'year' => 'Jahr',
-            default => 'Zeitraum',
+            'year' => __('dashboard::messages.period.year'),
+            default => __('dashboard::messages.period.range'),
         };
     }
 

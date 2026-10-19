@@ -16,4 +16,9 @@ class ProductsCluster extends Cluster
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCube;
 
     protected static ?SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
+
+    public static function getNavigationLabel(): string
+    {
+        return __('products::messages.feature');
+    }
 }

@@ -31,26 +31,26 @@ class DashboardTasks extends Widget
 
         return ['tasks' => [
             [
-                'label' => 'Überfällige Kundenrechnungen', 'count' => $overdue['count'],
-                'description' => number_format($overdue['amount'], 2, ',', '.').' € offen',
+                'label' => __('dashboard::messages.tasks.overdue_invoices'), 'count' => $overdue['count'],
+                'description' => __('dashboard::messages.tasks.amount_open', ['amount' => number_format($overdue['amount'], 2, ',', '.')]),
                 'icon' => 'heroicon-o-exclamation-triangle', 'color' => 'danger',
                 'url' => InvoiceResource::getUrl('index', ['activeTab' => 'overdue']),
             ],
             [
-                'label' => 'Banktransaktionen ohne Zuordnung', 'count' => $documents['unmapped_transactions'],
-                'description' => 'Noch keinem Beleg oder Zahlungseingang zugeordnet',
+                'label' => __('dashboard::messages.tasks.unassigned_transactions'), 'count' => $documents['unmapped_transactions'],
+                'description' => __('dashboard::messages.tasks.unassigned_description'),
                 'icon' => 'heroicon-o-building-library', 'color' => 'warning',
                 'url' => BankTransactionResource::getUrl('index'),
             ],
             [
-                'label' => 'Dokumente zu verarbeiten', 'count' => $documents['unprocessed_documents'],
-                'description' => $documents['unprocessed_documents'] === null ? 'Paperless derzeit nicht erreichbar' : 'Noch nicht vollständig zugeordnet',
+                'label' => __('dashboard::messages.tasks.documents'), 'count' => $documents['unprocessed_documents'],
+                'description' => $documents['unprocessed_documents'] === null ? __('dashboard::messages.tasks.paperless_unavailable') : __('dashboard::messages.tasks.documents_unassigned'),
                 'icon' => 'heroicon-o-document-text', 'color' => 'gray',
                 'url' => Documents::getUrl(),
             ],
             [
-                'label' => 'Offene Angebote', 'count' => $quotes['open_count'],
-                'description' => number_format($quotes['open_value'], 2, ',', '.').' € Angebotswert',
+                'label' => __('dashboard::messages.tasks.open_quotes'), 'count' => $quotes['open_count'],
+                'description' => __('dashboard::messages.tasks.quote_value', ['amount' => number_format($quotes['open_value'], 2, ',', '.')]),
                 'icon' => 'heroicon-o-document-duplicate', 'color' => 'info',
                 'url' => QuoteResource::getUrl('index'),
             ],

@@ -48,6 +48,21 @@ class Documents extends Page implements HasTable
 
     public string $activeTab = 'expenses';
 
+    public static function getNavigationLabel(): string
+    {
+        return __('documents::messages.navigation');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('documents::messages.navigation_group');
+    }
+
+    public function getTitle(): string
+    {
+        return __('documents::messages.navigation');
+    }
+
     /** @var list<array{id: int, title: string, supplier: ?string, invoiceNumber: ?string, documentDate: ?string, amount: ?float, currency: string, tags: array<int, string>, mappedCount: int}> */
     public array $paperlessDocumentRecords = [];
 

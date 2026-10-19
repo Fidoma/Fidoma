@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Features\Authentication\Filament\Pages\Login;
+use App\Features\Authentication\Http\Middleware\SetLocale;
 use App\Features\Dashboard\Filament\Pages\Dashboard;
 use App\Features\Documents\Filament\Pages\Documents;
 use App\Features\Documents\Services\PaperlessClient;
@@ -64,8 +65,8 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => Color::hex('#FF0092'),
             ])
             ->navigationItems([
-                NavigationItem::make('Dokumente')
-                    ->group('Externe Dienste')
+                NavigationItem::make(fn (): string => __('documents::messages.feature'))
+                    ->group(fn (): string => __('webmail::messages.navigation_group'))
                     ->icon(Heroicon::OutlinedDocumentText)
                     ->sort(3)
                     ->url(fn (): string => rtrim((string) config('services.paperless.url'), '/'))
@@ -82,15 +83,18 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->userMenuItems([
                 [
-                    'logout' => fn (Action $action): Action => $action->sort(0),
-                ],
-                [
                     Action::make('settings')
-                        ->label('Settings')
+                        ->label(fn (): string => __('authentication::messages.user_menu.settings'))
                         ->icon(Heroicon::OutlinedCog6Tooth)
                         ->url(fn (): string => SettingsCluster::getUrl())
                         ->visible(fn (): bool => SettingsCluster::canAccessClusteredComponents())
                         ->sort(0),
+                    Action::make('language')
+                        ->view('features.authentication.user-menu-language-switcher')
+                        ->sort(1),
+                ],
+                [
+                    'logout' => fn (Action $action): Action => $action->sort(PHP_INT_MAX),
                 ],
             ])
             ->discoverResources(in: app_path('Features'), for: 'App\Features')
@@ -111,6 +115,7 @@ class AdminPanelProvider extends PanelProvider
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
                 StartSession::class,
+                SetLocale::class,
                 AuthenticateSession::class,
                 ShareErrorsFromSession::class,
                 PreventRequestForgery::class,

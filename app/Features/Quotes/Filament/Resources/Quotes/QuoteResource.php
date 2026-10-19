@@ -28,6 +28,16 @@ class QuoteResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'quote_number';
 
+    public static function getModelLabel(): string
+    {
+        return __('quotes::messages.singular');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('quotes::messages.feature');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return QuoteForm::configure($schema);

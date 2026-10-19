@@ -2,6 +2,7 @@
 
 return [
     'feature' => 'Projekte',
+    'singular' => 'Projekt',
     'statuses' => [
         'draft' => 'Entwurf',
         'active' => 'Aktiv',

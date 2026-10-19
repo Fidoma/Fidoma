@@ -54,6 +54,21 @@ class DataImport extends Page
     /** @var list<int> */
     public array $excludedLines = [];
 
+    public static function getNavigationLabel(): string
+    {
+        return __('imports::messages.feature');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('imports::messages.navigation_group');
+    }
+
+    public function getTitle(): string
+    {
+        return __('imports::messages.feature');
+    }
+
     public function mount(): void
     {
         $this->form->fill([

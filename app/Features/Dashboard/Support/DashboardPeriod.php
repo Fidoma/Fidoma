@@ -22,11 +22,11 @@ final readonly class DashboardPeriod
         $today = CarbonImmutable::today();
 
         [$start, $end, $label] = match ($period) {
-            'last_month' => [$today->subMonthNoOverflow()->startOfMonth(), $today->subMonthNoOverflow()->endOfMonth(), 'Letzter Monat'],
-            'this_quarter' => [$today->startOfQuarter(), $today->endOfQuarter(), 'Dieses Quartal'],
-            'this_year' => [$today->startOfYear(), $today->endOfYear(), 'Dieses Jahr'],
+            'last_month' => [$today->subMonthNoOverflow()->startOfMonth(), $today->subMonthNoOverflow()->endOfMonth(), __('dashboard::messages.period.last_month')],
+            'this_quarter' => [$today->startOfQuarter(), $today->endOfQuarter(), __('dashboard::messages.period.this_quarter')],
+            'this_year' => [$today->startOfYear(), $today->endOfYear(), __('dashboard::messages.period.this_year')],
             'custom' => self::customRange($filters, $today),
-            default => [$today->startOfMonth(), $today->endOfMonth(), 'Dieser Monat'],
+            default => [$today->startOfMonth(), $today->endOfMonth(), __('dashboard::messages.period.this_month')],
         };
 
         $days = $start->diffInDays($end) + 1;

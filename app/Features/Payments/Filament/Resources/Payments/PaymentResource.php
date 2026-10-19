@@ -27,6 +27,26 @@ class PaymentResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBanknotes;
 
+    public static function getNavigationLabel(): string
+    {
+        return __('payments::messages.feature');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('payments::messages.navigation_group');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('payments::messages.singular');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('payments::messages.feature');
+    }
+
     public static function table(Table $table): Table
     {
         return PaymentsTable::configure($table);

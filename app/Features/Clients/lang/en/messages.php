@@ -2,4 +2,5 @@
 
 return [
     'feature' => 'Clients',
+    'singular' => 'Client',
 ];

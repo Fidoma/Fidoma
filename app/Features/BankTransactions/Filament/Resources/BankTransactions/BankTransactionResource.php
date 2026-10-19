@@ -31,6 +31,26 @@ class BankTransactionResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingLibrary;
 
+    public static function getNavigationLabel(): string
+    {
+        return __('bank-transactions::messages.feature');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('bank-transactions::messages.navigation_group');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('bank-transactions::messages.singular');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('bank-transactions::messages.feature');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return BankTransactionForm::configure($schema);

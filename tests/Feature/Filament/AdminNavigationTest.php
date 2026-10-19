@@ -81,8 +81,8 @@ class AdminNavigationTest extends TestCase
         $groups = $panel->getUserMenuItemGroups();
 
         $this->assertCount(2, $groups);
-        $this->assertSame(['profile', 'logout'], array_keys($groups[0]));
-        $this->assertSame(['settings'], array_keys($groups[1]));
+        $this->assertSame(['profile', 'settings', 'language'], array_keys($groups[0]));
+        $this->assertSame(['logout'], array_keys($groups[1]));
         $this->assertFalse(SettingsCluster::shouldRegisterNavigation());
 
         $this->get(SettingsCluster::getUrl())
@@ -97,6 +97,55 @@ class AdminNavigationTest extends TestCase
                 TaxRateResource::getNavigationLabel(),
                 UserResource::getNavigationLabel(),
             ]);
+    }
+
+    public function test_user_can_switch_the_admin_locale_from_the_user_menu(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->post(route('admin.locale.update', ['locale' => 'en']))
+            ->assertRedirect();
+
+        $this->assertSame('en', session('locale'));
+
+        $this->get('/admin')
+            ->assertOk()
+            ->assertSee('German')
+            ->assertSee('English')
+            ->assertSee('EN')
+            ->assertSee('Settings')
+            ->assertSee('Sign out')
+            ->assertSee('Clients')
+            ->assertSee('Quotes')
+            ->assertSee('Invoices')
+            ->assertSee('Projects')
+            ->assertSee('Contracts')
+            ->assertSee('Finance')
+            ->assertSee('Bank transactions')
+            ->assertSee('Assignments')
+            ->assertSee('Payments')
+            ->assertSee('Reports')
+            ->assertSee('Data import')
+            ->assertSee('External services')
+            ->assertSee('From')
+            ->assertSee('To')
+            ->assertSee('Search')
+            ->assertDontSee('Abmelden');
+
+        $this->actingAs($user)
+            ->post(route('admin.locale.update', ['locale' => 'de']))
+            ->assertRedirect();
+
+        $this->assertSame('de', session('locale'));
+
+        $this->get('/admin')
+            ->assertOk()
+            ->assertSee('Deutsch')
+            ->assertSee('Englisch')
+            ->assertSee('Einstellungen')
+            ->assertSee('Abmelden')
+            ->assertDontSee('Sign out');
     }
 
     public function test_paperless_documents_link_reuses_a_named_browser_tab(): void

@@ -2,6 +2,8 @@
 
 return [
     'feature' => 'Documents',
+    'navigation' => 'Assignments',
+    'navigation_group' => 'Finance',
     'assignment' => [
         'transactions_heading' => 'Bank transactions',
         'transactions_description' => 'Only outgoing bank transactions are available for Paperless documents.',

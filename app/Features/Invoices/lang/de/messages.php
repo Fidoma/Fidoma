@@ -2,6 +2,7 @@
 
 return [
     'feature' => 'Rechnungen',
+    'singular' => 'Rechnung',
     'billing_types' => [
         'standard' => 'Rechnung',
         'progress' => 'Abschlagsrechnung',

@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'feature' => 'Contracts',
+    'singular' => 'Contract',
     'template' => [
         'placeholders' => [
             'heading' => 'Placeholders',

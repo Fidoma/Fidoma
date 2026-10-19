@@ -30,27 +30,27 @@ class DashboardKpis extends StatsOverviewWidget
         $overdue = $metrics->receivablesAt($period, overdueOnly: true);
 
         return [
-            Stat::make('Umsatz', $this->money($revenue))
-                ->description($change === null ? 'Kein Vergleichswert' : number_format(abs($change), 1, ',', '.').' % '.($change >= 0 ? 'mehr' : 'weniger'))
+            Stat::make(__('dashboard::messages.kpis.revenue'), $this->money($revenue))
+                ->description($change === null ? __('dashboard::messages.kpis.no_comparison') : number_format(abs($change), 1, ',', '.').' % '.__('dashboard::messages.kpis.'.($change >= 0 ? 'more' : 'less')))
                 ->descriptionIcon($change === null ? Heroicon::OutlinedMinus : ($change >= 0 ? Heroicon::OutlinedArrowTrendingUp : Heroicon::OutlinedArrowTrendingDown))
                 ->descriptionColor($change === null ? 'gray' : ($change >= 0 ? 'success' : 'danger'))
                 ->icon(Heroicon::OutlinedChartBarSquare)
                 ->color('primary')
                 ->url(InvoiceResource::getUrl('index')),
-            Stat::make('Offene Forderungen', $this->money($receivables['amount']))
-                ->description($receivables['count'].' offene '.($receivables['count'] === 1 ? 'Rechnung' : 'Rechnungen').' zum Stichtag')
+            Stat::make(__('dashboard::messages.kpis.receivables'), $this->money($receivables['amount']))
+                ->description(trans_choice('dashboard::messages.kpis.open_invoices', $receivables['count'], ['count' => $receivables['count']]))
                 ->descriptionIcon(Heroicon::OutlinedClock)
                 ->icon(Heroicon::OutlinedBanknotes)
                 ->color($receivables['amount'] > 0 ? 'warning' : 'success')
                 ->url(InvoiceResource::getUrl('index', ['activeTab' => 'Sent'])),
-            Stat::make('Zahlungseingänge', $this->money($metrics->bankIncome($period)))
-                ->description('Gebuchte Bankeingänge · '.$period->label)
+            Stat::make(__('dashboard::messages.kpis.payments'), $this->money($metrics->bankIncome($period)))
+                ->description(__('dashboard::messages.kpis.booked_income', ['period' => $period->label]))
                 ->descriptionIcon(Heroicon::OutlinedArrowDownLeft)
                 ->icon(Heroicon::OutlinedBuildingLibrary)
                 ->color('success')
                 ->url(BankTransactionResource::getUrl('index')),
-            Stat::make('Überfällige Rechnungen', $this->money($overdue['amount']))
-                ->description($overdue['count'].' '.($overdue['count'] === 1 ? 'Rechnung' : 'Rechnungen').' überfällig')
+            Stat::make(__('dashboard::messages.kpis.overdue'), $this->money($overdue['amount']))
+                ->description(trans_choice('dashboard::messages.kpis.overdue_invoices', $overdue['count'], ['count' => $overdue['count']]))
                 ->descriptionIcon(Heroicon::OutlinedExclamationTriangle)
                 ->icon(Heroicon::OutlinedCalendarDays)
                 ->color($overdue['count'] > 0 ? 'danger' : 'success')

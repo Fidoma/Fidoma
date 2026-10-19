@@ -274,6 +274,16 @@
     display: none;
 }
 
+.fidoma-language-switcher form,
+.fidoma-language-switcher-btn {
+    width: 100%;
+}
+
+.fidoma-language-switcher-btn {
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
 .dark .fi-sidebar {
     border-right-color: rgb(255 255 255 / 0.08);
     background-color: rgb(24 24 27 / 0.82);

@@ -2,6 +2,8 @@
 
 return [
     'feature' => 'Dokumente',
+    'navigation' => 'Zuordnungen',
+    'navigation_group' => 'Finanzen',
     'assignment' => [
         'transactions_heading' => 'Banktransaktionen',
         'transactions_description' => 'Nur negative Banktransaktionen werden für Paperless-Dokumente angeboten.',

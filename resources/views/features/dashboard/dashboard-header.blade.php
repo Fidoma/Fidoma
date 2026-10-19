@@ -17,7 +17,7 @@
             </x-slot>
 
             <x-filament::dropdown.list>
-                @foreach (['q1' => 'Q1', 'q2' => 'Q2', 'q3' => 'Q3', 'q4' => 'Q4', 'year' => 'Jahr', 'reset' => 'Gesamt'] as $period => $label)
+                @foreach (['q1' => 'Q1', 'q2' => 'Q2', 'q3' => 'Q3', 'q4' => 'Q4', 'year' => __('dashboard::messages.period.year'), 'reset' => __('dashboard::messages.period.all')] as $period => $label)
                     <x-filament::dropdown.list.item
                         :color="$this->selectedPeriod === $period ? 'primary' : 'gray'"
                         :icon="$this->selectedPeriod === $period ? 'heroicon-m-check' : null"
@@ -32,7 +32,7 @@
         </x-filament::dropdown>
 
         <div class="dashboard-period-field">
-            <label for="dashboard-start-date">Von</label>
+            <label for="dashboard-start-date">{{ __('dashboard::messages.period.from') }}</label>
             <x-filament::input.wrapper>
                 <x-filament::input
                     id="dashboard-start-date"
@@ -43,7 +43,7 @@
         </div>
 
         <div class="dashboard-period-field">
-            <label for="dashboard-end-date">Bis</label>
+            <label for="dashboard-end-date">{{ __('dashboard::messages.period.until') }}</label>
             <x-filament::input.wrapper>
                 <x-filament::input
                     id="dashboard-end-date"
@@ -62,7 +62,7 @@
             wire:loading.attr="disabled"
             wire:target="applyDateFilter"
         >
-            Suchen
+            {{ __('dashboard::messages.period.search') }}
         </x-filament::button>
     </form>
 </header>
