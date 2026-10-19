@@ -2,9 +2,7 @@
 
 namespace App\Features\Invoices\Filament\Resources\Invoices\Pages;
 
-use App\Features\Invoices\Enums\InvoiceBillingType;
 use App\Features\Invoices\Enums\InvoiceStatus;
-use App\Features\Invoices\Enums\InvoiceType;
 use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
 use App\Features\Invoices\Models\Invoice;
 use App\Filament\Concerns\WithoutPageHeading;
@@ -31,8 +29,7 @@ class ListInvoices extends ListRecords
             'all' => Tab::make('Alle')
                 ->badge((int) $counts->sum())
                 ->badgeColor('gray')
-                ->modifyQueryUsing(fn (Builder $query): Builder => $query
-                    ->where('is_archived', false)),
+                ->modifyQueryUsing(fn (Builder $query): Builder => $query->where('is_archived', false)),
         ];
 
         foreach (InvoiceStatus::cases() as $status) {
@@ -56,37 +53,10 @@ class ListInvoices extends ListRecords
             ->badgeColor('danger')
             ->modifyQueryUsing($overdueQuery);
 
-        foreach ([InvoiceBillingType::Progress, InvoiceBillingType::Final] as $billingType) {
-            $billingTypeQuery = fn (Builder $query): Builder => $query
-                ->where('is_archived', false)
-                ->where('invoice_type', InvoiceType::Invoice)
-                ->where('billing_type', $billingType);
-
-            $tabs['billing-'.$billingType->value] = Tab::make($billingType->label())
-                ->badge($billingTypeQuery(Invoice::query())->count())
-                ->badgeColor($billingType->color())
-                ->modifyQueryUsing($billingTypeQuery);
-        }
-
-        foreach ([
-            [InvoiceType::Credit, 'Gutschrift'],
-            [InvoiceType::Cancellation, 'Storniert'],
-        ] as [$type, $label]) {
-            $typeQuery = fn (Builder $query): Builder => $query
-                ->where('is_archived', false)
-                ->where('invoice_type', $type);
-
-            $tabs[$type->value] = Tab::make($label)
-                ->badge($typeQuery(Invoice::query())->count())
-                ->badgeColor($type->color())
-                ->modifyQueryUsing($typeQuery);
-        }
-
         $tabs['archived'] = Tab::make('Archiviert')
             ->badge(Invoice::query()->where('is_archived', true)->count())
             ->badgeColor('gray')
-            ->modifyQueryUsing(fn (Builder $query): Builder => $query
-                ->where('is_archived', true));
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->where('is_archived', true));
 
         return $tabs;
     }

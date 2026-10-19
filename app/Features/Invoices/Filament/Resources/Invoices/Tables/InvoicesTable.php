@@ -3,6 +3,7 @@
 namespace App\Features\Invoices\Filament\Resources\Invoices\Tables;
 
 use App\Features\Clients\Filament\Resources\Clients\ClientResource;
+use App\Features\Clients\Models\Client;
 use App\Features\Invoices\Actions\ArchiveInvoice;
 use App\Features\Invoices\Actions\CreateInvoiceCounterpart;
 use App\Features\Invoices\Actions\RecordInvoicePayment;
@@ -14,6 +15,7 @@ use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
 use App\Features\Invoices\Models\Invoice;
 use App\Features\Invoices\Services\InvoiceDefaults;
 use App\Features\PaymentMethods\Models\PaymentMethod;
+use App\Features\Projects\Models\Project;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\CreateAction;
@@ -24,7 +26,10 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class InvoicesTable
 {
@@ -39,31 +44,70 @@ class InvoicesTable
                     ->color(fn (Invoice $record): string => $record->invoice_type->color())
                     ->url(fn (Invoice $record): string => InvoiceResource::getUrl('edit', ['record' => $record]))
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
                 TextColumn::make('client.client_name')
                     ->label('Kunde')
                     ->url(fn (Invoice $record): string => ClientResource::getUrl('view', ['record' => $record->client_id]))
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
                 TextColumn::make('project.project_number')
                     ->label('Projekt')
                     ->searchable()
                     ->sortable()
                     ->toggleable(),
-                TextColumn::make('billing_type')
-                    ->label('Abrechnungsart')
-                    ->badge()
-                    ->formatStateUsing(fn (InvoiceBillingType $state): string => $state->label())
-                    ->color(fn (InvoiceBillingType $state): string => $state->color()),
-                TextColumn::make('invoice_date_created')->label('Datum')->date('d.m.Y')->sortable(),
+                TextColumn::make('invoice_date_created')->label('Datum')->date('d.m.Y')->sortable()->toggleable(),
                 TextColumn::make('invoice_date_due')->label('Fällig am')->date('d.m.Y')->sortable()
-                    ->color(fn (Invoice $record): ?string => $record->isOverdue() ? 'danger' : null),
+                    ->color(fn (Invoice $record): ?string => $record->isOverdue() ? 'danger' : null)
+                    ->toggleable(),
                 TextColumn::make('invoice_status_id')->label('Status')->badge()
                     ->formatStateUsing(fn (InvoiceStatus $state): string => $state->label())
-                    ->color(fn (InvoiceStatus $state): string => $state->color()),
-                TextColumn::make('amount.invoice_total')->label('Gesamt')->money('EUR', locale: 'de')->sortable(),
-                TextColumn::make('amount.invoice_paid')->label('Bezahlt')->money('EUR', locale: 'de'),
-                TextColumn::make('amount.invoice_balance')->label('Offen')->money('EUR', locale: 'de')->sortable(),
+                    ->color(fn (InvoiceStatus $state): string => $state->color())
+                    ->toggleable(),
+                TextColumn::make('amount.invoice_total')->label('Gesamt')->money('EUR', locale: 'de')->sortable()->toggleable(),
+                TextColumn::make('amount.invoice_paid')->label('Bezahlt')->money('EUR', locale: 'de')->toggleable(),
+                TextColumn::make('amount.invoice_balance')->label('Offen')->money('EUR', locale: 'de')->sortable()->toggleable(),
+            ])
+            ->filters([
+                Filter::make('invoice_number')
+                    ->label('Rechnungsnummer')
+                    ->schema([
+                        TextInput::make('value')->label('Rechnungsnummer'),
+                    ])
+                    ->query(fn (Builder $query, array $data): Builder => filled($data['value'] ?? null)
+                        ? $query->where('invoice_number', 'like', '%'.trim((string) $data['value']).'%')
+                        : $query),
+                SelectFilter::make('client_id')
+                    ->label('Kunde')
+                    ->options(fn (): array => Client::query()
+                        ->orderBy('client_name')
+                        ->pluck('client_name', 'client_id')
+                        ->all())
+                    ->searchable()
+                    ->preload(),
+                SelectFilter::make('project_id')
+                    ->label('Projekt')
+                    ->options(fn (): array => Project::query()
+                        ->orderBy('project_number')
+                        ->get()
+                        ->mapWithKeys(fn (Project $project): array => [
+                            $project->getKey() => collect([$project->project_number, $project->project_name])
+                                ->filter()
+                                ->implode(' · '),
+                        ])->all())
+                    ->searchable()
+                    ->preload(),
+                SelectFilter::make('billing_type')
+                    ->label('Abrechnungsart')
+                    ->options(collect(InvoiceBillingType::cases())->mapWithKeys(
+                        fn (InvoiceBillingType $type): array => [$type->value => $type->label()],
+                    )->all()),
+                self::dateRangeFilter('invoice_date_created', 'Rechnungsdatum'),
+                self::dateRangeFilter('invoice_date_due', 'Fälligkeitsdatum'),
+                self::amountRangeFilter('invoice_total', 'Gesamtbetrag', 'invoice_total'),
+                self::amountRangeFilter('invoice_paid', 'Bezahlt', 'invoice_paid'),
+                self::amountRangeFilter('invoice_balance', 'Offen', 'invoice_balance'),
             ])
             ->recordUrl(null)
             ->toolbarActions([
@@ -197,5 +241,45 @@ class InvoicesTable
 
                 $action->redirect(InvoiceResource::getUrl('edit', ['record' => $counterpart]));
             });
+    }
+
+    private static function dateRangeFilter(string $name, string $label): Filter
+    {
+        return Filter::make($name)
+            ->label($label)
+            ->schema([
+                DatePicker::make('from')->label('Von')->native(false),
+                DatePicker::make('until')->label('Bis')->native(false),
+            ])
+            ->columns(2)
+            ->query(fn (Builder $query, array $data): Builder => $query
+                ->when($data['from'] ?? null, fn (Builder $query, string $date): Builder => $query->whereDate($name, '>=', $date))
+                ->when($data['until'] ?? null, fn (Builder $query, string $date): Builder => $query->whereDate($name, '<=', $date)));
+    }
+
+    private static function amountRangeFilter(string $name, string $label, string $column): Filter
+    {
+        return Filter::make($name)
+            ->label($label)
+            ->schema([
+                TextInput::make('from')->label('Von')->numeric()->prefix('€'),
+                TextInput::make('until')->label('Bis')->numeric()->prefix('€'),
+            ])
+            ->columns(2)
+            ->query(fn (Builder $query, array $data): Builder => $query
+                ->when(
+                    filled($data['from'] ?? null),
+                    fn (Builder $query): Builder => $query->whereHas(
+                        'amount',
+                        fn (Builder $query): Builder => $query->where($column, '>=', (float) $data['from']),
+                    ),
+                )
+                ->when(
+                    filled($data['until'] ?? null),
+                    fn (Builder $query): Builder => $query->whereHas(
+                        'amount',
+                        fn (Builder $query): Builder => $query->where($column, '<=', (float) $data['until']),
+                    ),
+                ));
     }
 }

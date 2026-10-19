@@ -138,7 +138,7 @@ class InvoiceArchiveTest extends TestCase
             ->assertSee('Ausgestellt');
     }
 
-    public function test_invoice_list_uses_colored_numbers_and_filters_counterparts_by_type(): void
+    public function test_invoice_list_uses_colored_numbers_and_status_tabs(): void
     {
         $user = User::factory()->create();
         $invoice = $this->createInvoice();
@@ -155,15 +155,17 @@ class InvoiceArchiveTest extends TestCase
 
         $component = Livewire::actingAs($user)
             ->test(ListInvoices::class)
-            ->assertSee('Gutschrift')
-            ->assertSee('Storniert')
-            ->assertDontSee('Belegart')
-            ->set('activeTab', InvoiceType::Credit->value)
-            ->assertCanSeeTableRecords([$credit])
-            ->assertCanNotSeeTableRecords([$invoice, $cancellation])
-            ->set('activeTab', InvoiceType::Cancellation->value)
-            ->assertCanSeeTableRecords([$cancellation])
-            ->assertCanNotSeeTableRecords([$invoice, $credit]);
+            ->assertSee('Entwurf')
+            ->assertSee('Offen')
+            ->assertSee('Bezahlt')
+            ->assertSee('Überfällig')
+            ->assertSee('Archiviert')
+            ->assertCanSeeTableRecords([$invoice, $credit, $cancellation]);
+
+        $this->assertSame(
+            ['all', 'Draft', 'Open', 'Paid', 'overdue', 'archived'],
+            array_keys($component->instance()->getTabs()),
+        );
 
         $component
             ->set('activeTab', 'all')
@@ -184,6 +186,82 @@ class InvoiceArchiveTest extends TestCase
             );
 
         $this->assertNull($component->instance()->getTable()->getRecordUrl($invoice));
+    }
+
+    public function test_invoice_lifecycle_statuses_are_available_as_tabs(): void
+    {
+        $user = User::factory()->create();
+        $draft = $this->createInvoice();
+        $open = $this->createInvoice();
+        $open->update([
+            'invoice_number' => 'RE-OFFEN',
+            'invoice_status_id' => InvoiceStatus::Open,
+        ]);
+        $paid = $this->createInvoice();
+        $paid->update([
+            'invoice_number' => 'RE-BEZAHLT',
+            'invoice_status_id' => InvoiceStatus::Paid,
+        ]);
+        $overdue = $this->createInvoice();
+        $overdue->update([
+            'invoice_number' => 'RE-UEBERFAELLIG',
+            'invoice_status_id' => InvoiceStatus::Open,
+            'invoice_date_due' => today()->subDay(),
+        ]);
+        $overdue->amount()->create([
+            'invoice_sign' => 1,
+            'invoice_item_subtotal' => 100,
+            'invoice_item_tax_total' => 0,
+            'invoice_tax_total' => 0,
+            'invoice_total' => 100,
+            'invoice_paid' => 0,
+            'invoice_balance' => 100,
+        ]);
+        $archived = $this->createInvoice();
+        $archived->update([
+            'invoice_number' => 'RE-ARCHIVIERT',
+            'invoice_status_id' => InvoiceStatus::Open,
+            'is_archived' => true,
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(ListInvoices::class)
+            ->assertTableFilterExists('invoice_number')
+            ->assertTableFilterExists('client_id')
+            ->assertTableFilterExists('project_id')
+            ->assertTableFilterExists('billing_type')
+            ->assertTableFilterExists('invoice_date_created')
+            ->assertTableFilterExists('invoice_date_due')
+            ->assertTableFilterExists('invoice_total')
+            ->assertTableFilterExists('invoice_paid')
+            ->assertTableFilterExists('invoice_balance')
+            ->assertTableColumnDoesNotExist('billing_type')
+            ->assertTableColumnExists('invoice_number', fn ($column): bool => $column->isToggleable())
+            ->assertTableColumnExists('client.client_name', fn ($column): bool => $column->isToggleable())
+            ->assertTableColumnExists('project.project_number', fn ($column): bool => $column->isToggleable())
+            ->assertTableColumnExists('invoice_date_created', fn ($column): bool => $column->isToggleable())
+            ->assertTableColumnExists('invoice_date_due', fn ($column): bool => $column->isToggleable())
+            ->assertTableColumnExists('invoice_status_id', fn ($column): bool => $column->isToggleable())
+            ->assertTableColumnExists('amount.invoice_total', fn ($column): bool => $column->isToggleable())
+            ->assertTableColumnExists('amount.invoice_paid', fn ($column): bool => $column->isToggleable())
+            ->assertTableColumnExists('amount.invoice_balance', fn ($column): bool => $column->isToggleable())
+            ->set('activeTab', InvoiceStatus::Draft->name)
+            ->assertCanSeeTableRecords([$draft])
+            ->assertCanNotSeeTableRecords([$open, $paid, $overdue, $archived])
+            ->set('activeTab', 'overdue')
+            ->assertCanSeeTableRecords([$overdue])
+            ->assertCanNotSeeTableRecords([$draft, $open, $paid, $archived])
+            ->set('activeTab', 'archived')
+            ->assertCanSeeTableRecords([$archived])
+            ->assertCanNotSeeTableRecords([$draft, $open, $paid, $overdue])
+            ->set('activeTab', 'all')
+            ->filterTable('invoice_number', ['value' => 'UEBERFAELLIG'])
+            ->assertCanSeeTableRecords([$overdue])
+            ->assertCanNotSeeTableRecords([$draft, $open, $paid, $archived])
+            ->filterTable('invoice_number', ['value' => null])
+            ->filterTable('invoice_total', ['from' => 90, 'until' => 110])
+            ->assertCanSeeTableRecords([$overdue])
+            ->assertCanNotSeeTableRecords([$draft, $open, $paid, $archived]);
     }
 
     private function createInvoice(): Invoice
