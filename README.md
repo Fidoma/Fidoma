@@ -54,17 +54,35 @@ Elektronische Rechnungen werden über `horstoeko/invoicesuite` erzeugt. PDF-Ausg
 Vorschauen verwenden dieselbe Template-Verarbeitung; eigene Layouts lassen sich mit einem
 integrierten HTML-/CSS-Editor bearbeiten.
 
-## Oberfläche
+## Einblicke in Fidoma
 
 Die Administrationsoberfläche ist nach der Installation unter `/admin` erreichbar. Sie bietet
 unter anderem konfigurierbare Tabellen, native Filter, Status-Tabs und eine persistente
-Spaltenauswahl.
+Spaltenauswahl. Die Oberfläche kann direkt im Benutzer-Menü zwischen Deutsch und Englisch
+umgeschaltet werden.
 
-Screenshots können im Verzeichnis `docs/screenshots` abgelegt und hier ergänzt werden:
+### Dashboard
 
-```markdown
-![Fidoma Dashboard](docs/screenshots/dashboard.png)
-```
+Das Dashboard bündelt Umsatz, offene Forderungen, Zahlungseingänge und überfällige Rechnungen.
+Diagramme stellen die Umsatzentwicklung sowie Einnahmen und Ausgaben im gewählten Zeitraum
+gegenüber.
+
+![Fidoma Dashboard mit Kennzahlen und Diagrammen](docs/screenshots/dashboard.jpg)
+
+### Rechnungsverwaltung
+
+Status-Tabs, native Filter und konfigurierbare Spalten sorgen auch bei vielen Rechnungen für
+einen schnellen Überblick. Abschlags- und Schlussrechnungen werden über die Abrechnungsart
+direkt in derselben Verwaltung abgebildet.
+
+![Fidoma Rechnungsübersicht mit Status-Tabs](docs/screenshots/invoices.jpg)
+
+### Angebotserstellung
+
+Angebote werden einschließlich Positionen, Steuern und Rabatten in einer kompakten Ansicht
+erstellt. Bestehende Produkte, Einheiten und Steuersätze können dabei wiederverwendet werden.
+
+![Fidoma Angebotseditor mit Positionen und Summen](docs/screenshots/quote-editor.jpg)
 
 ## Technologie
 
