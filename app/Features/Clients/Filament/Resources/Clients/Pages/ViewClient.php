@@ -21,7 +21,7 @@ class ViewClient extends ViewRecord
 
     public function getContentTabLabel(): ?string
     {
-        return 'Details';
+        return __('clients::messages.tabs.details');
     }
 
     public function getTitle(): string
@@ -33,15 +33,15 @@ class ViewClient extends ViewRecord
     {
         return [
             Action::make('createQuote')
-                ->label('Angebot erstellen')
+                ->label(__('clients::messages.actions.create_quote'))
                 ->icon(Heroicon::OutlinedDocumentText)
                 ->url(QuoteResource::getUrl('create', ['client_id' => $this->record->getKey()])),
             Action::make('createInvoice')
-                ->label('Rechnung erstellen')
+                ->label(__('clients::messages.actions.create_invoice'))
                 ->icon(Heroicon::OutlinedDocumentCurrencyEuro)
                 ->url(InvoiceResource::getUrl('create', ['client_id' => $this->record->getKey()])),
             EditAction::make()
-                ->label('Kunde bearbeiten'),
+                ->label(__('clients::messages.actions.edit_client')),
         ];
     }
 }

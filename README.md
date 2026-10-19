@@ -2,323 +2,259 @@
 
 <div align="center">
 
-### Modern, Self-Hosted ERP & Business Management
+### Das modulare, selbst gehostete ERP für moderne Geschäftsprozesse
 
-**An open-source ERP platform built with Laravel, Filament and MySQL.**
-
-Manage your business workflows, customers, invoices and financial processes from one central application.
+**Kunden, Projekte, Angebote, Rechnungen, Zahlungen und Dokumente in einer zentralen Anwendung.**
 
 [![Laravel](https://img.shields.io/badge/Laravel-13-FF2D20?logo=laravel&logoColor=white)](https://laravel.com)
 [![Filament](https://img.shields.io/badge/Filament-5-FDAE4B)](https://filamentphp.com)
 [![PHP](https://img.shields.io/badge/PHP-8.5-777BB4?logo=php&logoColor=white)](https://php.net)
 [![MySQL](https://img.shields.io/badge/MySQL-8.4-4479A1?logo=mysql&logoColor=white)](https://mysql.com)
+[![Tests](https://img.shields.io/badge/Tests-PHPUnit-3C9CD7?logo=php&logoColor=white)](https://phpunit.de)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](https://docker.com)
+
+[Funktionen](#funktionen) · [Installation](#installation) · [Entwicklung](#entwicklung) · [Mitwirken](#mitwirken)
 
 </div>
 
 ---
 
-## Overview
+## Über Fidoma
 
-**Fidoma** is a modern, self-hosted Enterprise Resource Planning (ERP) application designed to simplify everyday business operations.
+Fidoma ist eine Open-Source-ERP-Anwendung für kleine und mittelständische Unternehmen. Die
+Anwendung verbindet kaufmännische Abläufe mit einer übersichtlichen, auf Filament basierenden
+Administrationsoberfläche. Sie wird vollständig selbst gehostet – Geschäftsdaten bleiben damit
+unter eigener Kontrolle.
 
-Built on a modern PHP technology stack, Fidoma aims to provide a clean, intuitive interface for managing business processes without unnecessary complexity.
+Der Quellcode ist fachlich nach Features strukturiert. Einzelne Bereiche lassen sich dadurch
+klar weiterentwickeln, ohne Geschäftslogik über die gesamte Anwendung zu verteilen.
 
-The project focuses on modularity, extensibility and full control over your own data.
+> **Projektstatus:** Fidoma befindet sich in aktiver Entwicklung. Funktionen und Datenstrukturen
+> können sich bis zu einer stabilen Veröffentlichung noch verändern.
 
-### Application Preview
+## Funktionen
 
-<!-- TODO: Add a real screenshot of the Fidoma dashboard -->
-<!-- Expected path: docs/screenshots/dashboard.png -->
-
-**📸 Screenshot coming soon — Dashboard**
-
-The dashboard provides a central overview of your business activities.
-
----
-
-## Features
-
-Fidoma is being developed as a modular business management platform.
-
-> **Development note:** The following feature areas should be reviewed against the current implementation. Some functionality may still be under active development.
-
-| Module | Description |
+| Bereich | Umfang |
 |---|---|
-| Dashboard | Central overview of business information |
-| Customer Management | Manage customers and business contacts |
-| Quotations | Create and manage quotations |
-| Invoicing | Manage invoices and billing workflows |
-| Financial Management | Organize financial records and transactions |
-| Document Management | Organize business-related documents |
-| Contract Management | Manage contracts and reusable templates |
+| Dashboard & Berichte | Kennzahlen, Zahlungsübersicht, offene Aufgaben sowie flexible Zeiträume und Quartale |
+| Kunden | Zentrale Verwaltung von Kunden- und Kontaktdaten |
+| Projekte | Projekte, Bauvorhaben und Aufträge mit eigener Projektnummer und Kundenbezug |
+| Angebote | Erstellung, Statusverwaltung und Weiterverarbeitung von Angeboten |
+| Rechnungen | Rechnungen, Abschlagsrechnungen, Gutschriften, Stornierungen und Archivierung |
+| Zahlungen | Manuelle Zahlungen, Zahlungsarten und Verknüpfung mit Banktransaktionen |
+| Banking & Zuordnungen | Importierte Banktransaktionen sowie Rechnungs- und Zahlungszuordnung |
+| Verträge | Individuelle Verträge, Vorlagen und projektspezifische Felder |
+| Hotel & Reservierungen | Zimmer, Reservierungen und abrechenbare Reservierungspositionen |
+| Produkte & Stammdaten | Produkte, Familien, Einheiten, Steuersätze und Nummernkreise |
+| Dokumente | Dokumentübersicht und optionale Anbindung an Paperless-ngx |
+| Webmail | Integrierter Zugriff auf eine konfigurierte Webmail-Umgebung |
+| Internationalisierung | Umschaltbare deutsche und englische Administrationsoberfläche |
 
-Additional modules and improvements are planned as development continues.
+Elektronische Rechnungen werden über `horstoeko/invoicesuite` erzeugt. PDF-Ausgaben und
+Vorschauen verwenden dieselbe Template-Verarbeitung; eigene Layouts lassen sich mit einem
+integrierten HTML-/CSS-Editor bearbeiten.
 
----
+## Oberfläche
 
-## Screenshots
+Die Administrationsoberfläche ist nach der Installation unter `/admin` erreichbar. Sie bietet
+unter anderem konfigurierbare Tabellen, native Filter, Status-Tabs und eine persistente
+Spaltenauswahl.
 
-Explore the Fidoma interface and its core workflows.
+Screenshots können im Verzeichnis `docs/screenshots` abgelegt und hier ergänzt werden:
 
-### Dashboard
+```markdown
+![Fidoma Dashboard](docs/screenshots/dashboard.png)
+```
 
-<!-- TODO: docs/screenshots/dashboard.png -->
+## Technologie
 
-**📸 Screenshot missing — Dashboard**
+| Technologie | Version | Aufgabe |
+|---|---:|---|
+| PHP | 8.5 | Laufzeitumgebung |
+| Laravel | 13 | Backend und Anwendungsframework |
+| Filament | 5 | Administrationsoberfläche |
+| Livewire | über Filament | Interaktive Komponenten und Dialoge |
+| MySQL | 8.4 | Relationale Datenbank |
+| Tailwind CSS | 4 | Styling |
+| Vite | 8 | Frontend-Build |
+| Laravel Sail | aktuell | Lokale Docker-Entwicklung |
+| PHPUnit | 12 | Automatisierte Tests |
 
-### Invoice Management
+## Installation
 
-<!-- TODO: docs/screenshots/invoices.png -->
+### Voraussetzungen
 
-**📸 Screenshot missing — Invoice Management**
-
-### Customer Management
-
-<!-- TODO: docs/screenshots/customers.png -->
-
-**📸 Screenshot missing — Customer Management**
-
-### Financial Management
-
-<!-- TODO: docs/screenshots/finance.png -->
-
-**📸 Screenshot missing — Financial Management**
-
-### Document Management
-
-<!-- TODO: docs/screenshots/documents.png -->
-
-**📸 Screenshot missing — Document Management**
-
-Once screenshots are available, replace the placeholders with Markdown image references, for example:
-
-`![Fidoma Dashboard](docs/screenshots/dashboard.png)`
-
----
-
-## Technology Stack
-
-Fidoma is built using modern, actively maintained technologies.
-
-| Technology | Version | Purpose |
-|---|---|---|
-| Laravel | 13 | Backend framework |
-| Filament | 5 | Administration interface |
-| PHP | 8.5 | Application runtime |
-| MySQL | 8.4 | Relational database |
-| Laravel Sail | — | Docker development environment |
-| Docker Compose | — | Container orchestration |
-| Node.js | 24 | Frontend tooling |
-| Vite | — | Asset bundling |
-| phpMyAdmin | — | Database administration |
-
-All application runtimes and database services run inside Docker containers.
-
-Only Docker Engine and Docker Compose are required on the host.
-
----
-
-## Getting Started
-
-### Prerequisites
-
-Make sure the following tools are installed:
-
-- Docker Engine
-- Docker Compose
+- Docker Engine mit Docker Compose
 - Git
 
-### 1. Clone the Repository
+PHP, Composer, Node.js und MySQL müssen nicht separat auf dem Host installiert werden. Sie
+laufen innerhalb der Docker-Container.
+
+### 1. Repository klonen
 
 ```bash
 git clone https://github.com/Fidoma/Fidoma.git
 cd Fidoma
 ```
 
-### 2. Configure the Environment
-
-Create your local environment configuration:
+### 2. Umgebung vorbereiten
 
 ```bash
 cp .env.example .env
 ```
 
-### 3. Install Dependencies
+Die Beispielkonfiguration verwendet Port `8000` für Fidoma und Port `8081` für phpMyAdmin.
+Passwörter und externe Dienste sollten vor dem produktiven Einsatz angepasst werden.
 
-Install Composer dependencies using Docker:
+### 3. PHP-Abhängigkeiten installieren
+
+Da Laravel Sail erst nach `composer install` verfügbar ist, wird Composer einmalig über Docker
+ausgeführt:
 
 ```bash
 docker run --rm \
     -u "$(id -u):$(id -g)" \
     -v "$PWD:/app" \
     -w /app \
-    laravelsail/php84-composer:latest \
+    laravelsail/php85-composer:latest \
     composer install
 ```
 
-### 4. Start Docker Containers
+### 4. Anwendung starten und initialisieren
 
 ```bash
-./vendor/bin/sail up -d --build
+vendor/bin/sail up -d --build
+vendor/bin/sail artisan key:generate
+vendor/bin/sail artisan migrate
 ```
 
-### 5. Initialize the Application
-
-Generate the application key and run database migrations:
+### 5. Frontend bauen
 
 ```bash
-./vendor/bin/sail artisan key:generate
-./vendor/bin/sail artisan migrate
+vendor/bin/sail npm install
+vendor/bin/sail npm run build
 ```
 
-### 6. Install Frontend Dependencies
+### 6. Administratorkonto erstellen
 
 ```bash
-./vendor/bin/sail npm install
-./vendor/bin/sail npm run build
+vendor/bin/sail artisan make:filament-user
 ```
 
-### 7. Create an Administrator Account
+Anschließend ist Fidoma unter folgenden Adressen erreichbar:
 
-```bash
-./vendor/bin/sail artisan make:filament-user
-```
-
-Follow the interactive instructions to create your first administrator account.
-
-### 8. Open Fidoma
-
-After installation, the following services are available:
-
-| Service | URL |
+| Dienst | Adresse |
 |---|---|
-| Application | http://localhost:8000 |
-| Admin Panel | http://localhost:8000/admin |
-| phpMyAdmin | http://localhost:8081 |
+| Anwendung | <http://localhost:8000> |
+| Administration | <http://localhost:8000/admin> |
+| phpMyAdmin | <http://localhost:8081> |
 | MySQL | `127.0.0.1:3306` |
 
-### Default Development Database
+Die Entwicklungsdatenbank verwendet standardmäßig `laravel` / `sail` / `password`. Diese
+Zugangsdaten sind ausschließlich für die lokale Entwicklung vorgesehen.
+
+## Optionale Integrationen
+
+Die zugehörigen Werte werden in `.env` konfiguriert:
+
+- **SMTP:** Versand von Rechnungen, Angeboten und weiteren Geschäftsdokumenten
+- **IMAP / Roundcube:** eingebundener Webmail-Zugriff
+- **Paperless-ngx:** Übergabe und Verknüpfung externer Dokumente über die Paperless API
+
+Nicht konfigurierte Integrationen werden in der Oberfläche ausgeblendet oder deaktiviert.
+
+## Entwicklung
+
+Alle PHP-, Composer-, Artisan- und Node-Befehle sollten über Laravel Sail ausgeführt werden.
+
+```bash
+# Container starten
+vendor/bin/sail up -d
+
+# Datenbank migrieren
+vendor/bin/sail artisan migrate
+
+# Entwicklungsserver für Frontend-Assets
+vendor/bin/sail npm run dev
+
+# Produktions-Assets erstellen
+vendor/bin/sail npm run build
+
+# PHP-Code formatieren
+vendor/bin/sail bin pint --dirty
+
+# Tests ausführen
+vendor/bin/sail artisan test
+
+# Container stoppen
+vendor/bin/sail stop
+```
+
+### Feature-First-Architektur
+
+Fachlicher Code liegt unter `app/Features/<Feature>` und wird je nach Bedarf in Models,
+Actions, Queries, Services, Filament-Ressourcen, Livewire-Komponenten und Übersetzungen
+unterteilt.
 
 ```text
-Database: laravel
-Username: sail
-Password: password
+app/Features/Invoices/
+├── Actions/
+├── Enums/
+├── Filament/
+├── Http/
+├── Livewire/
+├── Models/
+├── Policies/
+├── Queries/
+├── Services/
+└── lang/
 ```
 
-> ⚠️ These credentials are intended for local development only. Never use default credentials in production.
+Neue Oberflächentexte werden featurebezogen in beiden Sprachen gepflegt:
 
----
-
-## Development
-
-### Common Commands
-
-Start the application:
-
-```bash
-./vendor/bin/sail up -d
+```text
+app/Features/<Feature>/lang/de/messages.php
+app/Features/<Feature>/lang/en/messages.php
 ```
 
-Stop the containers:
+Weitere Konventionen für Entwicklungswerkzeuge und Coding Agents stehen in
+[`AGENTS.md`](AGENTS.md).
 
-```bash
-./vendor/bin/sail down
-```
-
-Run database migrations:
-
-```bash
-./vendor/bin/sail artisan migrate
-```
-
-Run automated tests:
-
-```bash
-./vendor/bin/sail test
-```
-
-Build frontend assets:
-
-```bash
-./vendor/bin/sail npm run build
-```
-
-Open the MySQL command line:
-
-```bash
-./vendor/bin/sail mysql
-```
-
----
-
-## Project Structure
-
-Fidoma follows the standard Laravel project structure.
+## Projektstruktur
 
 ```text
 Fidoma/
-├── app/              # Application logic
-├── bootstrap/        # Application bootstrap
-├── config/           # Configuration
-├── database/         # Migrations and seeders
-├── docs/             # Documentation
-│   └── screenshots/  # Application screenshots
-├── public/           # Public assets
-├── resources/        # Frontend resources
-├── routes/           # Application routes
-├── storage/          # Application storage
-├── tests/            # Automated tests
-├── compose.yaml      # Docker services
+├── app/Features/       # Fachmodule und deren Geschäftslogik
+├── app/Providers/      # Laravel- und Filament-Registrierung
+├── config/             # Anwendungskonfiguration
+├── database/           # Migrationen, Factories und Seeder
+├── public/             # Öffentlich erreichbare Assets
+├── resources/          # Blade-Templates, CSS und JavaScript
+├── routes/             # HTTP-Routen
+├── tests/              # PHPUnit Unit- und Feature-Tests
+├── compose.yaml        # Lokale Docker-Services
 └── README.md
 ```
 
----
+## Mitwirken
 
-## Roadmap
+Beiträge, Fehlerberichte und Verbesserungsvorschläge sind willkommen:
 
-Fidoma is under active development.
+1. Ein [Issue](https://github.com/Fidoma/Fidoma/issues) anlegen oder ein bestehendes auswählen.
+2. Repository forken und einen fokussierten Feature-Branch erstellen.
+3. Änderung einschließlich passender PHPUnit-Tests umsetzen.
+4. `Pint`, relevante Tests und nach Möglichkeit die vollständige Testsuite ausführen.
+5. Pull Request mit einer kurzen fachlichen und technischen Beschreibung öffnen.
 
-The long-term goal is to provide a flexible and extensible ERP platform that brings essential business operations together in one application.
-
-Planned improvements and upcoming releases will be documented here as development progresses.
-
-For current development activity, see the [GitHub repository](https://github.com/Fidoma/Fidoma).
-
----
-
-## Contributing
-
-Contributions, suggestions and bug reports are welcome.
-
-If you would like to contribute:
-
-1. Open an issue to discuss your idea or report a problem.
-2. Fork the repository.
-3. Create a feature branch.
-4. Implement and test your changes.
-5. Submit a pull request.
-
-Please keep changes focused and follow the existing project conventions.
-
----
-
-## Support & Feedback
-
-Found a bug or have a feature suggestion?
-
-Please open an issue in the [GitHub Issue Tracker](https://github.com/Fidoma/Fidoma/issues).
-
-Your feedback helps improve Fidoma.
+Bitte bestehende Feature-Grenzen und Geschäftsprozesse respektieren und keine neuen
+Abhängigkeiten einführen, wenn Laravel oder Filament den Anwendungsfall bereits abdecken.
 
 ---
 
 <div align="center">
 
-### Built with Laravel & Filament
+**Fidoma — Geschäft verwalten. Daten behalten. Prozesse verbinden.**
 
-**Fidoma — Modern Business Management, Self-Hosted.**
-
-[GitHub Repository](https://github.com/Fidoma/Fidoma) · [Report an Issue](https://github.com/Fidoma/Fidoma/issues)
+[Repository](https://github.com/Fidoma/Fidoma) · [Fehler melden](https://github.com/Fidoma/Fidoma/issues)
 
 </div>

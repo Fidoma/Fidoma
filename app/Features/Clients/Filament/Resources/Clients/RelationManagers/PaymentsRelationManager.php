@@ -18,9 +18,12 @@ class PaymentsRelationManager extends RelationManager
 {
     protected static string $relationship = 'payments';
 
-    protected static ?string $title = 'Zahlungen';
-
     protected static string|BackedEnum|null $icon = Heroicon::OutlinedBanknotes;
+
+    public static function getTitle(Model $ownerRecord, string $pageClass): string
+    {
+        return __('clients::messages.relations.payments');
+    }
 
     public static function getBadge(Model $ownerRecord, string $pageClass): ?string
     {
@@ -34,15 +37,15 @@ class PaymentsRelationManager extends RelationManager
             ->defaultSort('payment_date', 'desc')
             ->recordUrl(fn (Payment $record): string => InvoiceResource::getUrl('edit', ['record' => $record->invoice_id]))
             ->columns([
-                TextColumn::make('payment_date')->label('Zahlungsdatum')->date('d.m.Y')->sortable(),
-                TextColumn::make('invoice.invoice_number')->label('Rechnung')->placeholder('–'),
-                TextColumn::make('paymentMethod.payment_method_name')->label('Zahlungsart')->placeholder('–'),
-                TextColumn::make('payment_amount')->label('Betrag')->money('EUR', locale: 'de')->sortable(),
-                TextColumn::make('payment_note')->label('Notiz')->placeholder('–')->wrap(),
+                TextColumn::make('payment_date')->label(__('clients::messages.fields.payment_date'))->date('d.m.Y')->sortable(),
+                TextColumn::make('invoice.invoice_number')->label(__('clients::messages.fields.invoice'))->placeholder('–'),
+                TextColumn::make('paymentMethod.payment_method_name')->label(__('clients::messages.fields.payment_method'))->placeholder('–'),
+                TextColumn::make('payment_amount')->label(__('clients::messages.fields.amount'))->money('EUR', locale: app()->getLocale())->sortable(),
+                TextColumn::make('payment_note')->label(__('clients::messages.fields.note'))->placeholder('–')->wrap(),
             ])
             ->filters([
                 SelectFilter::make('payment_method_id')
-                    ->label('Zahlungsart')
+                    ->label(__('clients::messages.fields.payment_method'))
                     ->options(fn () => PaymentMethod::query()
                         ->orderBy('payment_method_name')
                         ->pluck('payment_method_name', 'payment_method_id'))

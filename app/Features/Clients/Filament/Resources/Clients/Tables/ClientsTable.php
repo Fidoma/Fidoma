@@ -28,31 +28,31 @@ class ClientsTable
             ->recordUrl(fn (Client $record): string => ClientResource::getUrl('view', ['record' => $record]))
             ->columns([
                 TextColumn::make('client_name')
-                    ->label('Name')
+                    ->label(__('clients::messages.fields.name'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('client_email')
-                    ->label('E-Mail')
+                    ->label(__('clients::messages.fields.email'))
                     ->searchable(),
                 TextColumn::make('client_phone')
-                    ->label('Telefon')
+                    ->label(__('clients::messages.fields.phone'))
                     ->searchable(),
                 TextColumn::make('client_city')
-                    ->label('Ort')
+                    ->label(__('clients::messages.fields.city'))
                     ->searchable()
                     ->sortable(),
                 IconColumn::make('client_active')
-                    ->label('Aktiv')
+                    ->label(__('clients::messages.fields.active'))
                     ->boolean(),
                 TextColumn::make('client_date_modified')
-                    ->label('Geändert')
+                    ->label(__('clients::messages.fields.modified'))
                     ->dateTime('d.m.Y H:i')
                     ->sortable(),
             ])
             ->filters([
                 Filter::make('client_name')
-                    ->label('Name')
-                    ->schema([TextInput::make('value')->label('Name')])
+                    ->label(__('clients::messages.fields.name'))
+                    ->schema([TextInput::make('value')->label(__('clients::messages.fields.name'))])
                     ->query(fn (Builder $query, array $data): Builder => $query->when(
                         filled($data['value'] ?? null),
                         fn (Builder $query): Builder => $query->where('client_name', 'like', '%'.trim((string) $data['value']).'%'),
@@ -60,49 +60,49 @@ class ClientsTable
             ])
             ->toolbarActions([
                 CreateAction::make()
-                    ->label('Kunde')
+                    ->label(__('clients::messages.actions.create_client'))
                     ->icon(Heroicon::Plus)
                     ->url(ClientResource::getUrl('create')),
             ])
             ->recordActions([
                 ActionGroup::make([
                     EditAction::make()
-                        ->label('Bearbeiten')
+                        ->label(__('clients::messages.actions.edit'))
                         ->icon(Heroicon::OutlinedPencilSquare),
                     Action::make('createInvoice')
-                        ->label('Rechnung erstellen')
+                        ->label(__('clients::messages.actions.create_invoice'))
                         ->icon(Heroicon::OutlinedDocumentCurrencyEuro)
                         ->url(fn (Client $record): string => InvoiceResource::getUrl('create', [
                             'client_id' => $record->getKey(),
                         ])),
                     Action::make('createQuote')
-                        ->label('Angebot erstellen')
+                        ->label(__('clients::messages.actions.create_quote'))
                         ->icon(Heroicon::OutlinedDocumentText)
                         ->url(fn (Client $record): string => QuoteResource::getUrl('create', [
                             'client_id' => $record->getKey(),
                         ])),
                     Action::make('archive')
-                        ->label('Archivieren')
+                        ->label(__('clients::messages.actions.archive'))
                         ->icon(Heroicon::OutlinedArchiveBox)
                         ->color('danger')
                         ->requiresConfirmation()
-                        ->modalHeading('Kunden archivieren')
-                        ->modalDescription('Der Kunde und alle zugehörigen Angebote, Rechnungen und Zahlungen bleiben erhalten.')
-                        ->modalSubmitActionLabel('Archivieren')
+                        ->modalHeading(__('clients::messages.archive.heading'))
+                        ->modalDescription(__('clients::messages.archive.description'))
+                        ->modalSubmitActionLabel(__('clients::messages.actions.archive'))
                         ->visible(fn (Client $record): bool => $record->client_active)
                         ->action(function (Client $record): void {
                             app(ArchiveClient::class)->handle($record);
 
                             Notification::make()
                                 ->success()
-                                ->title('Kunde wurde archiviert.')
+                                ->title(__('clients::messages.archive.success'))
                                 ->send();
                         }),
                 ])
-                    ->label('Optionen')
+                    ->label(__('clients::messages.actions.options'))
                     ->icon(Heroicon::OutlinedEllipsisVertical)
                     ->color('gray')
-                    ->tooltip('Optionen')
+                    ->tooltip(__('clients::messages.actions.options'))
                     ->iconButton(),
             ]);
     }

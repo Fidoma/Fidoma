@@ -19,9 +19,12 @@ class InvoicesRelationManager extends RelationManager
 {
     protected static string $relationship = 'invoices';
 
-    protected static ?string $title = 'Rechnungen';
-
     protected static string|BackedEnum|null $icon = Heroicon::OutlinedDocumentCurrencyEuro;
+
+    public static function getTitle(Model $ownerRecord, string $pageClass): string
+    {
+        return __('clients::messages.relations.invoices');
+    }
 
     public static function getBadge(Model $ownerRecord, string $pageClass): ?string
     {
@@ -35,30 +38,31 @@ class InvoicesRelationManager extends RelationManager
             ->defaultSort('invoice_date_created', 'desc')
             ->recordUrl(fn (Invoice $record): string => InvoiceResource::getUrl('edit', ['record' => $record]))
             ->columns([
-                TextColumn::make('invoice_number')->label('Rechnungsnummer')->placeholder('Entwurf')->sortable(),
+                TextColumn::make('invoice_number')->label(__('clients::messages.fields.invoice_number'))->placeholder(__('clients::messages.placeholders.draft'))->sortable(),
                 TextColumn::make('invoice_type')
-                    ->label('Belegart')
+                    ->label(__('clients::messages.fields.document_type'))
                     ->badge()
-                    ->formatStateUsing(fn (InvoiceType $state): string => $state->label())
+                    ->formatStateUsing(fn (InvoiceType $state): string => __('clients::messages.invoice_types.'.$state->value))
                     ->color(fn (InvoiceType $state): string => $state->color()),
-                TextColumn::make('invoice_date_created')->label('Datum')->date('d.m.Y')->sortable(),
-                TextColumn::make('invoice_date_due')->label('Fällig am')->date('d.m.Y')->sortable(),
+                TextColumn::make('invoice_date_created')->label(__('clients::messages.fields.date'))->date('d.m.Y')->sortable(),
+                TextColumn::make('invoice_date_due')->label(__('clients::messages.fields.due_date'))->date('d.m.Y')->sortable(),
                 TextColumn::make('invoice_status_id')
-                    ->label('Status')
+                    ->label(__('clients::messages.fields.status'))
                     ->badge()
-                    ->formatStateUsing(fn (InvoiceStatus $state): string => $state->label())
+                    ->formatStateUsing(fn (InvoiceStatus $state): string => __('clients::messages.invoice_statuses.'.strtolower($state->name)))
                     ->color(fn (InvoiceStatus $state): string => $state->color()),
-                TextColumn::make('amount.invoice_total')->label('Gesamt')->money('EUR', locale: 'de'),
-                TextColumn::make('amount.invoice_balance')->label('Offen')->money('EUR', locale: 'de'),
+                TextColumn::make('amount.invoice_total')->label(__('clients::messages.fields.total'))->money('EUR', locale: app()->getLocale()),
+                TextColumn::make('amount.invoice_balance')->label(__('clients::messages.fields.outstanding'))->money('EUR', locale: app()->getLocale()),
             ])
             ->filters([
                 SelectFilter::make('invoice_status_id')
-                    ->label('Status')
-                    ->options(InvoiceStatus::options()),
+                    ->label(__('clients::messages.fields.status'))
+                    ->options(collect(InvoiceStatus::cases())
+                        ->mapWithKeys(fn (InvoiceStatus $status): array => [$status->value => __('clients::messages.invoice_statuses.'.strtolower($status->name))])),
                 SelectFilter::make('invoice_type')
-                    ->label('Belegart')
+                    ->label(__('clients::messages.fields.document_type'))
                     ->options(collect(InvoiceType::cases())
-                        ->mapWithKeys(fn (InvoiceType $type): array => [$type->value => $type->label()])),
+                        ->mapWithKeys(fn (InvoiceType $type): array => [$type->value => __('clients::messages.invoice_types.'.$type->value)])),
             ]);
     }
 }

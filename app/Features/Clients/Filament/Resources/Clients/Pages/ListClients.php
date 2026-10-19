@@ -24,15 +24,15 @@ class ListClients extends ListRecords
             ->pluck('aggregate', 'client_active');
 
         return [
-            'all' => Tab::make('Alle')
+            'all' => Tab::make(__('clients::messages.tabs.all'))
                 ->badge((int) $counts->sum())
                 ->badgeColor('gray'),
-            'active' => Tab::make('Aktiv')
+            'active' => Tab::make(__('clients::messages.tabs.active'))
                 ->badge((int) ($counts[1] ?? 0))
                 ->badgeColor('success')
                 ->modifyQueryUsing(fn (Builder $query): Builder => $query
                     ->where('client_active', true)),
-            'archived' => Tab::make('Archiviert')
+            'archived' => Tab::make(__('clients::messages.tabs.archived'))
                 ->badge((int) ($counts[0] ?? 0))
                 ->badgeColor('gray')
                 ->modifyQueryUsing(fn (Builder $query): Builder => $query

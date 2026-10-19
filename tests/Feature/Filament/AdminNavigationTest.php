@@ -133,6 +133,23 @@ class AdminNavigationTest extends TestCase
             ->assertSee('Search')
             ->assertDontSee('Abmelden');
 
+        $this->get(ClientResource::getUrl())
+            ->assertOk()
+            ->assertSee('All')
+            ->assertSee('Active')
+            ->assertSee('Archived')
+            ->assertSee('Modified')
+            ->assertDontSee('Geändert');
+
+        $this->get(ClientResource::getUrl('create'))
+            ->assertOk()
+            ->assertSee('Address')
+            ->assertSee('Street and house number')
+            ->assertSee('Master data')
+            ->assertSee('Billing and tax details')
+            ->assertSee('Enable e-invoicing')
+            ->assertDontSee('Straße und Hausnummer');
+
         $this->actingAs($user)
             ->post(route('admin.locale.update', ['locale' => 'de']))
             ->assertRedirect();
