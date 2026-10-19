@@ -23,7 +23,7 @@ class EditQuote extends EditRecord
 
     protected function beforeSave(): void
     {
-        abort_if($this->record->is_archived, 403, 'Archivierte Angebote können nicht bearbeitet werden.');
+        abort_if($this->record->is_archived, 403, __('quotes::messages.archive.edit_forbidden'));
     }
 
     /** @return array<Action> */

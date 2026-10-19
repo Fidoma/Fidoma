@@ -25,17 +25,17 @@ final class QuoteEmailAction
     public static function make(): Action
     {
         return Action::make('sendEmail')
-            ->label('E-Mail versenden')
+            ->label(__('quotes::messages.email.send'))
             ->icon(Heroicon::OutlinedEnvelope)
             ->color('gray')
             ->visible(fn (Quote $record): bool => ! $record->is_archived)
             ->disabled(fn (): bool => ! app(SmtpConfiguration::class)->isReady())
             ->tooltip(fn (): ?string => app(SmtpConfiguration::class)->isReady()
-                ? 'Angebot per E-Mail senden'
-                : 'SMTP ist nicht konfiguriert')
-            ->modalHeading(fn (Quote $record): string => 'Angebot '.$record->quote_number.' versenden')
-            ->modalDescription('Versendet wird der zuletzt gespeicherte Stand des Angebots.')
-            ->modalSubmitActionLabel('E-Mail senden')
+                ? __('quotes::messages.email.tooltip')
+                : __('quotes::messages.email.smtp_missing'))
+            ->modalHeading(fn (Quote $record): string => __('quotes::messages.email.heading', ['number' => $record->quote_number]))
+            ->modalDescription(__('quotes::messages.email.description'))
+            ->modalSubmitActionLabel(__('quotes::messages.email.submit'))
             ->modalWidth(Width::FiveExtraLarge)
             ->schema(self::schema())
             ->action(function (Quote $record, array $data): void {
@@ -44,16 +44,16 @@ final class QuoteEmailAction
 
                     Notification::make()
                         ->success()
-                        ->title('Der SMTP-Server hat die E-Mail angenommen.')
-                        ->body('Damit ist die endgültige Zustellung an den Empfänger noch nicht bestätigt.')
+                        ->title(__('quotes::messages.email.success'))
+                        ->body(__('quotes::messages.email.success_body'))
                         ->send();
                 } catch (Throwable $exception) {
                     report($exception);
 
                     Notification::make()
                         ->danger()
-                        ->title('Die E-Mail konnte nicht versendet werden.')
-                        ->body('Bitte prüfen Sie die SMTP-Konfiguration und versuchen Sie es erneut.')
+                        ->title(__('quotes::messages.email.failure'))
+                        ->body(__('quotes::messages.email.failure_body'))
                         ->send();
                 }
             });
@@ -64,13 +64,13 @@ final class QuoteEmailAction
     {
         return [
             Placeholder::make('mail_configuration')
-                ->label('SMTP-Status')
+                ->label(__('quotes::messages.email.smtp_status'))
                 ->content(fn (): string => app(SmtpConfiguration::class)->statusText()),
-            Section::make('Nachricht')
+            Section::make(__('quotes::messages.email.message'))
                 ->columns(2)
                 ->schema([
                     Select::make('email_template_id')
-                        ->label('E-Mail-Vorlage')
+                        ->label(__('quotes::messages.email.template'))
                         ->options(fn () => EmailTemplate::query()
                             ->where('email_template_type', 'quote')
                             ->orderBy('email_template_title')
@@ -92,16 +92,16 @@ final class QuoteEmailAction
                             }
                         }),
                     TextInput::make('to')
-                        ->label('An')
+                        ->label(__('quotes::messages.email.to'))
                         ->email()
                         ->default(fn (Quote $record): ?string => $record->client?->client_email)
                         ->required(),
                     TextInput::make('from_name')
-                        ->label('Absendername')
+                        ->label(__('quotes::messages.email.sender_name'))
                         ->default(fn (Quote $record): string => self::defaultEmailData($record)['from_name'])
                         ->required(),
                     TextInput::make('from_email')
-                        ->label('Absenderadresse')
+                        ->label(__('quotes::messages.email.sender_address'))
                         ->email()
                         ->default(fn (Quote $record): string => self::defaultEmailData($record)['from_email'])
                         ->required(),
@@ -114,17 +114,17 @@ final class QuoteEmailAction
                         ->email()
                         ->default(fn (Quote $record): ?string => self::defaultEmailData($record)['bcc']),
                     TextInput::make('subject')
-                        ->label('Betreff')
+                        ->label(__('quotes::messages.email.subject'))
                         ->default(fn (Quote $record): string => self::defaultEmailData($record)['subject'])
                         ->required()
                         ->columnSpanFull(),
                     RichEditor::make('body')
-                        ->label('Nachricht')
+                        ->label(__('quotes::messages.email.message'))
                         ->default(fn (Quote $record): string => self::defaultEmailData($record)['body'])
                         ->required()
                         ->columnSpanFull(),
                     Toggle::make('attach_pdf')
-                        ->label('PDF-Angebot anhängen')
+                        ->label(__('quotes::messages.email.attach_pdf'))
                         ->default(true)
                         ->columnSpanFull(),
                 ]),
@@ -148,10 +148,10 @@ final class QuoteEmailAction
             'from_email' => $renderer->render($quote, $template?->email_template_from_email ?: config('mail.from.address')),
             'cc' => filled($template?->email_template_cc) ? $renderer->render($quote, $template->email_template_cc) : null,
             'bcc' => filled($template?->email_template_bcc) ? $renderer->render($quote, $template->email_template_bcc) : null,
-            'subject' => $renderer->render($quote, $template?->email_template_subject ?: 'Angebot {{{quote_number}}}'),
+            'subject' => $renderer->render($quote, $template?->email_template_subject ?: __('quotes::messages.email.default_subject')),
             'body' => $renderer->render(
                 $quote,
-                $template?->email_template_body ?: '<p>Guten Tag {{{client_name}}},</p><p>hiermit erhalten Sie unser Angebot {{{quote_number}}} über {{{quote_total}}}.</p><p>Freundliche Grüße</p>',
+                $template?->email_template_body ?: __('quotes::messages.email.default_body'),
                 escapeValues: true,
             ),
             'attach_pdf' => true,

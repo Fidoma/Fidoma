@@ -51,8 +51,8 @@ class QuoteForm
                     ->saveRelationshipsWhenHidden()
                     ->schema(self::quoteTaxRateFields()),
                 Section::make(fn (?Quote $record): string => filled($record?->quote_number)
-                    ? 'Angebot - '.$record->quote_number
-                    : 'Angebot')
+                    ? __('quotes::messages.singular').' - '.$record->quote_number
+                    : __('quotes::messages.singular'))
                     ->columns([
                         'default' => 1,
                         'md' => 2,
@@ -61,7 +61,7 @@ class QuoteForm
                     ->columnSpan(12)
                     ->schema([
                         Select::make('client_id')
-                            ->label('Kunde')
+                            ->label(__('quotes::messages.fields.client'))
                             ->relationship('client', 'client_name')
                             ->searchable(['client_name', 'client_email'])
                             ->preload()
@@ -69,32 +69,32 @@ class QuoteForm
                             ->required()
                             ->createOptionForm([
                                 TextInput::make('client_name')
-                                    ->label('Name')
+                                    ->label(__('quotes::messages.fields.name'))
                                     ->required()
                                     ->maxLength(100),
                                 TextInput::make('client_email')
-                                    ->label('E-Mail')
+                                    ->label(__('quotes::messages.fields.email'))
                                     ->email()
                                     ->maxLength(100),
                                 TextInput::make('client_phone')
-                                    ->label('Telefon')
+                                    ->label(__('quotes::messages.fields.phone'))
                                     ->tel()
                                     ->maxLength(20),
                             ])
                             ->createOptionUsing(fn (array $data): int => app(CreateClient::class)->handle($data)->getKey())
                             ->columnSpan(['default' => 1, 'xl' => 4]),
                         TextInput::make('quote_number')
-                            ->label('Angebotsnummer')
-                            ->placeholder('Wird automatisch vergeben')
+                            ->label(__('quotes::messages.fields.quote_number'))
+                            ->placeholder(__('quotes::messages.placeholders.automatic_number'))
                             ->maxLength(20)
                             ->columnSpan(['default' => 1, 'xl' => 2]),
                         DatePicker::make('quote_date_created')
-                            ->label('Angebotsdatum')
+                            ->label(__('quotes::messages.fields.quote_date'))
                             ->default(now()->toDateString())
                             ->required()
                             ->columnSpan(['default' => 1, 'xl' => 2]),
                         DatePicker::make('quote_date_expires')
-                            ->label('Gültig bis')
+                            ->label(__('quotes::messages.fields.valid_until'))
                             ->default(fn (): string => now()
                                 ->addDays(app(QuoteDefaults::class)->expirationDays())
                                 ->toDateString())
@@ -102,13 +102,13 @@ class QuoteForm
                             ->afterOrEqual('quote_date_created')
                             ->columnSpan(['default' => 1, 'xl' => 2]),
                         Select::make('quote_status_id')
-                            ->label('Status')
+                            ->label(__('quotes::messages.fields.status'))
                             ->options(QuoteStatus::options())
                             ->default(QuoteStatus::Draft->value)
                             ->required()
                             ->columnSpan(['default' => 1, 'xl' => 2]),
                     ]),
-                Section::make('Positionen')
+                Section::make(__('quotes::messages.sections.items'))
                     ->columnSpan(['default' => 12])
                     ->schema([
                         SummaryTableRepeater::make('items')
@@ -122,19 +122,19 @@ class QuoteForm
                             ->reorderable()
                             ->compact()
                             ->table([
-                                TableColumn::make('Position')->markAsRequired()->width('190px'),
-                                TableColumn::make('Beschreibung')->width('190px'),
-                                TableColumn::make('Menge')->markAsRequired()->width('100px'),
-                                TableColumn::make('Einheit')->width('130px'),
-                                TableColumn::make('Einzelpreis')->markAsRequired()->width('110px'),
-                                TableColumn::make('Steuersatz')->markAsRequired()->width('120px'),
-                                TableColumn::make('Steuer')->width('110px'),
-                                TableColumn::make('Summe')->width('110px'),
-                                TableColumn::make('Aktionen')->hiddenHeaderLabel()->width('56px'),
+                                TableColumn::make(__('quotes::messages.fields.position'))->markAsRequired()->width('190px'),
+                                TableColumn::make(__('quotes::messages.fields.description'))->width('190px'),
+                                TableColumn::make(__('quotes::messages.fields.quantity'))->markAsRequired()->width('100px'),
+                                TableColumn::make(__('quotes::messages.fields.unit'))->width('130px'),
+                                TableColumn::make(__('quotes::messages.fields.unit_price'))->markAsRequired()->width('110px'),
+                                TableColumn::make(__('quotes::messages.fields.tax_rate'))->markAsRequired()->width('120px'),
+                                TableColumn::make(__('quotes::messages.fields.tax'))->width('110px'),
+                                TableColumn::make(__('quotes::messages.fields.sum'))->width('110px'),
+                                TableColumn::make(__('quotes::messages.fields.actions'))->hiddenHeaderLabel()->width('56px'),
                             ])
                             ->schema([
                                 TextInput::make('item_name')
-                                    ->label('Position')
+                                    ->label(__('quotes::messages.fields.position'))
                                     ->datalist(fn (): array => Product::query()
                                         ->orderBy('product_name')
                                         ->pluck('product_name')
@@ -159,29 +159,29 @@ class QuoteForm
                                         $set('item_tax_included', $product->product_tax_included);
                                     }),
                                 Hidden::make('item_product_id'),
-                                TextInput::make('item_description')->label('Beschreibung'),
+                                TextInput::make('item_description')->label(__('quotes::messages.fields.description')),
                                 TextInput::make('item_quantity')
-                                    ->label('Menge')
+                                    ->label(__('quotes::messages.fields.quantity'))
                                     ->required()
                                     ->numeric()
                                     ->default(1)
                                     ->step(0.01)
                                     ->live(),
                                 Select::make('item_product_unit_id')
-                                    ->label('Einheit')
+                                    ->label(__('quotes::messages.fields.unit'))
                                     ->options(fn () => Unit::query()->orderBy('unit_name')->pluck('unit_name', 'unit_id'))
                                     ->placeholder('–')
                                     ->searchable()
                                     ->preload(),
                                 TextInput::make('item_price')
-                                    ->label('Einzelpreis')
+                                    ->label(__('quotes::messages.fields.unit_price'))
                                     ->required()
                                     ->numeric()
                                     ->step(0.01)
                                     ->live(),
                                 Hidden::make('item_discount_amount')->default(0),
                                 Select::make('item_tax_rate_id')
-                                    ->label('Steuersatz')
+                                    ->label(__('quotes::messages.fields.tax_rate'))
                                     ->relationship('taxRate', 'tax_rate_name')
                                     ->placeholder('–')
                                     ->searchable()
@@ -190,25 +190,25 @@ class QuoteForm
                                     ->live(),
                                 Hidden::make('item_tax_included')->default(false),
                                 Placeholder::make('item_tax_preview')
-                                    ->label('Steuer')
+                                    ->label(__('quotes::messages.fields.tax'))
                                     ->content(fn (Get $get): string => self::formatAmount(self::calculateItemAmounts($get)['tax'])),
                                 Placeholder::make('item_total_preview')
-                                    ->label('Summe')
+                                    ->label(__('quotes::messages.fields.sum'))
                                     ->content(fn (Get $get): string => self::formatAmount(self::calculateItemAmounts($get)['total'])),
                                 Actions::make([
                                     ActionGroup::make([
                                         Action::make('duplicateItem')
-                                            ->label('Position duplizieren')
+                                            ->label(__('quotes::messages.actions.duplicate_item'))
                                             ->icon(Heroicon::OutlinedSquare2Stack)
                                             ->color('gray')
                                             ->action(fn (Component $component) => self::duplicateItem($component)),
                                         Action::make('addItem')
-                                            ->label('Zeile hinzufügen')
+                                            ->label(__('quotes::messages.actions.add_item'))
                                             ->icon(Heroicon::Plus)
                                             ->color('gray')
                                             ->action(fn (Component $component) => self::addItem($component)),
                                         Action::make('toggleTaxIncluded')
-                                            ->label('Preis inklusive Steuer')
+                                            ->label(__('quotes::messages.actions.tax_included'))
                                             ->icon(fn (Get $get): Heroicon => $get('item_tax_included')
                                                 ? Heroicon::CheckCircle
                                                 : Heroicon::OutlinedCheckCircle)
@@ -219,14 +219,14 @@ class QuoteForm
                                                 shouldCallUpdatedHooks: true,
                                             )),
                                         Action::make('deleteItem')
-                                            ->label('Position löschen')
+                                            ->label(__('quotes::messages.actions.delete_item'))
                                             ->icon(Heroicon::OutlinedTrash)
                                             ->color('danger')
                                             ->action(fn (Component $component) => self::deleteItem($component)),
                                     ])
-                                        ->label('Optionen')
+                                        ->label(__('quotes::messages.actions.options'))
                                         ->icon(Heroicon::OutlinedEllipsisVertical)
-                                        ->tooltip('Optionen')
+                                        ->tooltip(__('quotes::messages.actions.options'))
                                         ->iconButton(),
                                 ])->alignCenter(),
                             ])
@@ -234,9 +234,9 @@ class QuoteForm
                             ->summaryActionsInTable()
                             ->summaryLeadingComponent(
                                 Textarea::make('notes')
-                                    ->label('Angebotsbedingungen')
+                                    ->label(__('quotes::messages.fields.terms'))
                                     ->hiddenLabel()
-                                    ->placeholder('Zahlungsbedingungen ...')
+                                    ->placeholder(__('quotes::messages.placeholders.terms'))
                                     ->extraAttributes([
                                         'class' => 'ring-1! ring-gray-950/10! shadow-sm! dark:ring-white/20!',
                                     ])
@@ -244,27 +244,27 @@ class QuoteForm
                             )
                             ->summaryActions([
                                 Action::make('editDiscount')
-                                    ->label('Rabatt')
+                                    ->label(__('quotes::messages.fields.discount'))
                                     ->icon(Heroicon::OutlinedReceiptPercent)
                                     ->color('gray')
                                     ->button()
                                     ->size(Size::Small)
-                                    ->modalHeading('Rabatt')
-                                    ->modalSubmitActionLabel('Rabatt übernehmen')
+                                    ->modalHeading(__('quotes::messages.fields.discount'))
+                                    ->modalSubmitActionLabel(__('quotes::messages.actions.apply_discount'))
                                     ->fillForm(fn (Get $get): array => [
                                         'discount_percent' => $get('quote_discount_percent') ?? 0,
                                         'discount_amount' => $get('quote_discount_amount') ?? 0,
                                     ])
                                     ->schema([
                                         TextInput::make('discount_percent')
-                                            ->label('Gesamtrabatt in Prozent')
+                                            ->label(__('quotes::messages.fields.discount_percent'))
                                             ->numeric()
                                             ->minValue(0)
                                             ->maxValue(100)
                                             ->suffix('%'),
                                         TextInput::make('discount_amount')
-                                            ->label('Gesamtrabatt als Betrag')
-                                            ->helperText('Ein prozentualer Rabatt hat Vorrang.')
+                                            ->label(__('quotes::messages.fields.discount_amount'))
+                                            ->helperText(__('quotes::messages.hints.percentage_discount_priority'))
                                             ->numeric()
                                             ->minValue(0)
                                             ->suffix('€'),
@@ -274,22 +274,22 @@ class QuoteForm
                                         $set('quote_discount_amount', $data['discount_amount'] ?? 0);
                                     }),
                                 Action::make('editTaxes')
-                                    ->label('Steuer')
+                                    ->label(__('quotes::messages.fields.tax'))
                                     ->icon(Heroicon::OutlinedCalculator)
                                     ->color('gray')
                                     ->button()
                                     ->size(Size::Small)
-                                    ->modalHeading('Angebotssteuer')
-                                    ->modalSubmitActionLabel('Steuer übernehmen')
+                                    ->modalHeading(__('quotes::messages.fields.tax'))
+                                    ->modalSubmitActionLabel(__('quotes::messages.actions.apply_tax'))
                                     ->fillForm(fn (Get $get): array => [
                                         'tax_rates' => $get('quoteTaxRates') ?? [],
                                     ])
                                     ->schema([
                                         Repeater::make('tax_rates')
-                                            ->label('Steuersätze')
+                                            ->label(__('quotes::messages.fields.tax_rates'))
                                             ->defaultItems(0)
                                             ->columns(2)
-                                            ->addActionLabel('Steuer hinzufügen')
+                                            ->addActionLabel(__('quotes::messages.actions.add_tax'))
                                             ->schema(self::quoteTaxRateFields()),
                                     ])
                                     ->action(fn (array $data, Set $set) => $set(
@@ -302,15 +302,15 @@ class QuoteForm
                                 $totals = self::calculateTotals($get);
                                 $taxRows = collect($totals['taxBreakdown'])
                                     ->mapWithKeys(fn (float $amount, int|string $taxRate): array => [
-                                        'Steuer '.self::formatTaxRate((float) $taxRate).' %' => self::formatAmount($amount),
+                                        __('quotes::messages.summary.tax', ['rate' => self::formatTaxRate((float) $taxRate)]) => self::formatAmount($amount),
                                     ])
                                     ->all();
 
                                 return [
-                                    'Zwischensumme' => self::formatAmount($totals['subtotal']),
+                                    __('quotes::messages.summary.subtotal') => self::formatAmount($totals['subtotal']),
                                     ...$taxRows,
-                                    'Steuer gesamt' => self::formatAmount($totals['itemTax'] + $totals['quoteTax']),
-                                    'Gesamtsumme' => self::formatAmount($totals['total']),
+                                    __('quotes::messages.summary.tax_total') => self::formatAmount($totals['itemTax'] + $totals['quoteTax']),
+                                    __('quotes::messages.summary.grand_total') => self::formatAmount($totals['total']),
                                 ];
                             })
                             ->columnSpanFull(),
@@ -323,7 +323,7 @@ class QuoteForm
     {
         return [
             Select::make('tax_rate_id')
-                ->label('Steuersatz')
+                ->label(__('quotes::messages.fields.tax_rate'))
                 ->options(fn (): array => TaxRate::query()
                     ->orderBy('tax_rate_name')
                     ->pluck('tax_rate_name', 'tax_rate_id')
@@ -331,7 +331,7 @@ class QuoteForm
                 ->searchable()
                 ->preload()
                 ->required(),
-            Toggle::make('include_item_tax')->label('Positionssteuern einbeziehen'),
+            Toggle::make('include_item_tax')->label(__('quotes::messages.fields.include_item_tax')),
             Hidden::make('quote_tax_rate_amount')->default(0),
         ];
     }

@@ -174,6 +174,28 @@ class AdminNavigationTest extends TestCase
             ->assertSee('Payment terms')
             ->assertDontSee('Positionen');
 
+        $this->get(QuoteResource::getUrl())
+            ->assertOk()
+            ->assertSee('All')
+            ->assertSee('Draft')
+            ->assertSee('Sent')
+            ->assertSee('Accepted')
+            ->assertSee('Rejected')
+            ->assertSee('Cancelled')
+            ->assertSee('Archived')
+            ->assertSee('Quote number')
+            ->assertSee('Valid until')
+            ->assertDontSee('Angebotsnummer');
+
+        $this->get(QuoteResource::getUrl('create'))
+            ->assertOk()
+            ->assertSee('Quote date')
+            ->assertSee('Items')
+            ->assertSee('Quantity')
+            ->assertSee('Unit price')
+            ->assertSee('Quote terms')
+            ->assertDontSee('Positionen');
+
         $this->actingAs($user)
             ->post(route('admin.locale.update', ['locale' => 'de']))
             ->assertRedirect();

@@ -26,7 +26,7 @@ class ListQuotes extends ListRecords
             ->pluck('aggregate', 'quote_status_id');
 
         $tabs = [
-            'all' => Tab::make('Alle')
+            'all' => Tab::make(__('quotes::messages.tabs.all'))
                 ->badge((int) $counts->sum())
                 ->badgeColor('gray')
                 ->modifyQueryUsing(fn (Builder $query): Builder => $query
@@ -42,7 +42,7 @@ class ListQuotes extends ListRecords
                     ->where('quote_status_id', $status->value));
         }
 
-        $tabs['archived'] = Tab::make('Archiviert')
+        $tabs['archived'] = Tab::make(__('quotes::messages.tabs.archived'))
             ->badge(Quote::query()->where('is_archived', true)->count())
             ->badgeColor('gray')
             ->modifyQueryUsing(fn (Builder $query): Builder => $query

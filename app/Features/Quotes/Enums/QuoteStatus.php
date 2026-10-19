@@ -12,13 +12,7 @@ enum QuoteStatus: int
 
     public function label(): string
     {
-        return match ($this) {
-            self::Draft => 'Entwurf',
-            self::Sent => 'Versendet',
-            self::Approved => 'Angenommen',
-            self::Rejected => 'Abgelehnt',
-            self::Canceled => 'Storniert',
-        };
+        return __('quotes::messages.statuses.'.strtolower($this->name));
     }
 
     public function color(): string
