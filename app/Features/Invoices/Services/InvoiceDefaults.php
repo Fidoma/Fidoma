@@ -4,6 +4,7 @@ namespace App\Features\Invoices\Services;
 
 use App\Features\InvoiceGroups\Models\InvoiceGroup;
 use App\Features\Invoices\Enums\InvoiceType;
+use App\Features\PaymentMethods\Models\PaymentMethod;
 use Illuminate\Support\Facades\DB;
 
 final class InvoiceDefaults
@@ -42,7 +43,16 @@ final class InvoiceDefaults
 
     public function paymentMethodId(): int
     {
-        return max(0, (int) $this->value('invoice_default_payment_method', 0));
+        $configuredId = max(0, (int) $this->value('invoice_default_payment_method', 0));
+
+        if ($configuredId && PaymentMethod::query()->whereKey($configuredId)->exists()) {
+            return $configuredId;
+        }
+
+        return (int) (PaymentMethod::query()
+            ->orderBy('payment_method_name')
+            ->orderBy('payment_method_id')
+            ->value('payment_method_id') ?? 0);
     }
 
     private function value(string $key, mixed $default): mixed

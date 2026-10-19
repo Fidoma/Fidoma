@@ -2,19 +2,22 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Features\BankTransactions\Models\BankTransactionMapping;
 use App\Features\Clients\Models\Client;
 use App\Features\Invoices\Actions\IssueInvoice;
 use App\Features\Invoices\Actions\RecalculateInvoice;
 use App\Features\Invoices\Enums\InvoiceStatus;
 use App\Features\Invoices\Enums\InvoiceType;
-use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
 use App\Features\Invoices\Models\Invoice;
 use App\Features\Invoices\Models\InvoiceItem;
+use App\Features\Invoices\Services\InvoiceDefaults;
 use App\Features\PaymentMethods\Models\PaymentMethod;
+use App\Features\Payments\Actions\DeletePayment;
 use App\Features\Payments\Filament\Resources\Payments\Pages\ListPayments;
 use App\Features\Payments\Models\Payment;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -79,6 +82,13 @@ class PaymentsPageTest extends TestCase
             'payment_amount' => 10,
             'payment_note' => 'Kartenzahlung',
         ]);
+        $legacyPayment = Payment::query()->create([
+            'invoice_id' => $invoice->getKey(),
+            'payment_method_id' => 0,
+            'payment_date' => '2026-10-12',
+            'payment_amount' => 5,
+            'payment_note' => 'Ohne gespeicherte Zahlungsart',
+        ]);
 
         $component = Livewire::actingAs($user)
             ->test(ListPayments::class)
@@ -95,10 +105,40 @@ class PaymentsPageTest extends TestCase
             ->assertCanSeeTableRecords([$payment])
             ->assertCanNotSeeTableRecords([$transferPayment, $cardPayment]);
 
-        $this->assertSame(
-            InvoiceResource::getUrl('edit', ['record' => $invoice]),
-            $component->instance()->getTable()->getRecordUrl($payment),
-        );
+        $component
+            ->set('activeTab', 'all')
+            ->mountTableAction('editPayment', $legacyPayment)
+            ->assertTableActionDataSet([
+                'payment_method_id' => app(InvoiceDefaults::class)->paymentMethodId(),
+            ])
+            ->unmountTableAction();
+
+        $this->assertNull($component->instance()->getTable()->getRecordUrl($payment));
+        $this->assertSame('editPayment', $component->instance()->getTable()->getRecordAction($payment));
+
+        BankTransactionMapping::query()->create([
+            'bank_transaction_id' => 999,
+            'payment_id' => $payment->getKey(),
+            'document_id' => null,
+        ]);
+
+        $component->mountTableAction('editPayment', $payment);
+
+        $deleteAction = $component->instance()->getMountedAction()?->getModalFooterActions()['deletePayment'];
+        $this->assertNotNull($deleteAction);
+        $this->assertTrue($deleteAction->isDisabled());
+
+        try {
+            app(DeletePayment::class)->handle($payment);
+            $this->fail('Eine verknüpfte Zahlung durfte gelöscht werden.');
+        } catch (ValidationException $exception) {
+            $this->assertSame(
+                'Eine mit einer Banktransaktion verknüpfte Zahlung kann nicht gelöscht werden.',
+                $exception->errors()['payment'][0],
+            );
+        }
+
+        $this->assertDatabaseHas('ip_payments', ['payment_id' => $payment->getKey()]);
     }
 
     public function test_a_payment_can_be_added_for_an_open_invoice(): void
@@ -168,12 +208,32 @@ class PaymentsPageTest extends TestCase
         $this->assertSame(InvoiceStatus::Open, $invoice->invoice_status_id);
         $this->assertNotNull($invoice->invoice_number);
 
+        $firstPayment = $invoice->payments()->firstOrFail();
+
+        Livewire::actingAs($user)
+            ->test(ListPayments::class)
+            ->callTableAction('editPayment', $firstPayment, data: [
+                'payment_method_id' => $method->getKey(),
+                'payment_amount' => 40,
+                'payment_date' => '2026-10-17',
+                'payment_note' => 'Korrigierte Teilzahlung',
+            ])
+            ->assertNotified('Zahlung wurde gespeichert.');
+
+        $this->assertDatabaseHas('ip_payments', [
+            'payment_id' => $firstPayment->getKey(),
+            'payment_amount' => 40,
+            'payment_date' => '2026-10-17',
+            'payment_note' => 'Korrigierte Teilzahlung',
+        ]);
+        $this->assertSame('79.00', $invoice->refresh()->amount->invoice_balance);
+
         Livewire::actingAs($user)
             ->test(ListPayments::class)
             ->callTableAction('createPayment', data: [
                 'invoice_id' => $invoice->getKey(),
                 'payment_method_id' => $method->getKey(),
-                'payment_amount' => 69,
+                'payment_amount' => 79,
                 'payment_date' => '2026-10-16',
                 'payment_note' => 'Restzahlung',
             ])
@@ -181,5 +241,11 @@ class PaymentsPageTest extends TestCase
 
         $this->assertSame('0.00', $invoice->refresh()->amount->invoice_balance);
         $this->assertSame(InvoiceStatus::Paid, $invoice->invoice_status_id);
+
+        app(DeletePayment::class)->handle($firstPayment);
+
+        $this->assertDatabaseMissing('ip_payments', ['payment_id' => $firstPayment->getKey()]);
+        $this->assertSame('40.00', $invoice->refresh()->amount->invoice_balance);
+        $this->assertSame(InvoiceStatus::Open, $invoice->invoice_status_id);
     }
 }

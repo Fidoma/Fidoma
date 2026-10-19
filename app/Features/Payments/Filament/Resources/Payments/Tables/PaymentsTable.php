@@ -5,18 +5,21 @@ namespace App\Features\Payments\Filament\Resources\Payments\Tables;
 use App\Features\Invoices\Actions\RecordInvoicePayment;
 use App\Features\Invoices\Enums\InvoiceStatus;
 use App\Features\Invoices\Enums\InvoiceType;
-use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
 use App\Features\Invoices\Models\Invoice;
 use App\Features\Invoices\Services\InvoiceDefaults;
 use App\Features\PaymentMethods\Models\PaymentMethod;
+use App\Features\Payments\Actions\DeletePayment;
+use App\Features\Payments\Actions\UpdatePayment;
 use App\Features\Payments\Models\Payment;
 use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
+use Filament\Support\Enums\Alignment;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -28,9 +31,9 @@ class PaymentsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn ($query) => $query->with(['invoice.client', 'paymentMethod']))
+            ->modifyQueryUsing(fn ($query) => $query->with(['invoice.client', 'paymentMethod', 'bankTransactionMappings']))
             ->defaultSort('payment_date', 'desc')
-            ->recordUrl(fn (Payment $record): string => InvoiceResource::getUrl('edit', ['record' => $record->invoice_id]))
+            ->recordUrl(null)
             ->columns([
                 TextColumn::make('payment_date')
                     ->label('Zahlungsdatum')
@@ -71,6 +74,10 @@ class PaymentsTable
             ->toolbarActions([
                 self::createPaymentAction(),
             ])
+            ->recordAction('editPayment')
+            ->recordActions([
+                self::editPaymentAction(),
+            ])
             ->searchable()
             ->searchPlaceholder('Kunde, Rechnung oder Notiz durchsuchen')
             ->paginated([10, 20, 50])
@@ -78,6 +85,77 @@ class PaymentsTable
             ->emptyStateHeading('Keine Zahlungen vorhanden')
             ->emptyStateDescription('Erfasste und zugeordnete Zahlungen werden hier aufgelistet.')
             ->emptyStateIcon(Heroicon::OutlinedBanknotes);
+    }
+
+    private static function editPaymentAction(): Action
+    {
+        return Action::make('editPayment')
+            ->label('Zahlung bearbeiten')
+            ->modalHeading('Zahlung bearbeiten')
+            ->modalSubmitActionLabel('Änderungen speichern')
+            ->fillForm(fn (Payment $record): array => [
+                'invoice_label' => self::invoiceOptionLabel($record->invoice),
+                'payment_method_id' => PaymentMethod::query()->whereKey($record->payment_method_id)->exists()
+                    ? $record->payment_method_id
+                    : (app(InvoiceDefaults::class)->paymentMethodId() ?: null),
+                'payment_amount' => $record->payment_amount,
+                'payment_date' => $record->payment_date?->toDateString(),
+                'payment_note' => $record->payment_note,
+            ])
+            ->schema([
+                TextInput::make('invoice_label')
+                    ->label('Rechnung')
+                    ->disabled()
+                    ->dehydrated(false),
+                Select::make('payment_method_id')
+                    ->label('Zahlungsart')
+                    ->options(fn () => PaymentMethod::query()
+                        ->orderBy('payment_method_name')
+                        ->pluck('payment_method_name', 'payment_method_id'))
+                    ->searchable()
+                    ->preload()
+                    ->required(),
+                TextInput::make('payment_amount')
+                    ->label('Zahlbetrag')
+                    ->numeric()
+                    ->minValue(0.01)
+                    ->suffix('€')
+                    ->required(),
+                DatePicker::make('payment_date')
+                    ->label('Zahlungsdatum')
+                    ->required(),
+                TextInput::make('payment_note')
+                    ->label('Notiz')
+                    ->maxLength(1000),
+            ])
+            ->action(function (Payment $record, array $data): void {
+                app(UpdatePayment::class)->handle($record, $data);
+
+                Notification::make()
+                    ->success()
+                    ->title('Zahlung wurde gespeichert.')
+                    ->send();
+            })
+            ->modalFooterActions(fn (Action $action): array => [
+                $action->getModalSubmitAction(),
+                $action->getModalCancelAction(),
+                DeleteAction::make('deletePayment')
+                    ->label('Löschen')
+                    ->icon(Heroicon::OutlinedTrash)
+                    ->disabled(fn (Payment $record): bool => $record->bankTransactionMappings()->exists())
+                    ->tooltip(fn (Payment $record): ?string => $record->bankTransactionMappings()->exists()
+                        ? 'Verknüpfte Zahlungen können nicht gelöscht werden.'
+                        : null)
+                    ->using(function (Payment $record): bool {
+                        app(DeletePayment::class)->handle($record);
+
+                        return true;
+                    })
+                    ->successNotificationTitle('Zahlung wurde gelöscht.')
+                    ->cancelParentActions(),
+            ])
+            ->modalFooterActionsAlignment(Alignment::End)
+            ->extraAttributes(['style' => 'display: none']);
     }
 
     private static function createPaymentAction(): Action

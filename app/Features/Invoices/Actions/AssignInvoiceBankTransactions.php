@@ -104,13 +104,21 @@ final class AssignInvoiceBankTransactions
                 ]);
             }
 
+            $paymentMethodId = $invoice->payment_method ?: $this->defaults->paymentMethodId();
+
+            if (! $paymentMethodId) {
+                throw ValidationException::withMessages([
+                    'invoice' => 'Es ist keine Zahlungsart vorhanden.',
+                ]);
+            }
+
             try {
-                $mappings = collect($transactionIds)->map(function (int $transactionId) use ($invoice, $transactions): BankTransactionMapping {
+                $mappings = collect($transactionIds)->map(function (int $transactionId) use ($invoice, $paymentMethodId, $transactions): BankTransactionMapping {
                     /** @var BankTransaction $transaction */
                     $transaction = $transactions->get($transactionId);
                     $payment = $invoice->payments()->create([
                         'payment_external_id' => 'bank-transaction:'.$transaction->getKey(),
-                        'payment_method_id' => $invoice->payment_method ?: $this->defaults->paymentMethodId(),
+                        'payment_method_id' => $paymentMethodId,
                         'payment_date' => $transaction->booking_date,
                         'payment_amount' => round((float) $transaction->amount, 2),
                         'payment_note' => 'Banktransaktion '.$transaction->getKey().': '.trim((string) $transaction->purpose),
