@@ -53,8 +53,9 @@
         <article class="feature-card"><span class="feature-icon">♙</span><h3>Kunden & Produkte</h3><p>Stammdaten, Ansprechpartner, Preise und Vorgänge zentral organisieren.</p></article>
         <article class="feature-card"><span class="feature-icon">↔</span><h3>Bank & Zahlungen</h3><p>Transaktionen importieren, abgleichen und tatsächliche Zahlungseingänge sauber verfolgen.</p></article>
         <article class="feature-card"><span class="feature-icon">□</span><h3>Belege & Dokumente</h3><p>Mit automatisiertem Zuordnungsprozess und entsprechender Trefferquote.</p></article>
-        <article class="feature-card"><span class="feature-icon">◫</span><h3>Reservierungen</h3><p>Planung, Leistungen und Abrechnung in einem durchgängigen Ablauf verwalten.</p></article>
-        <article class="feature-card"><span class="feature-icon">⌁</span><h3>Auswertungen</h3><p>Umsatz, Zahlungseingänge und steuerrelevante Daten getrennt nachvollziehen.</p></article>
+        <article class="feature-card"><span class="feature-icon">◫</span><h3>Hotel &amp; Reservierungen</h3><p>Zimmer, Belegungsplanung, Leistungen und Abrechnung in einem durchgängigen Ablauf verwalten.</p></article>
+        <article class="feature-card"><span class="feature-icon">⌁</span><h3>Projekte &amp; Abschlagsrechnungen</h3><p>Aufträge und Bauvorhaben zentral organisieren und projektbezogene Abschlagsrechnungen erstellen.</p></article>
+        <article class="feature-card"><span class="feature-icon">▧</span><h3>Individuelle Verträge &amp; Berichte</h3><p>Eigene Vertragsvorlagen verwenden und betriebliche Kennzahlen übersichtlich auswerten.</p></article>
         <article class="feature-card"><span class="feature-icon">%</span><h3>Umsatzsteuervoranmeldung</h3><p>Umsatzsteuerwerte periodenbezogen aufbereiten, Details nachvollziehen und die Voranmeldung als PDF ausgeben.</p></article>
     </div>
 </div></section>
