@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use App\Features\BankTransactions\Actions\CreateBankTransaction;
+use App\Features\BankTransactions\Filament\Resources\BankTransactions\Pages\ListBankTransactions;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class BankTransactionTest extends TestCase
@@ -38,5 +40,17 @@ class BankTransactionTest extends TestCase
             ->get('/admin/bank-transactions')
             ->assertOk()
             ->assertSee('Banktransaktion');
+    }
+
+    public function test_all_tab_is_first_while_open_tab_is_selected_by_default(): void
+    {
+        $component = Livewire::actingAs(User::factory()->create())
+            ->test(ListBankTransactions::class)
+            ->assertSet('activeTab', 'open');
+
+        $this->assertSame(
+            ['all', 'open', 'assigned'],
+            array_keys($component->instance()->getTabs()),
+        );
     }
 }

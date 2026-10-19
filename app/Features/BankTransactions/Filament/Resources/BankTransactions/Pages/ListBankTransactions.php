@@ -22,6 +22,9 @@ class ListBankTransactions extends ListRecords
         $assigned = BankTransaction::query()->whereHas('mappings')->count();
 
         return [
+            'all' => Tab::make('Alle')
+                ->badge($all)
+                ->badgeColor('gray'),
             'open' => Tab::make('Offen')
                 ->badge($all - $assigned)
                 ->badgeColor('warning')
@@ -30,9 +33,11 @@ class ListBankTransactions extends ListRecords
                 ->badge($assigned)
                 ->badgeColor('success')
                 ->modifyQueryUsing(fn (Builder $query): Builder => $query->whereHas('mappings')),
-            'all' => Tab::make('Alle')
-                ->badge($all)
-                ->badgeColor('gray'),
         ];
+    }
+
+    public function getDefaultActiveTab(): string|int|null
+    {
+        return 'open';
     }
 }
