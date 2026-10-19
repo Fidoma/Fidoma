@@ -123,6 +123,7 @@ class ReservationTest extends TestCase
             ->assertDontSeeText('Gültig bis');
         $this->get('/admin/reservations/belegungsplan')
             ->assertOk()
+            ->assertSeeText('Anstehende Messen in Stuttgart')
             ->assertSeeText('Senkrechter Rand:')
             ->assertSeeText('Offen')
             ->assertSeeText('Bestätigt')

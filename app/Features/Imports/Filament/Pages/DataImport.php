@@ -6,6 +6,7 @@ use App\Features\BankTransactions\Models\BankTransaction;
 use App\Features\Imports\Livewire\BankTransactionCsvPreview;
 use App\Features\Imports\Services\BankTransactionCsvImporter;
 use App\Features\Imports\Services\CsvReader;
+use App\Filament\Concerns\WithoutPageHeading;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
@@ -29,6 +30,8 @@ use UnitEnum;
 
 class DataImport extends Page
 {
+    use WithoutPageHeading;
+
     protected static ?string $title = 'Datenimport';
 
     protected static ?string $navigationLabel = 'Datenimport';

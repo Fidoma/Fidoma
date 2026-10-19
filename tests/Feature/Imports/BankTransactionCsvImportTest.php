@@ -24,8 +24,12 @@ class BankTransactionCsvImportTest extends TestCase
         $this->actingAs(User::factory()->create())
             ->get(DataImport::getUrl())
             ->assertOk()
-            ->assertSeeText('Datenimport')
             ->assertSeeText('Banktransaktionen importieren');
+
+        $component = Livewire::actingAs(User::factory()->create())
+            ->test(DataImport::class);
+
+        $this->assertNull($component->instance()->getHeading());
     }
 
     public function test_it_imports_a_mapped_german_bank_csv_with_a_sign_column(): void

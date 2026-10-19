@@ -3,6 +3,7 @@
 use App\Features\Authentication\Http\Controllers\LocaleController;
 use App\Features\Invoices\Http\Controllers\InvoiceDocumentController;
 use App\Features\Invoices\Http\Controllers\InvoiceLayoutPreviewController;
+use App\Features\TradeFairs\Http\Controllers\TradeFairController;
 use App\Features\Webmail\Http\Controllers\RoundcubeController;
 use Illuminate\Support\Facades\Route;
 
@@ -25,6 +26,11 @@ Route::middleware('auth')->prefix('admin/invoices/{invoice}')->group(function ()
 
 Route::middleware('auth')->get('admin/pdf-layouts/pdf-preview', InvoiceLayoutPreviewController::class)
     ->name('pdf-layouts.pdf-preview');
+
+Route::middleware('auth')->prefix('admin/trade-fairs')->name('trade-fairs.')->group(function (): void {
+    Route::get('upcoming', [TradeFairController::class, 'upcoming'])->name('upcoming');
+    Route::get('range', [TradeFairController::class, 'range'])->name('range');
+});
 
 Route::middleware('auth')->any('admin/webmail/client/{path?}', RoundcubeController::class)
     ->where('path', '.*')

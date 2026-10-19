@@ -99,14 +99,15 @@ class DocumentsPageTest extends TestCase
             'paperless.test/api/correspondents/*' => Http::response(['results' => []]),
         ]);
 
-        Livewire::actingAs(User::factory()->create())
+        $component = Livewire::actingAs(User::factory()->create())
             ->test(Documents::class)
-            ->assertSee('Zuordnungen')
             ->assertSee('Einnahmen')
             ->assertSee('Ausgaben')
             ->assertSet('activeTab', 'expenses')
             ->call('showTab', 'income')
             ->assertSet('activeTab', 'income');
+
+        $this->assertNull($component->instance()->getHeading());
     }
 
     public function test_income_tab_lists_invoices_with_mapping_relevant_columns(): void
