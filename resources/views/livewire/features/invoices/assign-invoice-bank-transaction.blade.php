@@ -23,8 +23,8 @@
     <div x-show="activeTab === 'linked'" x-cloak>
         @livewire(
             \App\Features\Invoices\Livewire\LinkedInvoiceBankTransactions::class,
-            ['invoiceId' => $invoice->getKey()],
-            key('linked-invoice-transactions-'.$invoice->getKey())
+            ['invoiceId' => $invoice->getKey(), 'paymentId' => $payment?->getKey()],
+            key('linked-invoice-transactions-'.$invoice->getKey().'-payment-'.($payment?->getKey() ?? 'all'))
         )
     </div>
 

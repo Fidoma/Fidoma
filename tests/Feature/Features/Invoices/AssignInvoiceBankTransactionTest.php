@@ -11,8 +11,11 @@ use App\Features\Invoices\Enums\InvoiceStatus;
 use App\Features\Invoices\Enums\InvoiceType;
 use App\Features\Invoices\Models\Invoice;
 use App\Features\Invoices\Models\InvoiceItem;
+use App\Features\Invoices\Services\InvoiceDefaults;
+use App\Features\Payments\Actions\AssignPaymentBankTransactions;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 class AssignInvoiceBankTransactionTest extends TestCase
@@ -101,5 +104,57 @@ class AssignInvoiceBankTransactionTest extends TestCase
         $this->assertSame('119.00', $invoice->refresh()->amount->invoice_balance);
         $this->assertSame(InvoiceStatus::Open, $invoice->invoice_status_id);
         $this->assertFalse($transaction->refresh()->validated);
+
+        $payment = $invoice->payments()->create([
+            'payment_method_id' => app(InvoiceDefaults::class)->paymentMethodId(),
+            'payment_date' => '2026-10-16',
+            'payment_amount' => 119,
+            'payment_note' => 'Manuell erfasst',
+        ]);
+        app(RecalculateInvoice::class)->handle($invoice);
+        $this->assertSame('0.00', $invoice->refresh()->amount->invoice_balance);
+
+        $paymentTransaction = app(CreateBankTransaction::class)->handle([
+            'account_iban' => 'DE02120300000000202051',
+            'booking_date' => '2026-10-16',
+            'amount' => '119.0000',
+            'currency' => 'EUR',
+            'counterparty_name' => 'Musterkunde GmbH',
+            'purpose' => 'Zahlung RE-2026-2001',
+            'pending' => false,
+        ]);
+
+        $paymentMapping = app(AssignPaymentBankTransactions::class)->handleMany($payment->getKey(), [
+            $paymentTransaction->getKey() => $paymentTransaction->assignmentFingerprint(),
+        ])->sole();
+
+        $this->assertSame($payment->getKey(), $paymentMapping->payment_id);
+        $this->assertFalse($paymentMapping->payment_created_by_mapping);
+        $this->assertSame(1, $invoice->payments()->count());
+        $this->assertTrue($paymentTransaction->refresh()->validated);
+
+        app(UnassignInvoiceBankTransactions::class)->handleMany($invoice->getKey(), [
+            $paymentTransaction->getKey() => $paymentTransaction->assignmentFingerprint(),
+        ]);
+
+        $this->assertTrue($payment->fresh()->exists);
+        $this->assertFalse($paymentTransaction->refresh()->validated);
+
+        $invoiceTransaction = app(CreateBankTransaction::class)->handle([
+            'account_iban' => 'DE02120300000000202051',
+            'booking_date' => '2026-10-17',
+            'amount' => '119.0000',
+            'currency' => 'EUR',
+            'counterparty_name' => 'Musterkunde GmbH',
+            'purpose' => 'Weitere Zahlung RE-2026-2001',
+            'pending' => false,
+        ]);
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('Die Rechnung hat keinen offenen Betrag.');
+
+        app(AssignInvoiceBankTransactions::class)->handleMany($invoice->getKey(), [
+            $invoiceTransaction->getKey() => $invoiceTransaction->assignmentFingerprint(),
+        ]);
     }
 }

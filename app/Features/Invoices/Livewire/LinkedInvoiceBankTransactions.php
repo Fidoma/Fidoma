@@ -37,19 +37,26 @@ class LinkedInvoiceBankTransactions extends Component implements HasActions, Has
 
     public int $invoiceId;
 
-    public function mount(int $invoiceId): void
+    public ?int $paymentId = null;
+
+    public function mount(int $invoiceId, ?int $paymentId = null): void
     {
         Gate::authorize('viewAny', BankTransaction::class);
         $this->invoiceId = $invoiceId;
+        $this->paymentId = $paymentId;
     }
 
     public function table(Table $table): Table
     {
         return $table
             ->heading('Verknüpfte Zahlungseingänge')
-            ->description('Diese Banktransaktionen wurden als Zahlungen der Rechnung verbucht.')
+            ->description($this->paymentId
+                ? 'Diese Banktransaktionen sind mit der ausgewählten Zahlung verknüpft.'
+                : 'Diese Banktransaktionen wurden als Zahlungen der Rechnung verbucht.')
             ->query(fn (): Builder => BankTransaction::query()
-                ->whereHas('mappings.payment', fn (Builder $query): Builder => $query->where('invoice_id', $this->invoiceId))
+                ->whereHas('mappings.payment', fn (Builder $query): Builder => $query
+                    ->where('invoice_id', $this->invoiceId)
+                    ->when($this->paymentId, fn (Builder $query, int $paymentId): Builder => $query->whereKey($paymentId)))
                 ->orderByDesc('booking_date')
                 ->orderByDesc('id'))
             ->columns([
@@ -113,9 +120,13 @@ class LinkedInvoiceBankTransactions extends Component implements HasActions, Has
                     ->color('danger')
                     ->requiresConfirmation()
                     ->modalHeading('Ausgewählte Verknüpfungen lösen')
-                    ->modalDescription(fn (Collection $records): string => $records->count().' '.($records->count() === 1
-                        ? 'Zahlung und Verknüpfung werden von der Rechnung entfernt.'
-                        : 'Zahlungen und Verknüpfungen werden von der Rechnung entfernt.'))
+                    ->modalDescription(fn (Collection $records): string => $this->paymentId
+                        ? $records->count().' '.($records->count() === 1
+                            ? 'Verknüpfung mit der Zahlung wird entfernt.'
+                            : 'Verknüpfungen mit der Zahlung werden entfernt.')
+                        : $records->count().' '.($records->count() === 1
+                            ? 'Zahlung und Verknüpfung werden von der Rechnung entfernt.'
+                            : 'Zahlungen und Verknüpfungen werden von der Rechnung entfernt.'))
                     ->action(fn (Collection $records) => $this->unlinkSelected($records)),
             ])
             ->selectCurrentPageOnly()

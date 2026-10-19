@@ -6,6 +6,8 @@ use App\Features\BankTransactions\Models\BankTransaction;
 use App\Features\Invoices\Actions\AssignInvoiceBankTransactions;
 use App\Features\Invoices\Models\Invoice;
 use App\Features\Invoices\Queries\InvoiceBankTransactionCandidateQuery;
+use App\Features\Payments\Actions\AssignPaymentBankTransactions;
+use App\Features\Payments\Models\Payment;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use Filament\Actions\Concerns\InteractsWithActions;
@@ -44,10 +46,15 @@ class AssignInvoiceBankTransaction extends Component implements HasActions, HasS
 
     public Invoice $invoice;
 
-    public function mount(int $invoiceId): void
+    public ?Payment $payment = null;
+
+    public function mount(int $invoiceId, ?int $paymentId = null): void
     {
         Gate::authorize('viewAny', BankTransaction::class);
         $this->invoice = Invoice::query()->with(['client', 'amount'])->findOrFail($invoiceId);
+        $this->payment = $paymentId
+            ? Payment::query()->whereBelongsTo($this->invoice)->findOrFail($paymentId)
+            : null;
     }
 
     public function invoiceInfolist(Schema $schema): Schema
@@ -56,7 +63,9 @@ class AssignInvoiceBankTransaction extends Component implements HasActions, HasS
             ->record($this->invoice)
             ->components([
                 Section::make('Rechnungsinformationen')
-                    ->description('Ausgewählte Zahlungseingänge werden als Zahlungen der Rechnung verbucht.')
+                    ->description($this->payment
+                        ? 'Ausgewählte Zahlungseingänge werden mit dieser bestehenden Zahlung verknüpft.'
+                        : 'Ausgewählte Zahlungseingänge werden als Zahlungen der Rechnung verbucht.')
                     ->columns(2)
                     ->compact()
                     ->schema([
@@ -206,12 +215,15 @@ class AssignInvoiceBankTransaction extends Component implements HasActions, HasS
     public function assignSelected(Collection $records): void
     {
         try {
-            app(AssignInvoiceBankTransactions::class)->handleMany(
-                $this->invoice->getKey(),
-                $records->mapWithKeys(fn (BankTransaction $record): array => [
-                    $record->getKey() => $record->assignmentFingerprint(),
-                ])->all(),
-            );
+            $fingerprints = $records->mapWithKeys(fn (BankTransaction $record): array => [
+                $record->getKey() => $record->assignmentFingerprint(),
+            ])->all();
+
+            if ($this->payment) {
+                app(AssignPaymentBankTransactions::class)->handleMany($this->payment->getKey(), $fingerprints);
+            } else {
+                app(AssignInvoiceBankTransactions::class)->handleMany($this->invoice->getKey(), $fingerprints);
+            }
         } catch (ValidationException $exception) {
             Notification::make()->danger()
                 ->title('Die Zuordnung konnte nicht gespeichert werden.')

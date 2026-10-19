@@ -185,20 +185,25 @@ class InvoiceMappings extends Component implements HasActions, HasSchemas, HasTa
             ->modalCancelActionLabel('Schließen')
             ->modalContent(fn (array $arguments) => view('filament.pages.partials.assign-invoice-bank-transaction', [
                 'invoiceId' => (int) $arguments['invoiceId'],
+                'paymentId' => isset($arguments['paymentId']) ? (int) $arguments['paymentId'] : null,
             ]));
     }
 
     public function openAssignment(int|string $recordId): void
     {
-        $invoiceId = $this->isPaymentView()
-            ? (int) Payment::query()->whereKey($recordId)->value('invoice_id')
-            : (int) $recordId;
+        $payment = $this->isPaymentView()
+            ? Payment::query()->find($recordId)
+            : null;
+        $invoiceId = $payment?->invoice_id ?? (int) $recordId;
 
         if ($invoiceId < 1) {
             return;
         }
 
-        $this->mountAction('assign', ['invoiceId' => $invoiceId]);
+        $this->mountAction('assign', [
+            'invoiceId' => $invoiceId,
+            'paymentId' => $payment?->getKey(),
+        ]);
     }
 
     public function showMappingView(string $view): void

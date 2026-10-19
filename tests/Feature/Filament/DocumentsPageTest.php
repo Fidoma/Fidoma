@@ -244,6 +244,10 @@ class DocumentsPageTest extends TestCase
             $invoice->getKey(),
             $paymentView->instance()->getMountedAction()?->getArguments()['invoiceId'] ?? null,
         );
+        $this->assertSame(
+            $payment->getKey(),
+            $paymentView->instance()->getMountedAction()?->getArguments()['paymentId'] ?? null,
+        );
     }
 
     public function test_paperless_documents_are_not_filtered_by_path_or_type_when_settings_are_empty(): void
