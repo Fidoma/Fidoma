@@ -70,6 +70,8 @@ class Reports extends Page implements HasTable
 
     public ?string $endDate = null;
 
+    public string $selectedPeriod = 'custom';
+
     public function mount(): void
     {
         $this->resetTable();
@@ -85,6 +87,11 @@ class Reports extends Page implements HasTable
         abort_unless(in_array($tab, ['tax', 'payments', 'invoices', 'sales'], true), 404);
 
         $this->activeTab = $tab;
+        $this->tableColumns = [];
+        $this->cachedDefaultTableColumnState = null;
+        $this->tableColumnsToggleStateByName = null;
+        $this->tableFilters = null;
+        $this->tableDeferredFilters = null;
         $this->resetTable();
     }
 
@@ -95,6 +102,35 @@ class Reports extends Page implements HasTable
             'endDate' => ['nullable', 'date', 'required_with:startDate', 'after_or_equal:startDate'],
         ], ['endDate.after_or_equal' => 'Das Enddatum muss nach dem Startdatum liegen.']);
 
+        $this->selectedPeriod = 'custom';
+        $this->resetTable();
+    }
+
+    public function selectPeriod(string $period): void
+    {
+        if (! in_array($period, ['q1', 'q2', 'q3', 'q4', 'year', 'reset'], true)) {
+            return;
+        }
+
+        if ($period === 'reset') {
+            $this->clearDateFilter();
+
+            return;
+        }
+
+        $this->selectedPeriod = $period;
+        $today = CarbonImmutable::today();
+        [$start, $end] = match ($period) {
+            'q1' => [$today->startOfYear(), $today->startOfYear()->addMonths(3)->subDay()],
+            'q2' => [$today->startOfYear()->addMonths(3), $today->startOfYear()->addMonths(6)->subDay()],
+            'q3' => [$today->startOfYear()->addMonths(6), $today->startOfYear()->addMonths(9)->subDay()],
+            'q4' => [$today->startOfYear()->addMonths(9), $today->endOfYear()],
+            'year' => [$today->startOfYear(), $today->endOfYear()],
+        };
+
+        $this->startDate = $start->toDateString();
+        $this->endDate = $end->toDateString();
+        $this->resetValidation(['startDate', 'endDate']);
         $this->resetTable();
     }
 
@@ -102,8 +138,21 @@ class Reports extends Page implements HasTable
     {
         $this->startDate = null;
         $this->endDate = null;
+        $this->selectedPeriod = 'custom';
         $this->resetValidation(['startDate', 'endDate']);
         $this->resetTable();
+    }
+
+    public function periodLabel(): string
+    {
+        return match ($this->selectedPeriod) {
+            'q1' => 'Q1',
+            'q2' => 'Q2',
+            'q3' => 'Q3',
+            'q4' => 'Q4',
+            'year' => 'Jahr',
+            default => 'Zeitraum',
+        };
     }
 
     public function setTaxationType(string $type): void
@@ -115,6 +164,8 @@ class Reports extends Page implements HasTable
 
     public function table(Table $table): Table
     {
+        $table->identifier(fn (): string => 'reports-'.$this->activeTab);
+
         return match ($this->activeTab) {
             'payments' => $this->paymentsTable($table),
             'invoices' => $this->invoicesTable($table),

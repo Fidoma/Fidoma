@@ -154,11 +154,24 @@ class ReportsPageTest extends TestCase
 
     public function test_date_filter_can_be_cleared(): void
     {
+        CarbonImmutable::setTestNow('2026-10-15');
+
         Livewire::actingAs(User::factory()->create())
             ->test(Reports::class)
+            ->assertSee('Q1')
+            ->assertSee('Q2')
+            ->assertSee('Q3')
+            ->assertSee('Q4')
+            ->assertSee('Jahr')
+            ->assertSee('Gesamt')
+            ->call('selectPeriod', 'q3')
+            ->assertSet('selectedPeriod', 'q3')
+            ->assertSet('startDate', '2026-07-01')
+            ->assertSet('endDate', '2026-09-30')
             ->set('startDate', '2026-10-01')
             ->set('endDate', '2026-10-31')
-            ->call('clearDateFilter')
+            ->call('selectPeriod', 'reset')
+            ->assertSet('selectedPeriod', 'custom')
             ->assertSet('startDate', null)
             ->assertSet('endDate', null);
     }

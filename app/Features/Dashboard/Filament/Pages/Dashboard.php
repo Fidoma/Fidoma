@@ -26,6 +26,8 @@ class Dashboard extends BaseDashboard
 
     public string $endDate = '';
 
+    public string $selectedPeriod = 'custom';
+
     public function mount(): void
     {
         $today = CarbonImmutable::today();
@@ -33,7 +35,7 @@ class Dashboard extends BaseDashboard
         $this->startDate = $today->startOfMonth()->toDateString();
         $this->endDate = $today->endOfMonth()->toDateString();
 
-        $this->applyDateFilter();
+        $this->updateDateFilters();
     }
 
     public function applyDateFilter(): void
@@ -45,6 +47,61 @@ class Dashboard extends BaseDashboard
             'endDate.after_or_equal' => 'Das Enddatum muss nach dem Startdatum liegen.',
         ]);
 
+        $this->selectedPeriod = 'custom';
+        $this->updateDateFilters();
+    }
+
+    public function selectPeriod(string $period): void
+    {
+        if (! in_array($period, ['q1', 'q2', 'q3', 'q4', 'year', 'reset'], true)) {
+            return;
+        }
+
+        if ($period === 'reset') {
+            $this->clearDateFilter();
+
+            return;
+        }
+
+        $this->selectedPeriod = $period;
+        $today = CarbonImmutable::today();
+        [$start, $end] = match ($period) {
+            'q1' => [$today->startOfYear(), $today->startOfYear()->addMonths(3)->subDay()],
+            'q2' => [$today->startOfYear()->addMonths(3), $today->startOfYear()->addMonths(6)->subDay()],
+            'q3' => [$today->startOfYear()->addMonths(6), $today->startOfYear()->addMonths(9)->subDay()],
+            'q4' => [$today->startOfYear()->addMonths(9), $today->endOfYear()],
+            'year' => [$today->startOfYear(), $today->endOfYear()],
+        };
+
+        $this->startDate = $start->toDateString();
+        $this->endDate = $end->toDateString();
+        $this->resetValidation(['startDate', 'endDate']);
+        $this->updateDateFilters();
+    }
+
+    public function clearDateFilter(): void
+    {
+        $this->startDate = '';
+        $this->endDate = '';
+        $this->selectedPeriod = 'custom';
+        $this->resetValidation(['startDate', 'endDate']);
+        $this->updateDateFilters();
+    }
+
+    public function periodLabel(): string
+    {
+        return match ($this->selectedPeriod) {
+            'q1' => 'Q1',
+            'q2' => 'Q2',
+            'q3' => 'Q3',
+            'q4' => 'Q4',
+            'year' => 'Jahr',
+            default => 'Zeitraum',
+        };
+    }
+
+    private function updateDateFilters(): void
+    {
         [$startDate, $endDate] = filled($this->startDate) && filled($this->endDate)
             ? [$this->startDate, $this->endDate]
             : $this->allTimeRange();
@@ -54,13 +111,6 @@ class Dashboard extends BaseDashboard
             'start_date' => $startDate,
             'end_date' => $endDate,
         ];
-    }
-
-    public function clearDateFilter(): void
-    {
-        $this->startDate = '';
-        $this->endDate = '';
-        $this->resetValidation(['startDate', 'endDate']);
     }
 
     /** @return array{string, string} */

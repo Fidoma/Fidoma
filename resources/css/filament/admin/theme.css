@@ -265,6 +265,15 @@
     backdrop-filter: blur(14px);
 }
 
+.fi-sidebar-nav {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.fi-sidebar-nav::-webkit-scrollbar {
+    display: none;
+}
+
 .dark .fi-sidebar {
     border-right-color: rgb(255 255 255 / 0.08);
     background-color: rgb(24 24 27 / 0.82);
