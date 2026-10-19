@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS `ip_bank_transaction_mappings` (
   `bank_transaction_mapping_id` int(11) NOT NULL AUTO_INCREMENT,
   `bank_transaction_id` bigint(20) unsigned NOT NULL,
   `payment_id` int(11) DEFAULT NULL,
+  `payment_created_by_mapping` tinyint(1) NOT NULL DEFAULT 0,
   `document_id` int(10) unsigned DEFAULT NULL,
   `bank_transaction_mapping_date_created` datetime NOT NULL,
   `bank_transaction_mapping_date_modified` datetime NOT NULL,
@@ -424,14 +425,12 @@ CREATE TABLE IF NOT EXISTS `ip_payment_methods` (
 
 CREATE TABLE IF NOT EXISTS `ip_payments` (
   `payment_id` int(11) NOT NULL AUTO_INCREMENT,
-  `payment_external_id` varchar(255) DEFAULT NULL,
   `invoice_id` int(11) NOT NULL,
   `payment_method_id` int(11) NOT NULL DEFAULT 0,
   `payment_date` date NOT NULL,
   `payment_amount` decimal(20,2) DEFAULT NULL,
   `payment_note` longtext NOT NULL,
   PRIMARY KEY (`payment_id`),
-  UNIQUE KEY `idx_payment_external_id` (`payment_external_id`),
   KEY `invoice_id` (`invoice_id`),
   KEY `payment_method_id` (`payment_method_id`),
   KEY `payment_amount` (`payment_amount`)

@@ -16,13 +16,14 @@ class BankTransactionMapping extends Model
 
     public const UPDATED_AT = 'bank_transaction_mapping_date_modified';
 
-    protected $fillable = ['bank_transaction_id', 'payment_id', 'document_id'];
+    protected $fillable = ['bank_transaction_id', 'payment_id', 'payment_created_by_mapping', 'document_id'];
 
     protected function casts(): array
     {
         return [
             'bank_transaction_id' => 'integer',
             'payment_id' => 'integer',
+            'payment_created_by_mapping' => 'boolean',
             'document_id' => 'integer',
         ];
     }

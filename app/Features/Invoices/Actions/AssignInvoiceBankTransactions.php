@@ -117,7 +117,6 @@ final class AssignInvoiceBankTransactions
                     /** @var BankTransaction $transaction */
                     $transaction = $transactions->get($transactionId);
                     $payment = $invoice->payments()->create([
-                        'payment_external_id' => 'bank-transaction:'.$transaction->getKey(),
                         'payment_method_id' => $paymentMethodId,
                         'payment_date' => $transaction->booking_date,
                         'payment_amount' => round((float) $transaction->amount, 2),
@@ -125,6 +124,7 @@ final class AssignInvoiceBankTransactions
                     ]);
                     $mapping = $transaction->mappings()->create([
                         'payment_id' => $payment->getKey(),
+                        'payment_created_by_mapping' => true,
                         'document_id' => null,
                     ]);
                     $transaction->update(['validated' => true]);

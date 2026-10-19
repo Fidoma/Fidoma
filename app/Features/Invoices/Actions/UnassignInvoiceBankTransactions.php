@@ -68,11 +68,14 @@ final class UnassignInvoiceBankTransactions
                 ]);
             }
 
-            $paymentIds = $mappings->pluck('payment_id')->filter()->all();
+            $paymentIds = $mappings
+                ->where('payment_created_by_mapping', true)
+                ->pluck('payment_id')
+                ->filter()
+                ->all();
             BankTransactionMapping::query()->whereKey($mappings->modelKeys())->delete();
             Payment::query()
                 ->whereKey($paymentIds)
-                ->where('payment_external_id', 'like', 'bank-transaction:%')
                 ->delete();
 
             foreach ($transactions as $transaction) {

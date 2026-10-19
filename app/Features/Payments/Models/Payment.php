@@ -18,7 +18,6 @@ class Payment extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'payment_external_id',
         'invoice_id',
         'payment_method_id',
         'payment_date',

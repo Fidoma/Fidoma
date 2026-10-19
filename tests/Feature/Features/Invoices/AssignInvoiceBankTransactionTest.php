@@ -79,7 +79,10 @@ class AssignInvoiceBankTransactionTest extends TestCase
             'payment_id' => $mapping->payment_id,
             'invoice_id' => $invoice->getKey(),
             'payment_amount' => 1119,
-            'payment_external_id' => 'bank-transaction:'.$transaction->getKey(),
+        ]);
+        $this->assertDatabaseHas('ip_bank_transaction_mappings', [
+            'bank_transaction_mapping_id' => $mapping->getKey(),
+            'payment_created_by_mapping' => true,
         ]);
         $this->assertSame('-1000.00', $invoice->refresh()->amount->invoice_balance);
         $this->assertSame(InvoiceStatus::Paid, $invoice->invoice_status_id);

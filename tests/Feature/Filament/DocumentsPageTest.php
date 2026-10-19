@@ -15,6 +15,7 @@ use App\Features\Invoices\Livewire\InvoiceMappings;
 use App\Features\Invoices\Livewire\LinkedInvoiceBankTransactions;
 use App\Features\Invoices\Models\Invoice;
 use App\Features\Invoices\Models\InvoiceAmount;
+use App\Features\Payments\Models\Payment;
 use App\Models\User;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Toggle;
@@ -164,6 +165,10 @@ class DocumentsPageTest extends TestCase
 
         $component = Livewire::actingAs($user)
             ->test(InvoiceMappings::class)
+            ->assertSet('mappingView', 'invoices')
+            ->assertTableFilterVisible('invoice_status_id')
+            ->assertSee('Rechnungen')
+            ->assertSee('Zahlungen')
             ->assertSee('RE-2026-1001')
             ->assertSee('Rechnungsdatum')
             ->assertSee('Fällig am')
@@ -171,6 +176,7 @@ class DocumentsPageTest extends TestCase
             ->assertSee('Offen')
             ->assertSee('Nicht zugeordnet');
 
+        $this->assertNull($component->instance()->getTable()->getFilter('mapping_view'));
         $this->assertSame('openAssignment', $component->instance()->getTable()->getRecordAction($invoice));
 
         $component
@@ -208,9 +214,36 @@ class DocumentsPageTest extends TestCase
         ]);
         $this->assertDatabaseHas('ip_payments', [
             'invoice_id' => $invoice->getKey(),
-            'payment_external_id' => 'bank-transaction:'.$incoming->getKey(),
             'payment_amount' => 119,
         ]);
+        $this->assertDatabaseHas('ip_bank_transaction_mappings', [
+            'bank_transaction_id' => $incoming->getKey(),
+            'payment_created_by_mapping' => true,
+        ]);
+
+        $payment = Payment::query()->whereBelongsTo($invoice)->sole();
+
+        $paymentView = Livewire::actingAs($user)
+            ->test(InvoiceMappings::class)
+            ->filterTable('invoice_status_id', InvoiceStatus::Open)
+            ->call('showMappingView', 'payments')
+            ->assertSet('mappingView', 'payments')
+            ->assertSet('tableFilters.invoice_status_id.value', null)
+            ->assertTableFilterHidden('invoice_status_id')
+            ->assertCanSeeTableRecords([$payment])
+            ->assertSee('Zahlungsdatum')
+            ->assertSee('Zahlungsart')
+            ->assertSee('Betrag')
+            ->assertSee('Zugeordnet');
+
+        $paymentView
+            ->call('openAssignment', $payment->getKey())
+            ->assertActionMounted('assign');
+
+        $this->assertSame(
+            $invoice->getKey(),
+            $paymentView->instance()->getMountedAction()?->getArguments()['invoiceId'] ?? null,
+        );
     }
 
     public function test_paperless_documents_are_not_filtered_by_path_or_type_when_settings_are_empty(): void

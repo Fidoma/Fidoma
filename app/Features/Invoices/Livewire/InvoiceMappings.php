@@ -6,6 +6,7 @@ use App\Features\BankTransactions\Models\BankTransaction;
 use App\Features\Invoices\Enums\InvoiceStatus;
 use App\Features\Invoices\Enums\InvoiceType;
 use App\Features\Invoices\Models\Invoice;
+use App\Features\Payments\Models\Payment;
 use Filament\Actions\Action;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
@@ -30,6 +31,8 @@ class InvoiceMappings extends Component implements HasActions, HasSchemas, HasTa
     use InteractsWithSchemas;
     use InteractsWithTable;
 
+    public string $mappingView = 'invoices';
+
     public function mount(): void
     {
         Gate::authorize('viewAny', BankTransaction::class);
@@ -38,63 +41,134 @@ class InvoiceMappings extends Component implements HasActions, HasSchemas, HasTa
     public function table(Table $table): Table
     {
         return $table
-            ->query(fn (): Builder => Invoice::query()
-                ->where('invoice_type', InvoiceType::Invoice)
-                ->where('is_archived', false)
-                ->with(['client', 'amount'])
-                ->withCount('bankTransactionMappings'))
-            ->defaultSort('invoice_date_created', 'desc')
+            ->query(fn (): Builder => $this->isPaymentView()
+                ? Payment::query()
+                    ->whereHas('invoice', fn (Builder $query): Builder => $this->scopeMappingInvoices($query))
+                    ->with(['invoice.client', 'paymentMethod'])
+                    ->withCount('bankTransactionMappings')
+                : $this->scopeMappingInvoices(Invoice::query())
+                    ->with(['client', 'amount'])
+                    ->withCount('bankTransactionMappings'))
+            ->defaultSort(
+                fn (): string => $this->isPaymentView() ? 'payment_date' : 'invoice_date_created',
+                'desc',
+            )
             ->columns([
                 TextColumn::make('invoice_number')
                     ->label('Rechnungsnummer')
                     ->placeholder('Entwurf')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->visible(fn (): bool => ! $this->isPaymentView()),
                 TextColumn::make('client.client_name')
                     ->label('Kunde')
                     ->placeholder('Kein Kunde')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->visible(fn (): bool => ! $this->isPaymentView()),
                 TextColumn::make('invoice_date_created')
                     ->label('Rechnungsdatum')
                     ->date('d.m.Y')
-                    ->sortable(),
+                    ->sortable()
+                    ->visible(fn (): bool => ! $this->isPaymentView()),
                 TextColumn::make('invoice_date_due')
                     ->label('Fällig am')
                     ->date('d.m.Y')
                     ->sortable()
-                    ->color(fn (Invoice $record): ?string => $record->isOverdue() ? 'danger' : null),
+                    ->color(fn (Invoice $record): ?string => $record->isOverdue() ? 'danger' : null)
+                    ->visible(fn (): bool => ! $this->isPaymentView()),
                 TextColumn::make('amount.invoice_total')
                     ->label('Gesamt')
                     ->money('EUR', locale: 'de')
-                    ->sortable(),
+                    ->sortable()
+                    ->visible(fn (): bool => ! $this->isPaymentView()),
                 TextColumn::make('amount.invoice_balance')
                     ->label('Offen')
                     ->money('EUR', locale: 'de')
-                    ->sortable(),
+                    ->sortable()
+                    ->visible(fn (): bool => ! $this->isPaymentView()),
                 TextColumn::make('invoice_status_id')
                     ->label('Rechnungsstatus')
                     ->badge()
                     ->formatStateUsing(fn (InvoiceStatus $state): string => $state->label())
-                    ->color(fn (InvoiceStatus $state): string => $state->color()),
+                    ->color(fn (InvoiceStatus $state): string => $state->color())
+                    ->visible(fn (): bool => ! $this->isPaymentView()),
                 TextColumn::make('bank_transaction_mappings_count')
                     ->label('Zuordnung')
                     ->badge()
                     ->formatStateUsing(fn (int $state): string => $state > 0 ? 'Zugeordnet' : 'Nicht zugeordnet')
-                    ->color(fn (int $state): string => $state > 0 ? 'success' : 'gray'),
+                    ->color(fn (int $state): string => $state > 0 ? 'success' : 'gray')
+                    ->visible(fn (): bool => ! $this->isPaymentView()),
+                TextColumn::make('payment_date')
+                    ->label('Zahlungsdatum')
+                    ->date('d.m.Y')
+                    ->sortable()
+                    ->visible(fn (): bool => $this->isPaymentView()),
+                TextColumn::make('invoice.client.client_name')
+                    ->label('Kunde')
+                    ->placeholder('Kein Kunde')
+                    ->searchable()
+                    ->sortable()
+                    ->visible(fn (): bool => $this->isPaymentView()),
+                TextColumn::make('invoice.invoice_number')
+                    ->label('Rechnung')
+                    ->placeholder('Entwurf')
+                    ->searchable()
+                    ->sortable()
+                    ->visible(fn (): bool => $this->isPaymentView()),
+                TextColumn::make('paymentMethod.payment_method_name')
+                    ->label('Zahlungsart')
+                    ->placeholder('–')
+                    ->visible(fn (): bool => $this->isPaymentView()),
+                TextColumn::make('payment_amount')
+                    ->label('Betrag')
+                    ->money('EUR', locale: 'de')
+                    ->sortable()
+                    ->visible(fn (): bool => $this->isPaymentView()),
+                TextColumn::make('payment_note')
+                    ->label('Notiz')
+                    ->placeholder('–')
+                    ->searchable()
+                    ->wrap()
+                    ->visible(fn (): bool => $this->isPaymentView()),
+                TextColumn::make('payment_mapping_status')
+                    ->label('Zuordnung')
+                    ->state(fn (Payment $record): int => $record->bank_transaction_mappings_count)
+                    ->badge()
+                    ->formatStateUsing(fn (int $state): string => $state > 0 ? 'Zugeordnet' : 'Nicht zugeordnet')
+                    ->color(fn (int $state): string => $state > 0 ? 'success' : 'gray')
+                    ->visible(fn (): bool => $this->isPaymentView()),
             ])
             ->filters([
                 SelectFilter::make('invoice_status_id')
                     ->label('Status')
-                    ->options(InvoiceStatus::options()),
+                    ->options(InvoiceStatus::options())
+                    ->visible(fn (): bool => ! $this->isPaymentView())
+                    ->query(function (Builder $query, array $data): Builder {
+                        $status = $data['value'] ?? null;
+
+                        if (blank($status)) {
+                            return $query;
+                        }
+
+                        return $this->isPaymentView()
+                            ? $query->whereHas('invoice', fn (Builder $invoiceQuery): Builder => $invoiceQuery->where('invoice_status_id', $status))
+                            : $query->where('invoice_status_id', $status);
+                    }),
             ])
             ->recordAction('openAssignment')
             ->searchable()
-            ->searchPlaceholder('Rechnungsnummer oder Kunde durchsuchen')
+            ->searchPlaceholder(fn (): string => $this->isPaymentView()
+                ? 'Kunde, Rechnung oder Notiz durchsuchen'
+                : 'Rechnungsnummer oder Kunde durchsuchen')
             ->paginated([10, 20, 50])
             ->defaultPaginationPageOption(20)
-            ->emptyStateHeading('Keine Rechnungen gefunden')
-            ->emptyStateDescription('Es sind noch keine Einnahmen zur Zuordnung vorhanden.')
+            ->emptyStateHeading(fn (): string => $this->isPaymentView()
+                ? 'Keine Zahlungen gefunden'
+                : 'Keine Rechnungen gefunden')
+            ->emptyStateDescription(fn (): string => $this->isPaymentView()
+                ? 'Es sind noch keine Zahlungen zur Zuordnung vorhanden.'
+                : 'Es sind noch keine Einnahmen zur Zuordnung vorhanden.')
             ->emptyStateIcon(Heroicon::OutlinedDocumentCurrencyEuro);
     }
 
@@ -114,15 +188,43 @@ class InvoiceMappings extends Component implements HasActions, HasSchemas, HasTa
             ]));
     }
 
-    public function openAssignment(int|string $invoiceId): void
+    public function openAssignment(int|string $recordId): void
     {
-        $invoiceId = (int) $invoiceId;
+        $invoiceId = $this->isPaymentView()
+            ? (int) Payment::query()->whereKey($recordId)->value('invoice_id')
+            : (int) $recordId;
 
         if ($invoiceId < 1) {
             return;
         }
 
         $this->mountAction('assign', ['invoiceId' => $invoiceId]);
+    }
+
+    public function showMappingView(string $view): void
+    {
+        if (! in_array($view, ['invoices', 'payments'], true)) {
+            return;
+        }
+
+        if ($view === 'payments') {
+            $this->removeTableFilter('invoice_status_id');
+        }
+
+        $this->mappingView = $view;
+        $this->resetTable();
+    }
+
+    private function isPaymentView(): bool
+    {
+        return $this->mappingView === 'payments';
+    }
+
+    private function scopeMappingInvoices(Builder $query): Builder
+    {
+        return $query
+            ->where('invoice_type', InvoiceType::Invoice)
+            ->where('is_archived', false);
     }
 
     #[On('invoice-mapping-created')]
