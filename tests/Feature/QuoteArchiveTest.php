@@ -97,7 +97,10 @@ class QuoteArchiveTest extends TestCase
         $component = Livewire::actingAs($user)
             ->test(ListQuotes::class)
             ->assertCanSeeTableRecords([$quote])
-            ->assertTableFilterExists('quote_number')
+            ->assertTableFilterExists(
+                'quote_number',
+                fn ($filter): bool => $filter->getSchemaComponents()[0]->getAutocomplete() === 'one-time-code',
+            )
             ->assertTableFilterExists('client_id')
             ->assertTableFilterExists('quote_date_created')
             ->assertTableFilterExists('quote_date_expires')

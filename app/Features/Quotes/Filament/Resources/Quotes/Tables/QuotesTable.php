@@ -68,7 +68,9 @@ class QuotesTable
                 Filter::make('quote_number')
                     ->label('Angebotsnummer')
                     ->schema([
-                        TextInput::make('value')->label('Angebotsnummer'),
+                        TextInput::make('value')
+                            ->label('Angebotsnummer')
+                            ->autocomplete('one-time-code'),
                     ])
                     ->query(fn (Builder $query, array $data): Builder => filled($data['value'] ?? null)
                         ? $query->where('quote_number', 'like', '%'.trim((string) $data['value']).'%')
@@ -185,8 +187,8 @@ class QuotesTable
         return Filter::make($name)
             ->label($label)
             ->schema([
-                TextInput::make('from')->label('Von')->numeric()->prefix('€'),
-                TextInput::make('until')->label('Bis')->numeric()->prefix('€'),
+                TextInput::make('from')->label('Von')->numeric()->prefix('€')->autocomplete('one-time-code'),
+                TextInput::make('until')->label('Bis')->numeric()->prefix('€')->autocomplete('one-time-code'),
             ])
             ->columns(2)
             ->query(fn (Builder $query, array $data): Builder => $query
