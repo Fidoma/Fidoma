@@ -6,6 +6,7 @@ use App\Features\Clients\Filament\Resources\Clients\ClientResource;
 use App\Features\Invoices\Actions\ArchiveInvoice;
 use App\Features\Invoices\Actions\CreateInvoiceCounterpart;
 use App\Features\Invoices\Actions\RecordInvoicePayment;
+use App\Features\Invoices\Enums\InvoiceBillingType;
 use App\Features\Invoices\Enums\InvoiceStatus;
 use App\Features\Invoices\Enums\InvoiceType;
 use App\Features\Invoices\Filament\Actions\InvoiceEmailAction;
@@ -44,6 +45,16 @@ class InvoicesTable
                     ->url(fn (Invoice $record): string => ClientResource::getUrl('view', ['record' => $record->client_id]))
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('project.project_number')
+                    ->label('Projekt')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable(),
+                TextColumn::make('billing_type')
+                    ->label('Abrechnungsart')
+                    ->badge()
+                    ->formatStateUsing(fn (InvoiceBillingType $state): string => $state->label())
+                    ->color(fn (InvoiceBillingType $state): string => $state->color()),
                 TextColumn::make('invoice_date_created')->label('Datum')->date('d.m.Y')->sortable(),
                 TextColumn::make('invoice_date_due')->label('Fällig am')->date('d.m.Y')->sortable()
                     ->color(fn (Invoice $record): ?string => $record->isOverdue() ? 'danger' : null),

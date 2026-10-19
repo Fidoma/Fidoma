@@ -2,6 +2,7 @@
 
 namespace App\Features\Invoices\Services;
 
+use App\Features\Invoices\Enums\InvoiceType;
 use App\Features\Invoices\Models\Invoice;
 use App\Features\Quotes\Models\Quote;
 
@@ -11,7 +12,8 @@ final class InvoiceTemplateData
     public function sample(string $type = 'invoice'): array
     {
         $data = [
-            'invoice' => ['number' => 'RE-2026-1042', 'date' => '15.10.2026', 'due_date' => '29.10.2026', 'terms' => 'Bitte überweisen Sie den Rechnungsbetrag innerhalb von 14 Tagen.'],
+            'invoice' => ['number' => 'RE-2026-1042', 'date' => '15.10.2026', 'due_date' => '29.10.2026', 'terms' => 'Bitte überweisen Sie den Rechnungsbetrag innerhalb von 14 Tagen.', 'title' => 'Abschlagsrechnung', 'billing_type' => 'Abschlagsrechnung'],
+            'project' => ['number' => 'PR-2026-0042', 'name' => 'Neubau Musterstraße 12'],
             'client' => ['number' => 'K-1048', 'company' => 'Musterwerk GmbH', 'name' => 'Anna Schneider', 'address' => 'Hafenstraße 18', 'city' => '20457 Hamburg', 'email' => 'anna.schneider@musterwerk.de'],
             'issuer' => ['company' => config('app.name', 'Fidoma').' GmbH', 'name' => 'Arianit Mustermann', 'address' => 'Beispielweg 12', 'city' => '10115 Berlin', 'email' => 'rechnung@fidoma.de', 'vat_id' => 'DE123456789', 'iban' => 'DE89 3704 0044 0532 0130 00'],
             'items' => [
@@ -63,6 +65,14 @@ final class InvoiceTemplateData
                 'date' => $invoice->invoice_date_created?->format('d.m.Y') ?? '',
                 'due_date' => $invoice->invoice_date_due?->format('d.m.Y') ?? '',
                 'terms' => $invoice->invoice_terms ?? '',
+                'title' => $invoice->invoice_type === InvoiceType::Invoice
+                    ? $invoice->billing_type->label()
+                    : $invoice->invoice_type->label(),
+                'billing_type' => $invoice->billing_type->label(),
+            ],
+            'project' => [
+                'number' => $invoice->project?->project_number ?? '',
+                'name' => $invoice->project?->project_name ?? '',
             ],
             'client' => [
                 'number' => (string) $invoice->client_id,

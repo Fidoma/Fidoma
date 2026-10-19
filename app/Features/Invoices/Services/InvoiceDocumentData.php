@@ -16,6 +16,7 @@ final class InvoiceDocumentData
             'items.product',
             'items.taxRate',
             'parentInvoice',
+            'project',
             'user',
         ]);
     }

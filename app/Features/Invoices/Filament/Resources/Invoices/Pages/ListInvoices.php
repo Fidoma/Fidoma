@@ -2,6 +2,7 @@
 
 namespace App\Features\Invoices\Filament\Resources\Invoices\Pages;
 
+use App\Features\Invoices\Enums\InvoiceBillingType;
 use App\Features\Invoices\Enums\InvoiceStatus;
 use App\Features\Invoices\Enums\InvoiceType;
 use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
@@ -54,6 +55,18 @@ class ListInvoices extends ListRecords
             ->badge($overdueQuery(Invoice::query())->count())
             ->badgeColor('danger')
             ->modifyQueryUsing($overdueQuery);
+
+        foreach ([InvoiceBillingType::Progress, InvoiceBillingType::Final] as $billingType) {
+            $billingTypeQuery = fn (Builder $query): Builder => $query
+                ->where('is_archived', false)
+                ->where('invoice_type', InvoiceType::Invoice)
+                ->where('billing_type', $billingType);
+
+            $tabs['billing-'.$billingType->value] = Tab::make($billingType->label())
+                ->badge($billingTypeQuery(Invoice::query())->count())
+                ->badgeColor($billingType->color())
+                ->modifyQueryUsing($billingTypeQuery);
+        }
 
         foreach ([
             [InvoiceType::Credit, 'Gutschrift'],

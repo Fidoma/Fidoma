@@ -5,10 +5,12 @@ namespace App\Features\Invoices\Models;
 use App\Features\BankTransactions\Models\BankTransactionMapping;
 use App\Features\Clients\Models\Client;
 use App\Features\InvoiceGroups\Models\InvoiceGroup;
+use App\Features\Invoices\Enums\InvoiceBillingType;
 use App\Features\Invoices\Enums\InvoiceStatus;
 use App\Features\Invoices\Enums\InvoiceType;
 use App\Features\PaymentMethods\Models\PaymentMethod;
 use App\Features\Payments\Models\Payment;
+use App\Features\Projects\Models\Project;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -28,7 +30,7 @@ class Invoice extends Model
     public const UPDATED_AT = 'invoice_date_modified';
 
     protected $fillable = [
-        'invoice_type', 'user_id', 'client_id', 'invoice_group_id', 'invoice_status_id', 'is_read_only', 'is_archived',
+        'invoice_type', 'billing_type', 'user_id', 'client_id', 'project_id', 'invoice_group_id', 'invoice_status_id', 'is_read_only', 'is_archived',
         'invoice_password', 'invoice_date_created', 'invoice_time_created', 'invoice_date_due',
         'invoice_number', 'invoice_discount_amount', 'invoice_discount_percent', 'invoice_terms',
         'invoice_url_key', 'payment_method', 'creditinvoice_parent_id', 'invoice_einvoicing_version',
@@ -38,6 +40,7 @@ class Invoice extends Model
     {
         return [
             'invoice_type' => InvoiceType::class,
+            'billing_type' => InvoiceBillingType::class,
             'invoice_status_id' => InvoiceStatus::class,
             'is_read_only' => 'boolean',
             'is_archived' => 'boolean',
@@ -71,6 +74,12 @@ class Invoice extends Model
     public function client(): BelongsTo
     {
         return $this->belongsTo(Client::class, 'client_id', 'client_id');
+    }
+
+    /** @return BelongsTo<Project, $this> */
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class, 'project_id', 'project_id');
     }
 
     /** @return BelongsTo<User, $this> */

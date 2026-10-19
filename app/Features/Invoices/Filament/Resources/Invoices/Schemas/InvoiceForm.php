@@ -3,6 +3,7 @@
 namespace App\Features\Invoices\Filament\Resources\Invoices\Schemas;
 
 use App\Features\Clients\Actions\CreateClient;
+use App\Features\Invoices\Enums\InvoiceBillingType;
 use App\Features\Invoices\Enums\InvoiceStatus;
 use App\Features\Invoices\Enums\InvoiceType;
 use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
@@ -10,6 +11,7 @@ use App\Features\Invoices\Filament\Resources\Invoices\Pages\EditInvoice;
 use App\Features\Invoices\Models\Invoice;
 use App\Features\Invoices\Services\InvoiceDefaults;
 use App\Features\Products\Models\Product;
+use App\Features\Projects\Models\Project;
 use App\Features\Quotes\Services\QuoteAmountCalculator;
 use App\Features\TaxRates\Models\TaxRate;
 use App\Features\Units\Models\Unit;
@@ -74,6 +76,46 @@ class InvoiceForm
                 ->visible(fn (?Invoice $record): bool => $record?->invoice_type !== InvoiceType::Invoice
                     && filled($record?->creditinvoice_parent_id))
                 ->columnSpanFull(),
+            Section::make(__('invoices::messages.assignment.heading'))
+                ->columns(['default' => 1, 'md' => 2])
+                ->schema([
+                    Select::make('billing_type')
+                        ->label(__('invoices::messages.fields.billing_type'))
+                        ->options(collect(InvoiceBillingType::cases())->mapWithKeys(
+                            fn (InvoiceBillingType $type): array => [$type->value => $type->label()],
+                        )->all())
+                        ->default(InvoiceBillingType::Standard->value)
+                        ->disabled(fn (?Invoice $record): bool => $record !== null
+                            && $record->invoice_status_id !== InvoiceStatus::Draft)
+                        ->live()
+                        ->required(),
+                    Select::make('project_id')
+                        ->label(__('invoices::messages.fields.project'))
+                        ->options(fn (): array => Project::query()
+                            ->with('client')
+                            ->orderByDesc('created_at')
+                            ->get()
+                            ->mapWithKeys(fn (Project $project): array => [
+                                $project->getKey() => collect([$project->project_number, $project->project_name])
+                                    ->filter()
+                                    ->implode(' · '),
+                            ])->all())
+                        ->searchable()
+                        ->preload()
+                        ->live()
+                        ->afterStateUpdated(function (mixed $state, Set $set): void {
+                            if ($state && ($project = Project::query()->find($state))) {
+                                $set('client_id', $project->client_id);
+                            }
+                        })
+                        ->required(fn (Get $get): bool => in_array($get('billing_type'), [
+                            InvoiceBillingType::Progress->value,
+                            InvoiceBillingType::Final->value,
+                        ], true))
+                        ->disabled(fn (?Invoice $record): bool => $record !== null
+                            && $record->invoice_status_id !== InvoiceStatus::Draft),
+                ])
+                ->columnSpanFull(),
             Section::make(fn (?Invoice $record): string => filled($record?->invoice_number)
                 ? 'Rechnung - '.$record->invoice_number
                 : 'Rechnung')
@@ -107,7 +149,8 @@ class InvoiceForm
                             TextInput::make('client_phone')->label('Telefon')->tel()->maxLength(20),
                         ])
                         ->createOptionUsing(fn (array $data): int => app(CreateClient::class)->handle($data)->getKey())
-                        ->disabled(fn (Get $get, ?Invoice $record): bool => self::invoiceType($get) !== InvoiceType::Invoice
+                        ->disabled(fn (Get $get, ?Invoice $record): bool => filled($get('project_id'))
+                            || self::invoiceType($get) !== InvoiceType::Invoice
                             || ($record !== null && $record->invoice_status_id !== InvoiceStatus::Draft))
                         ->columnSpan(['default' => 1, 'xl' => 4]),
                     TextInput::make('invoice_number')

@@ -2,6 +2,7 @@
 
 namespace App\Features\InvoiceGroups\Models;
 
+use App\Features\Projects\Models\Project;
 use App\Features\Quotes\Models\Quote;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -33,5 +34,11 @@ class InvoiceGroup extends Model
     public function quotes(): HasMany
     {
         return $this->hasMany(Quote::class, 'invoice_group_id', 'invoice_group_id');
+    }
+
+    /** @return HasMany<Project, $this> */
+    public function projects(): HasMany
+    {
+        return $this->hasMany(Project::class, 'invoice_group_id', 'invoice_group_id');
     }
 }

@@ -18,7 +18,7 @@ final class InvoiceLayoutDefaults
                 <div class="muted">{{ issuer.email }}</div>
             </td>
             <td class="document-title">
-                <h1>Rechnung</h1>
+                <h1>{{ invoice.title }}</h1>
                 <div>{{ invoice.number }}</div>
             </td>
         </tr>
@@ -40,6 +40,7 @@ final class InvoiceLayoutDefaults
                     <tr><td>Rechnungsdatum</td><td>{{ invoice.date }}</td></tr>
                     <tr><td>Fällig am</td><td>{{ invoice.due_date }}</td></tr>
                     <tr><td>Kundennummer</td><td>{{ client.number }}</td></tr>
+                    <tr><td>Projekt</td><td>{{ project.number }}</td></tr>
                 </table>
             </td>
         </tr>
@@ -82,13 +83,13 @@ HTML;
 
         return match ($type) {
             'quote' => str_replace(
-                ['Rechnungsempfänger', '<h1>Rechnung</h1>', 'Rechnungsnummer', 'Rechnungsdatum', 'Fällig am', '{{ invoice.'],
-                ['Angebotsempfänger', '<h1>Angebot</h1>', 'Angebotsnummer', 'Angebotsdatum', 'Gültig bis', '{{ quote.'],
+                ['Rechnungsempfänger', '<h1>{{ invoice.title }}</h1>', 'Rechnungsnummer', 'Rechnungsdatum', 'Fällig am', '{{ invoice.', '<tr><td>Projekt</td><td>{{ project.number }}</td></tr>'],
+                ['Angebotsempfänger', '<h1>Angebot</h1>', 'Angebotsnummer', 'Angebotsdatum', 'Gültig bis', '{{ quote.', ''],
                 $html,
             ),
             'reservation' => str_replace(
-                ['Rechnungsempfänger', '<h1>Rechnung</h1>', 'Rechnungsnummer', 'Rechnungsdatum', 'Fällig am', '{{ invoice.number }}', '{{ invoice.date }}', '{{ invoice.due_date }}', '{{ invoice.terms }}'],
-                ['Reservierung für', '<h1>Reservierung</h1>', 'Reservierungsnummer', 'Reservierungsdatum', 'Abreise', '{{ reservation.number }}', '{{ reservation.date }}', '{{ reservation.departure_date }}', '{{ reservation.terms }}'],
+                ['Rechnungsempfänger', '<h1>{{ invoice.title }}</h1>', 'Rechnungsnummer', 'Rechnungsdatum', 'Fällig am', '{{ invoice.number }}', '{{ invoice.date }}', '{{ invoice.due_date }}', '{{ invoice.terms }}', '<tr><td>Projekt</td><td>{{ project.number }}</td></tr>'],
+                ['Reservierung für', '<h1>Reservierung</h1>', 'Reservierungsnummer', 'Reservierungsdatum', 'Abreise', '{{ reservation.number }}', '{{ reservation.date }}', '{{ reservation.departure_date }}', '{{ reservation.terms }}', ''],
                 $html,
             ),
             default => $html,

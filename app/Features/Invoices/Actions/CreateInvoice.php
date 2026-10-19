@@ -6,6 +6,7 @@ use App\Features\Invoices\Enums\InvoiceStatus;
 use App\Features\Invoices\Enums\InvoiceType;
 use App\Features\Invoices\Models\Invoice;
 use App\Features\Invoices\Services\InvoiceDefaults;
+use App\Features\Projects\Models\Project;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use LogicException;
@@ -29,6 +30,15 @@ final class CreateInvoice
 
         if ($invoiceGroupId === null) {
             throw new LogicException('No number group is configured for invoices.');
+        }
+
+        $projectId = $attributes['project_id'] ?? null;
+
+        if ($projectId !== null && ! Project::query()
+            ->whereKey($projectId)
+            ->where('client_id', $attributes['client_id'] ?? null)
+            ->exists()) {
+            throw new LogicException('The selected project must belong to the invoice client.');
         }
 
         $invoiceNumber = trim((string) ($attributes['invoice_number'] ?? ''));

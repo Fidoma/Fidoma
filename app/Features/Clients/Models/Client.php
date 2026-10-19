@@ -4,6 +4,7 @@ namespace App\Features\Clients\Models;
 
 use App\Features\Invoices\Models\Invoice;
 use App\Features\Payments\Models\Payment;
+use App\Features\Projects\Models\Project;
 use App\Features\Quotes\Models\Quote;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -72,6 +73,12 @@ class Client extends Model
     public function invoices(): HasMany
     {
         return $this->hasMany(Invoice::class, 'client_id', 'client_id');
+    }
+
+    /** @return HasMany<Project, $this> */
+    public function projects(): HasMany
+    {
+        return $this->hasMany(Project::class, 'client_id', 'client_id');
     }
 
     /** @return HasManyThrough<Payment, Invoice, $this> */

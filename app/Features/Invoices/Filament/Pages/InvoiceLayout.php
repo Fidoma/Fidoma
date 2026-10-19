@@ -128,6 +128,8 @@ class InvoiceLayout extends Page
             'client.email' => $data['client']['email'],
             'client.name' => $data['client']['name'],
             'client.number' => $data['client']['number'],
+            'project.name' => $data['project']['name'] ?? '',
+            'project.number' => $data['project']['number'] ?? '',
             'issuer.address' => $data['issuer']['address'],
             'issuer.city' => $data['issuer']['city'],
             'issuer.company' => $data['issuer']['company'],

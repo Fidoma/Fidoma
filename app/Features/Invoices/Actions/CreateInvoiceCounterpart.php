@@ -48,9 +48,11 @@ final class CreateInvoiceCounterpart
 
             $target = Invoice::query()->create([
                 'invoice_type' => $type,
+                'billing_type' => $source->billing_type,
                 'creditinvoice_parent_id' => $source->getKey(),
                 'user_id' => $userId,
                 'client_id' => $source->client_id,
+                'project_id' => $source->project_id,
                 'invoice_group_id' => $invoiceGroupId,
                 'invoice_status_id' => InvoiceStatus::Draft,
                 'is_read_only' => false,
