@@ -5,6 +5,8 @@ namespace App\Providers;
 use App\Features\Documents\Livewire\AssignBankTransaction;
 use Filament\Forms\Components\Select;
 use Filament\Support\Facades\FilamentView;
+use Filament\Tables\Columns\Column;
+use Filament\Tables\Table;
 use Filament\Tables\View\TablesRenderHook;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
@@ -31,6 +33,12 @@ class AppServiceProvider extends ServiceProvider
                     ? null
                     : self::firstOptionValue($component->getOptions()));
         });
+
+        Column::configureUsing(fn (Column $column): Column => $column->toggleable());
+
+        Table::configureUsing(fn (Table $table): Table => $table
+            ->persistInSession()
+            ->columnManager());
 
         FilamentView::registerRenderHook(
             TablesRenderHook::TOOLBAR_SEARCH_AFTER,

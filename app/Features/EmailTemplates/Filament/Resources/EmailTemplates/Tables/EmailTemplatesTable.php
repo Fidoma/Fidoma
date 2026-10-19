@@ -6,6 +6,7 @@ use App\Features\EmailTemplates\Filament\Resources\EmailTemplates\EmailTemplateR
 use Filament\Actions\CreateAction;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class EmailTemplatesTable
@@ -33,6 +34,14 @@ class EmailTemplatesTable
                     ->searchable(),
                 TextColumn::make('email_template_from_email')
                     ->label('Absender'),
+            ])
+            ->filters([
+                SelectFilter::make('email_template_type')
+                    ->label('Typ')
+                    ->options([
+                        'invoice' => 'Rechnung',
+                        'quote' => 'Angebot',
+                    ]),
             ])
             ->toolbarActions([
                 CreateAction::make()

@@ -4,11 +4,13 @@ namespace App\Features\Clients\Filament\Resources\Clients\RelationManagers;
 
 use App\Features\Clients\Models\Client;
 use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
+use App\Features\PaymentMethods\Models\PaymentMethod;
 use App\Features\Payments\Models\Payment;
 use BackedEnum;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 
@@ -37,6 +39,15 @@ class PaymentsRelationManager extends RelationManager
                 TextColumn::make('paymentMethod.payment_method_name')->label('Zahlungsart')->placeholder('–'),
                 TextColumn::make('payment_amount')->label('Betrag')->money('EUR', locale: 'de')->sortable(),
                 TextColumn::make('payment_note')->label('Notiz')->placeholder('–')->wrap(),
+            ])
+            ->filters([
+                SelectFilter::make('payment_method_id')
+                    ->label('Zahlungsart')
+                    ->options(fn () => PaymentMethod::query()
+                        ->orderBy('payment_method_name')
+                        ->pluck('payment_method_name', 'payment_method_id'))
+                    ->searchable()
+                    ->preload(),
             ]);
     }
 }

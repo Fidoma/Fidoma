@@ -11,6 +11,7 @@ use BackedEnum;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 
@@ -49,6 +50,15 @@ class InvoicesRelationManager extends RelationManager
                     ->color(fn (InvoiceStatus $state): string => $state->color()),
                 TextColumn::make('amount.invoice_total')->label('Gesamt')->money('EUR', locale: 'de'),
                 TextColumn::make('amount.invoice_balance')->label('Offen')->money('EUR', locale: 'de'),
+            ])
+            ->filters([
+                SelectFilter::make('invoice_status_id')
+                    ->label('Status')
+                    ->options(InvoiceStatus::options()),
+                SelectFilter::make('invoice_type')
+                    ->label('Belegart')
+                    ->options(collect(InvoiceType::cases())
+                        ->mapWithKeys(fn (InvoiceType $type): array => [$type->value => $type->label()])),
             ]);
     }
 }

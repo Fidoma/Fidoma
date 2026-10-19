@@ -16,6 +16,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -81,6 +82,11 @@ class InvoiceMappings extends Component implements HasActions, HasSchemas, HasTa
                     ->badge()
                     ->formatStateUsing(fn (int $state): string => $state > 0 ? 'Zugeordnet' : 'Nicht zugeordnet')
                     ->color(fn (int $state): string => $state > 0 ? 'success' : 'gray'),
+            ])
+            ->filters([
+                SelectFilter::make('invoice_status_id')
+                    ->label('Status')
+                    ->options(InvoiceStatus::options()),
             ])
             ->recordAction('openAssignment')
             ->searchable()

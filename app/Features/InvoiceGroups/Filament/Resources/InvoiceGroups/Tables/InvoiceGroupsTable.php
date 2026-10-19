@@ -6,9 +6,12 @@ use App\Features\InvoiceGroups\Filament\Resources\InvoiceGroups\InvoiceGroupReso
 use App\Features\InvoiceGroups\Models\InvoiceGroup;
 use App\Features\InvoiceGroups\Services\InvoiceGroupNumberFormatter;
 use Filament\Actions\CreateAction;
+use Filament\Forms\Components\TextInput;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class InvoiceGroupsTable
 {
@@ -39,6 +42,15 @@ class InvoiceGroupsTable
                 TextColumn::make('invoice_group_left_pad')
                     ->label('Mindeststellen')
                     ->numeric(),
+            ])
+            ->filters([
+                Filter::make('invoice_group_name')
+                    ->label('Name')
+                    ->schema([TextInput::make('value')->label('Name')])
+                    ->query(fn (Builder $query, array $data): Builder => $query->when(
+                        filled($data['value'] ?? null),
+                        fn (Builder $query): Builder => $query->where('invoice_group_name', 'like', '%'.trim((string) $data['value']).'%'),
+                    )),
             ])
             ->defaultSort('invoice_group_name')
             ->toolbarActions([

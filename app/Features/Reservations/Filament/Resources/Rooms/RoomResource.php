@@ -17,6 +17,7 @@ use Filament\Support\Enums\Alignment;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 
 class RoomResource extends Resource
@@ -57,6 +58,10 @@ class RoomResource extends Resource
                 TextColumn::make('room_capacity')->label('Kapazität')->sortable(),
                 IconColumn::make('room_active')->label('Aktiv')->boolean(),
                 TextColumn::make('reservation_items_count')->label('Aufenthalte')->counts('reservationItems'),
+            ])
+            ->filters([
+                TernaryFilter::make('room_active')
+                    ->label('Aktiv'),
             ])
             ->toolbarActions([
                 CreateAction::make()

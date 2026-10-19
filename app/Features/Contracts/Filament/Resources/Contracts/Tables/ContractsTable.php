@@ -10,6 +10,7 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class ContractsTable
@@ -27,6 +28,11 @@ class ContractsTable
                 TextColumn::make('contract_end_date')->label('Ende')->date('d.m.Y')->placeholder('Unbefristet')->sortable(),
                 TextColumn::make('status')->label('Status')->badge()
                     ->formatStateUsing(fn (string $state): string => $state === 'draft' ? 'Entwurf' : $state),
+            ])
+            ->filters([
+                SelectFilter::make('status')
+                    ->label('Status')
+                    ->options(['draft' => 'Entwurf']),
             ])
             ->toolbarActions([
                 CreateAction::make()->label('Vertrag')->icon(Heroicon::Plus),

@@ -4,9 +4,12 @@ namespace App\Features\Products\Filament\Resources\Products\Tables;
 
 use App\Features\Products\Filament\Resources\Products\ProductResource;
 use Filament\Actions\CreateAction;
+use Filament\Forms\Components\TextInput;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class ProductsTable
 {
@@ -42,6 +45,15 @@ class ProductsTable
                     ->sortable(),
                 TextColumn::make('unit.unit_name')
                     ->label('Einheit'),
+            ])
+            ->filters([
+                Filter::make('product_name')
+                    ->label('Produktname')
+                    ->schema([TextInput::make('value')->label('Produktname')])
+                    ->query(fn (Builder $query, array $data): Builder => $query->when(
+                        filled($data['value'] ?? null),
+                        fn (Builder $query): Builder => $query->where('product_name', 'like', '%'.trim((string) $data['value']).'%'),
+                    )),
             ])
             ->toolbarActions([
                 CreateAction::make()

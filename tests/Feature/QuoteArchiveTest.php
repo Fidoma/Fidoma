@@ -97,6 +97,12 @@ class QuoteArchiveTest extends TestCase
         $component = Livewire::actingAs($user)
             ->test(ListQuotes::class)
             ->assertCanSeeTableRecords([$quote])
+            ->assertTableFilterExists('quote_number')
+            ->assertTableFilterExists('client_id')
+            ->assertTableFilterExists('quote_date_created')
+            ->assertTableFilterExists('quote_date_expires')
+            ->assertTableFilterExists('quote_item_subtotal')
+            ->assertTableFilterExists('quote_total')
             ->assertTableColumnExists(
                 'quote_number',
                 fn ($column): bool => $column->getUrl() === QuoteResource::getUrl('edit', ['record' => $quote]),

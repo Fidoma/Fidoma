@@ -6,6 +6,7 @@ use App\Features\Clients\Filament\Resources\Clients\ClientResource;
 use App\Features\Clients\Models\Client;
 use App\Features\Invoices\Actions\ArchiveInvoice;
 use App\Features\Invoices\Actions\IssueInvoice;
+use App\Features\Invoices\Enums\InvoiceBillingType;
 use App\Features\Invoices\Enums\InvoiceStatus;
 use App\Features\Invoices\Enums\InvoiceType;
 use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
@@ -235,7 +236,8 @@ class InvoiceArchiveTest extends TestCase
             ->assertTableFilterExists('invoice_total')
             ->assertTableFilterExists('invoice_paid')
             ->assertTableFilterExists('invoice_balance')
-            ->assertTableColumnDoesNotExist('billing_type')
+            ->assertTableColumnExists('billing_type', fn ($column): bool => $column->isToggleable()
+                && ! $column->isToggledHiddenByDefault())
             ->assertTableColumnExists('invoice_number', fn ($column): bool => $column->isToggleable())
             ->assertTableColumnExists('client.client_name', fn ($column): bool => $column->isToggleable())
             ->assertTableColumnExists('project.project_number', fn ($column): bool => $column->isToggleable())
@@ -262,6 +264,27 @@ class InvoiceArchiveTest extends TestCase
             ->filterTable('invoice_total', ['from' => 90, 'until' => 110])
             ->assertCanSeeTableRecords([$overdue])
             ->assertCanNotSeeTableRecords([$draft, $open, $paid, $archived]);
+
+        $table = Livewire::actingAs($user)
+            ->test(ListInvoices::class)
+            ->instance()
+            ->getTable();
+
+        $this->assertTrue($table->persistsFiltersInSession());
+        $this->assertTrue($table->persistsColumnsInSession());
+    }
+
+    public function test_invoice_filter_configuration_is_restored_from_the_session(): void
+    {
+        $user = User::factory()->create();
+
+        Livewire::actingAs($user)
+            ->test(ListInvoices::class)
+            ->filterTable('billing_type', InvoiceBillingType::Progress->value);
+
+        Livewire::actingAs($user)
+            ->test(ListInvoices::class)
+            ->assertSet('tableFilters.billing_type.value', InvoiceBillingType::Progress->value);
     }
 
     private function createInvoice(): Invoice

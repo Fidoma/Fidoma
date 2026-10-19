@@ -19,6 +19,7 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -57,6 +58,15 @@ class PaymentsTable
                     ->placeholder('–')
                     ->searchable()
                     ->wrap(),
+            ])
+            ->filters([
+                SelectFilter::make('payment_method_id')
+                    ->label('Zahlungsart')
+                    ->options(fn () => PaymentMethod::query()
+                        ->orderBy('payment_method_name')
+                        ->pluck('payment_method_name', 'payment_method_id'))
+                    ->searchable()
+                    ->preload(),
             ])
             ->toolbarActions([
                 self::createPaymentAction(),

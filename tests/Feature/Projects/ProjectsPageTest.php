@@ -6,6 +6,7 @@ use App\Features\Clients\Models\Client;
 use App\Features\InvoiceGroups\Models\InvoiceGroup;
 use App\Features\Projects\Enums\ProjectStatus;
 use App\Features\Projects\Filament\Resources\Projects\Pages\CreateProject;
+use App\Features\Projects\Filament\Resources\Projects\Pages\ListProjects;
 use App\Features\Projects\Filament\Resources\Projects\ProjectResource;
 use App\Features\Projects\Models\Project;
 use App\Models\User;
@@ -29,6 +30,18 @@ class ProjectsPageTest extends TestCase
             ->get(ProjectResource::getUrl())
             ->assertOk()
             ->assertSeeText('Projekte');
+
+        $table = Livewire::actingAs($user)
+            ->test(ListProjects::class)
+            ->instance()
+            ->getTable();
+
+        $this->assertTrue($table->persistsFiltersInSession());
+        $this->assertTrue($table->persistsColumnsInSession());
+        $this->assertTrue($table->persistsSearchInSession());
+        $this->assertTrue($table->persistsSortInSession());
+        $this->assertTrue($table->hasColumnManager());
+        $this->assertTrue(collect($table->getColumns())->every(fn ($column): bool => $column->isToggleable()));
     }
 
     public function test_project_uses_the_configured_number_group(): void

@@ -57,6 +57,12 @@ class InvoicesTable
                     ->searchable()
                     ->sortable()
                     ->toggleable(),
+                TextColumn::make('billing_type')
+                    ->label('Abrechnungsart')
+                    ->badge()
+                    ->formatStateUsing(fn (InvoiceBillingType $state): string => $state->label())
+                    ->color(fn (InvoiceBillingType $state): string => $state->color())
+                    ->toggleable(),
                 TextColumn::make('invoice_date_created')->label('Datum')->date('d.m.Y')->sortable()->toggleable(),
                 TextColumn::make('invoice_date_due')->label('Fällig am')->date('d.m.Y')->sortable()
                     ->color(fn (Invoice $record): ?string => $record->isOverdue() ? 'danger' : null)

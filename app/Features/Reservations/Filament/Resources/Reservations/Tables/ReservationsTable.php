@@ -16,6 +16,7 @@ use Filament\Actions\EditAction;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class ReservationsTable
@@ -47,6 +48,11 @@ class ReservationsTable
                     ->formatStateUsing(fn (ReservationStatus $state): string => $state->label())
                     ->color(fn (ReservationStatus $state): string => $state->color()),
                 TextColumn::make('amount.reservation_total')->label('Gesamt')->money('EUR', locale: 'de')->sortable(),
+            ])
+            ->filters([
+                SelectFilter::make('reservation_status_id')
+                    ->label('Status')
+                    ->options(ReservationStatus::options()),
             ])
             ->recordUrl(null)
             ->toolbarActions([

@@ -8,6 +8,7 @@ use App\Features\Documents\Filament\Tables\Columns\PaperlessDocumentIdsColumn;
 use Filament\Actions\BulkAction;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
@@ -18,6 +19,7 @@ use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -95,6 +97,15 @@ class LinkedBankTransactions extends Component implements HasActions, HasSchemas
                         ->space(1)
                         ->grow(false),
                 ]),
+            ])
+            ->filters([
+                Filter::make('counterparty_name')
+                    ->label('Gegenpartei')
+                    ->schema([TextInput::make('value')->label('Gegenpartei')])
+                    ->query(fn (Builder $query, array $data): Builder => $query->when(
+                        filled($data['value'] ?? null),
+                        fn (Builder $query): Builder => $query->where('counterparty_name', 'like', '%'.trim((string) $data['value']).'%'),
+                    )),
             ])
             ->toolbarActions([
                 BulkAction::make('unlinkSelected')

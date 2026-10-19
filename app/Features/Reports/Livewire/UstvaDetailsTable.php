@@ -8,11 +8,13 @@ use App\Features\Reports\Services\UstvaReportService;
 use Carbon\CarbonImmutable;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
+use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -81,6 +83,15 @@ class UstvaDetailsTable extends Component implements HasActions, HasSchemas, Has
                     ->label('Brutto')
                     ->state(fn (InvoiceItem $record): float => $this->detail($record)['gross'])
                     ->money('EUR', locale: 'de'),
+            ])
+            ->filters([
+                Filter::make('item_name')
+                    ->label('Position')
+                    ->schema([TextInput::make('value')->label('Position')])
+                    ->query(fn (Builder $query, array $data): Builder => $query->when(
+                        filled($data['value'] ?? null),
+                        fn (Builder $query): Builder => $query->where('item_name', 'like', '%'.trim((string) $data['value']).'%'),
+                    )),
             ])
             ->recordUrl(fn (InvoiceItem $record): string => InvoiceResource::getUrl('edit', ['record' => $record->invoice_id]))
             ->openRecordUrlInNewTab()

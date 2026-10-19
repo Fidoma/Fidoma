@@ -5,8 +5,10 @@ namespace App\Features\BankTransactions\Filament\Resources\BankTransactions\Tabl
 use App\Features\BankTransactions\Filament\Resources\BankTransactions\BankTransactionResource;
 use App\Features\BankTransactions\Models\BankTransaction;
 use Filament\Actions\CreateAction;
+use Filament\Forms\Components\TextInput;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -48,6 +50,15 @@ class BankTransactionsTable
                         'Vorgemerkt' => 'warning',
                         default => 'gray',
                     }),
+            ])
+            ->filters([
+                Filter::make('counterparty_name')
+                    ->label('Gegenpartei')
+                    ->schema([TextInput::make('value')->label('Gegenpartei')])
+                    ->query(fn (Builder $query, array $data): Builder => $query->when(
+                        filled($data['value'] ?? null),
+                        fn (Builder $query): Builder => $query->where('counterparty_name', 'like', '%'.trim((string) $data['value']).'%'),
+                    )),
             ])
             ->toolbarActions([
                 CreateAction::make()

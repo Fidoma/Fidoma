@@ -10,6 +10,7 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class ContractTemplatesTable
@@ -26,6 +27,14 @@ class ContractTemplatesTable
                     ->color(fn (string $state): string => $state === 'active' ? 'success' : 'gray'),
                 TextColumn::make('version')->label('Version')->sortable(),
                 TextColumn::make('updated_at')->label('Geändert')->dateTime('d.m.Y H:i')->sortable(),
+            ])
+            ->filters([
+                SelectFilter::make('status')
+                    ->label('Status')
+                    ->options([
+                        'active' => 'Aktiv',
+                        'draft' => 'Entwurf',
+                    ]),
             ])
             ->toolbarActions([
                 CreateAction::make()->label('Vertragsvorlage')->icon(Heroicon::Plus),

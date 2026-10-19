@@ -11,11 +11,14 @@ use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class ClientsTable
 {
@@ -45,6 +48,15 @@ class ClientsTable
                     ->label('Geändert')
                     ->dateTime('d.m.Y H:i')
                     ->sortable(),
+            ])
+            ->filters([
+                Filter::make('client_name')
+                    ->label('Name')
+                    ->schema([TextInput::make('value')->label('Name')])
+                    ->query(fn (Builder $query, array $data): Builder => $query->when(
+                        filled($data['value'] ?? null),
+                        fn (Builder $query): Builder => $query->where('client_name', 'like', '%'.trim((string) $data['value']).'%'),
+                    )),
             ])
             ->toolbarActions([
                 CreateAction::make()

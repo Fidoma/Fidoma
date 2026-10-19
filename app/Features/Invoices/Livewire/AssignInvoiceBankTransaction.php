@@ -10,6 +10,7 @@ use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
+use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Section;
@@ -24,6 +25,7 @@ use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -163,6 +165,15 @@ class AssignInvoiceBankTransaction extends Component implements HasActions, HasS
                             ->grow(false),
                     ])->alignment(Alignment::End)->space(1)->grow(false),
                 ]),
+            ])
+            ->filters([
+                Filter::make('counterparty_name')
+                    ->label('Gegenpartei')
+                    ->schema([TextInput::make('value')->label('Gegenpartei')])
+                    ->query(fn (Builder $query, array $data): Builder => $query->when(
+                        filled($data['value'] ?? null),
+                        fn (Builder $query): Builder => $query->where('counterparty_name', 'like', '%'.trim((string) $data['value']).'%'),
+                    )),
             ])
             ->toolbarActions([
                 BulkAction::make('assignSelected')

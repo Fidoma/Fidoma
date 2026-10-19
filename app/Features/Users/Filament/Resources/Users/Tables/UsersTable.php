@@ -4,9 +4,12 @@ namespace App\Features\Users\Filament\Resources\Users\Tables;
 
 use App\Features\Users\Filament\Resources\Users\UserResource;
 use Filament\Actions\CreateAction;
+use Filament\Forms\Components\TextInput;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class UsersTable
 {
@@ -34,6 +37,15 @@ class UsersTable
                     ->placeholder('–')
                     ->searchable()
                     ->sortable(),
+            ])
+            ->filters([
+                Filter::make('name')
+                    ->label('Name')
+                    ->schema([TextInput::make('value')->label('Name')])
+                    ->query(fn (Builder $query, array $data): Builder => $query->when(
+                        filled($data['value'] ?? null),
+                        fn (Builder $query): Builder => $query->where('name', 'like', '%'.trim((string) $data['value']).'%'),
+                    )),
             ])
             ->toolbarActions([
                 CreateAction::make()

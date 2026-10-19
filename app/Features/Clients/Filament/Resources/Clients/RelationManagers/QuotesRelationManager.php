@@ -9,6 +9,7 @@ use App\Features\Quotes\Models\Quote;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 
@@ -42,6 +43,11 @@ class QuotesRelationManager extends RelationManager
                     ->color(fn (QuoteStatus $state): string => $state->color()),
                 TextColumn::make('amount.quote_item_subtotal')->label('Netto')->money('EUR', locale: 'de'),
                 TextColumn::make('amount.quote_total')->label('Gesamt')->money('EUR', locale: 'de'),
+            ])
+            ->filters([
+                SelectFilter::make('quote_status_id')
+                    ->label('Status')
+                    ->options(QuoteStatus::options()),
             ]);
     }
 }
