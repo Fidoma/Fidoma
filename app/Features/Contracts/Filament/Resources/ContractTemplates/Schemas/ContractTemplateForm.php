@@ -25,18 +25,21 @@ class ContractTemplateForm
             ->columns(['default' => 1, 'xl' => 12])
             ->components([
                 TextInput::make('name')
-                    ->label('Vorlagentitel')
+                    ->label(__('contracts::messages.template.fields.title'))
                     ->required()
                     ->maxLength(255)
                     ->columnSpan(['default' => 1, 'xl' => 8]),
                 Select::make('status')
-                    ->label('Status')
-                    ->options(['draft' => 'Entwurf', 'active' => 'Aktiv'])
+                    ->label(__('contracts::messages.template.fields.status'))
+                    ->options([
+                        'draft' => __('contracts::messages.template.statuses.draft'),
+                        'active' => __('contracts::messages.template.statuses.active'),
+                    ])
                     ->default('draft')
                     ->required()
                     ->columnSpan(['default' => 1, 'xl' => 4]),
                 RichEditor::make('content')
-                    ->label('Vertragstext')
+                    ->label(__('contracts::messages.template.fields.content'))
                     ->required()
                     ->rule('required')
                     ->minHeight('32rem')

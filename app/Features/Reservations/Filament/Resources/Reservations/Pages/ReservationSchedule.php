@@ -18,6 +18,7 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Page;
+use Filament\Schemas\Components\View;
 use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\DB;
@@ -33,6 +34,23 @@ class ReservationSchedule extends Page
     protected static ?string $title = 'Belegungsplan';
 
     protected Width|string|null $maxContentWidth = Width::Full;
+
+    public function scheduleLegendAction(): Action
+    {
+        return Action::make('scheduleLegend')
+            ->label(__('reservations::messages.schedule.legend.action'))
+            ->extraAttributes([
+                'id' => 'schedule-legend-action-trigger',
+                'style' => 'display: none',
+            ])
+            ->modalHeading(__('reservations::messages.schedule.legend.heading'))
+            ->modalSubmitAction(false)
+            ->modalCancelActionLabel(__('reservations::messages.schedule.legend.close'))
+            ->modalWidth(Width::Small)
+            ->schema([
+                View::make('reservations::schedule-legend'),
+            ]);
+    }
 
     public function createAction(): Action
     {
@@ -202,7 +220,7 @@ class ReservationSchedule extends Page
 
         try {
             $date = CarbonImmutable::createFromFormat('!Y-m-d', $value);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return null;
         }
 

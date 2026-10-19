@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Features\Documents\Livewire\AssignBankTransaction;
+use App\Features\TradeFairs\Livewire\UpcomingTradeFairsTable;
 use Filament\Forms\Components\Select;
 use Filament\Support\Facades\FilamentView;
 use Filament\Tables\Columns\Column;
@@ -50,6 +51,18 @@ class AppServiceProvider extends ServiceProvider
                     : '';
             },
             scopes: AssignBankTransaction::class,
+        );
+
+        FilamentView::registerRenderHook(
+            TablesRenderHook::TOOLBAR_SEARCH_BEFORE,
+            function () {
+                $livewire = Livewire::current();
+
+                return $livewire instanceof UpcomingTradeFairsTable
+                    ? $livewire->importTradeFairsAction->toHtml()
+                    : '';
+            },
+            scopes: UpcomingTradeFairsTable::class,
         );
     }
 

@@ -3,6 +3,7 @@
 namespace Tests\Feature\Filament;
 
 use App\Features\Clients\Filament\Resources\Clients\ClientResource;
+use App\Features\Contracts\Filament\Resources\ContractTemplates\ContractTemplateResource;
 use App\Features\Documents\Services\PaperlessClient;
 use App\Features\EmailTemplates\Filament\Resources\EmailTemplates\EmailTemplateResource;
 use App\Features\Families\Filament\Resources\Families\FamilyResource;
@@ -195,6 +196,20 @@ class AdminNavigationTest extends TestCase
             ->assertSee('Unit price')
             ->assertSee('Quote terms')
             ->assertDontSee('Positionen');
+
+        $this->get(ContractTemplateResource::getUrl())
+            ->assertOk()
+            ->assertSee('Contract templates')
+            ->assertSee('Template title')
+            ->assertSee('Modified')
+            ->assertDontSee('Vertragsvorlagen');
+
+        $this->get(ContractTemplateResource::getUrl('create'))
+            ->assertOk()
+            ->assertSee('Template title')
+            ->assertSee('Contract text')
+            ->assertSee('Placeholders')
+            ->assertDontSee('Vorlagentitel');
 
         $this->actingAs($user)
             ->post(route('admin.locale.update', ['locale' => 'de']))

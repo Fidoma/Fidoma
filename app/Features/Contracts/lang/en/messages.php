@@ -4,6 +4,22 @@ return [
     'feature' => 'Contracts',
     'singular' => 'Contract',
     'template' => [
+        'feature' => 'Contract templates',
+        'singular' => 'Contract template',
+        'fields' => [
+            'title' => 'Template title',
+            'status' => 'Status',
+            'version' => 'Version',
+            'modified' => 'Modified',
+            'content' => 'Contract text',
+        ],
+        'statuses' => [
+            'draft' => 'Draft',
+            'active' => 'Active',
+        ],
+        'delete' => [
+            'in_use' => 'Templates that are in use cannot be deleted.',
+        ],
         'placeholders' => [
             'heading' => 'Placeholders',
             'add' => 'Add placeholder',

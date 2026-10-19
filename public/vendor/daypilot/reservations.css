@@ -11,49 +11,6 @@
     background: rgb(17 24 39);
 }
 
-.trade-fair-infobox {
-    overflow: hidden;
-    width: 100%;
-    border: 1px solid rgb(253 186 116);
-    border-radius: .75rem;
-    background: rgb(255 251 235);
-    color: rgb(120 53 15);
-    box-shadow: 0 1px 2px rgb(0 0 0 / .04);
-}
-.trade-fair-infobox[hidden] { display: none; }
-
-.trade-fair-infobox-header {
-    display: flex;
-    align-items: center;
-    gap: .5rem;
-    padding: .75rem 1rem;
-    border-bottom: 1px solid rgb(253 186 116);
-    font-size: .75rem;
-    font-weight: 700;
-    letter-spacing: .04em;
-    text-transform: uppercase;
-}
-
-.trade-fair-list { display: grid; }
-.trade-fair-item {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto;
-    align-items: center;
-    gap: .75rem 1.25rem;
-    padding: .85rem 1rem;
-}
-.trade-fair-item + .trade-fair-item { border-top: 1px solid rgb(254 215 170); }
-.trade-fair-item-content { display: flex; min-width: 0; flex-direction: column; gap: .15rem; }
-.trade-fair-item-content strong { color: rgb(120 53 15); font-size: .9rem; }
-.trade-fair-item-content span { color: rgb(146 64 14); font-size: .8rem; }
-.trade-fair-item time { white-space: nowrap; font-size: .8rem; font-weight: 600; }
-.trade-fair-item a { color: rgb(180 83 9); font-size: .75rem; font-weight: 600; text-decoration: underline; }
-
-@media (max-width: 640px) {
-    .trade-fair-item { grid-template-columns: minmax(0, 1fr); gap: .35rem; }
-    .trade-fair-item time { grid-row: 1; }
-}
-
 .reservation-scheduler-card .scheduler_default_main {
     border: 0;
     font-family: inherit;
@@ -80,6 +37,27 @@
     font-size: .75rem;
     font-weight: 500;
 }
+
+.reservation-scheduler-info-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: .5rem;
+    color: rgb(107 114 128);
+    cursor: pointer;
+    transition: background-color .15s ease, color .15s ease;
+}
+.reservation-scheduler-info-button:hover {
+    background: rgb(243 244 246);
+    color: rgb(17 24 39);
+}
+.reservation-scheduler-info-button:focus-visible {
+    outline: 2px solid rgb(190 0 110);
+    outline-offset: 2px;
+}
+.reservation-scheduler-info-button svg { width: 1.25rem; height: 1.25rem; }
 
 .reservation-scheduler-card .reservation-scheduler-today-header,
 .reservation-scheduler-card .reservation-scheduler-today-header .scheduler_default_timeheadercol_inner {
@@ -181,12 +159,9 @@
     color: rgb(251 207 232);
 }
 
-.dark .trade-fair-infobox { border-color: rgb(146 64 14); background: rgb(69 26 3); color: rgb(254 215 170); }
-.dark .trade-fair-infobox-header,
-.dark .trade-fair-item + .trade-fair-item { border-color: rgb(146 64 14); }
-.dark .trade-fair-item-content strong { color: rgb(255 237 213); }
-.dark .trade-fair-item-content span { color: rgb(254 215 170); }
-.dark .trade-fair-item a { color: rgb(253 186 116); }
+.dark .reservation-scheduler-info-button { color: rgb(156 163 175); }
+.dark .reservation-scheduler-info-button:hover { background: rgb(55 65 81); color: rgb(243 244 246); }
+
 .dark .reservation-scheduler-card .reservation-scheduler-trade-fair-header,
 .dark .reservation-scheduler-card .reservation-scheduler-trade-fair-header .scheduler_default_timeheadercol_inner {
     background: #FFD966;

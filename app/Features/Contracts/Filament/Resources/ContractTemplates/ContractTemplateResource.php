@@ -18,12 +18,6 @@ class ContractTemplateResource extends Resource
 {
     protected static ?string $model = ContractTemplate::class;
 
-    protected static ?string $modelLabel = 'Vertragsvorlage';
-
-    protected static ?string $pluralModelLabel = 'Vertragsvorlagen';
-
-    protected static ?string $navigationLabel = 'Vertragsvorlagen';
-
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
 
     protected static ?int $navigationSort = 7;
@@ -31,6 +25,21 @@ class ContractTemplateResource extends Resource
     protected static ?string $slug = 'contract-templates';
 
     protected static ?string $recordTitleAttribute = 'name';
+
+    public static function getNavigationLabel(): string
+    {
+        return __('contracts::messages.template.feature');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('contracts::messages.template.singular');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('contracts::messages.template.feature');
+    }
 
     public static function form(Schema $schema): Schema
     {

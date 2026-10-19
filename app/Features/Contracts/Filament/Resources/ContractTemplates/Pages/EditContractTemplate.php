@@ -19,7 +19,7 @@ class EditContractTemplate extends EditRecord
             DeleteAction::make()
                 ->disabled(fn (): bool => $this->record->contracts()->exists())
                 ->tooltip(fn (): ?string => $this->record->contracts()->exists()
-                    ? 'Verwendete Vorlagen können nicht gelöscht werden.'
+                    ? __('contracts::messages.template.delete.in_use')
                     : null),
         ];
     }

@@ -1,31 +1,13 @@
 @php($schedule = $this->schedule())
 
 <x-filament-panels::page>
-    <section id="trade-fair-infobox" class="trade-fair-infobox" aria-labelledby="trade-fair-infobox-title" hidden>
-        <header class="trade-fair-infobox-header">
-            <span aria-hidden="true">📅</span>
-            <h2 id="trade-fair-infobox-title">{{ __('trade-fairs::messages.upcoming') }}</h2>
-        </header>
-        <div id="trade-fair-list" class="trade-fair-list"></div>
-    </section>
+    {{ $this->scheduleLegendAction }}
 
     <div class="reservation-scheduler-card" wire:ignore>
         <div id="reservations-scheduler" aria-label="Belegungsplan"></div>
     </div>
 
-    <div class="flex flex-col gap-2 text-sm text-gray-600 dark:text-gray-400">
-        <div class="flex flex-wrap items-center gap-2">
-            <span>Senkrechter Rand:</span>
-            <x-filament::badge color="gray">Offen</x-filament::badge>
-            <x-filament::badge color="success">Bestätigt</x-filament::badge>
-            <x-filament::badge color="danger">Storniert</x-filament::badge>
-        </div>
-        <div class="flex flex-wrap items-center gap-2">
-            <span>Oberer Balken:</span>
-            <x-filament::badge color="gray">Offen / nicht berechnet</x-filament::badge>
-            <x-filament::badge color="success">Bezahlt</x-filament::badge>
-        </div>
-    </div>
+    @livewire(\App\Features\TradeFairs\Livewire\UpcomingTradeFairsTable::class)
 
     @assets
         <link rel="stylesheet" href="{{ asset('vendor/daypilot/reservations.css') }}">
@@ -37,11 +19,8 @@
         (() => {
             const config = @js($schedule);
             const container = document.getElementById('reservations-scheduler');
-            const tradeFairBox = document.getElementById('trade-fair-infobox');
-            const tradeFairList = document.getElementById('trade-fair-list');
-            const upcomingUrl = @js(route('trade-fairs.upcoming'));
             const rangeUrl = @js(route('trade-fairs.range'));
-            const tradeFairWebsiteLabel = @js(__('trade-fairs::messages.website'));
+            const scheduleLegendLabel = @js(__('reservations::messages.schedule.legend.action'));
             const TRADE_FAIR_HEADER_COLOR = '#FFD966';
             let tradeFairs = [];
             const escapeHtml = value => String(value ?? '')
@@ -52,55 +31,6 @@
                 .replaceAll("'", '&#039;');
 
             if (!container || typeof window.DayPilot === 'undefined') return;
-
-            const formatDateRange = fair => {
-                const start = new Date(`${fair.start_date}T12:00:00`);
-                const end = new Date(`${fair.end_date}T12:00:00`);
-                const startText = new Intl.DateTimeFormat('de-DE', {
-                    day: '2-digit', month: '2-digit', year: start.getFullYear() === end.getFullYear() ? undefined : 'numeric',
-                }).format(start);
-                const endText = new Intl.DateTimeFormat('de-DE', {
-                    day: '2-digit', month: '2-digit', year: 'numeric',
-                }).format(end);
-
-                return `${startText} – ${endText}`;
-            };
-
-            const renderUpcoming = fairs => {
-                tradeFairList.replaceChildren();
-                tradeFairBox.hidden = fairs.length === 0;
-
-                fairs.forEach(fair => {
-                    const item = document.createElement('article');
-                    item.className = 'trade-fair-item';
-                    const content = document.createElement('div');
-                    content.className = 'trade-fair-item-content';
-                    const heading = document.createElement('strong');
-                    heading.textContent = fair.name;
-                    const date = document.createElement('time');
-                    date.textContent = formatDateRange(fair);
-                    content.append(heading);
-
-                    if (fair.description) {
-                        const description = document.createElement('span');
-                        description.textContent = fair.description;
-                        content.append(description);
-                    }
-
-                    item.append(content, date);
-
-                    if (fair.website) {
-                        const link = document.createElement('a');
-                        link.href = fair.website;
-                        link.target = '_blank';
-                        link.rel = 'noopener noreferrer';
-                        link.textContent = tradeFairWebsiteLabel;
-                        item.append(link);
-                    }
-
-                    tradeFairList.append(item);
-                });
-            };
 
             const fetchJson = async url => {
                 const response = await fetch(url, { headers: { Accept: 'application/json' }, credentials: 'same-origin' });
@@ -115,7 +45,16 @@
                 startDate: config.startDate,
                 days: config.days,
                 scale: 'Day',
-                cornerHtml: 'Zimmer',
+                cornerHtml: `
+                    <button id="reservation-scheduler-info-button" class="reservation-scheduler-info-button" type="button"
+                        title="${escapeHtml(scheduleLegendLabel)}" aria-label="${escapeHtml(scheduleLegendLabel)}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                            <circle cx="12" cy="12" r="9"></circle>
+                            <path stroke-linecap="round" d="M12 10.75v5.5"></path>
+                            <circle cx="12" cy="7.5" r=".75" fill="currentColor" stroke="none"></circle>
+                        </svg>
+                    </button>
+                `,
                 cellWidthSpec: 'Fixed',
                 cellWidth: 90,
                 timeHeaders: [
@@ -183,16 +122,11 @@
             });
 
             scheduler.init();
+            document.getElementById('reservation-scheduler-info-button')?.addEventListener('click', () => {
+                document.getElementById('schedule-legend-action-trigger')?.click();
+            });
             scheduler.scrollTo(DayPilot.Date.today().addDays(-5));
 
-            const loadUpcoming = async () => {
-                try {
-                    renderUpcoming(await fetchJson(upcomingUrl));
-                } catch (error) {
-                    renderUpcoming([]);
-                    console.warn('Messetermine für die Infobox konnten nicht geladen werden.', error);
-                }
-            };
             const loadRange = async () => {
                 const end = new DayPilot.Date(config.startDate).addDays(config.days).toString('yyyy-MM-dd');
                 const url = new URL(rangeUrl, window.location.origin);
@@ -212,15 +146,18 @@
                 const now = new Date();
                 const nextRefresh = new Date(now);
                 nextRefresh.setHours(24, 0, 5, 0);
-                window.setTimeout(async () => {
-                    await loadUpcoming();
+                window.setTimeout(() => {
+                    $wire.dispatch('trade-fairs-day-changed');
                     scheduleNextDailyRefresh();
                 }, nextRefresh.getTime() - now.getTime());
             };
 
-            void loadUpcoming();
             void loadRange();
             scheduleNextDailyRefresh();
+            $wire.on('trade-fairs-imported', () => {
+                void loadUpcoming();
+                void loadRange();
+            });
         })();
     </script>
     @endscript

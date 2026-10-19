@@ -123,14 +123,9 @@ class ReservationTest extends TestCase
             ->assertDontSeeText('Gültig bis');
         $this->get('/admin/reservations/belegungsplan')
             ->assertOk()
-            ->assertSeeText('Anstehende Messen in Stuttgart')
-            ->assertSeeText('Senkrechter Rand:')
-            ->assertSeeText('Offen')
-            ->assertSeeText('Bestätigt')
-            ->assertSeeText('Storniert')
-            ->assertSeeText('Oberer Balken:')
-            ->assertSeeText('Offen / nicht berechnet')
-            ->assertSeeText('Bezahlt')
+            ->assertSee('aria-label="Messetermine importieren"', false)
+            ->assertSeeText('Messen in Stuttgart')
+            ->assertSee('reservation-scheduler-info-button', false)
             ->assertDontSeeText('Die Reservierung wurde noch nicht bestätigt.')
             ->assertDontSeeText('Die zugehörige Rechnung ist vollständig bezahlt.');
         $this->get('/admin/rooms')->assertOk();
@@ -139,7 +134,18 @@ class ReservationTest extends TestCase
         $this->assertNull($schedule->instance()->getHeading());
         $schedule
             ->assertDontSee('Reservierung hinzufügen')
-            ->assertDontSee('Liste');
+            ->assertDontSee('Liste')
+            ->mountAction('scheduleLegend')
+            ->assertActionMounted('scheduleLegend');
+
+        $this->view('reservations::schedule-legend')
+            ->assertSeeText('Senkrechter Rand')
+            ->assertSeeText('Offen')
+            ->assertSeeText('Bestätigt')
+            ->assertSeeText('Storniert')
+            ->assertSeeText('Oberer Balken')
+            ->assertSeeText('Offen / nicht berechnet')
+            ->assertSeeText('Bezahlt');
 
         Filament::setCurrentPanel(Filament::getPanel('admin'));
         $navigationItems = ReservationResource::getNavigationItems();

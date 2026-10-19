@@ -4,6 +4,22 @@ return [
     'feature' => 'Verträge',
     'singular' => 'Vertrag',
     'template' => [
+        'feature' => 'Vertragsvorlagen',
+        'singular' => 'Vertragsvorlage',
+        'fields' => [
+            'title' => 'Vorlagentitel',
+            'status' => 'Status',
+            'version' => 'Version',
+            'modified' => 'Geändert',
+            'content' => 'Vertragstext',
+        ],
+        'statuses' => [
+            'draft' => 'Entwurf',
+            'active' => 'Aktiv',
+        ],
+        'delete' => [
+            'in_use' => 'Verwendete Vorlagen können nicht gelöscht werden.',
+        ],
         'placeholders' => [
             'heading' => 'Platzhalter',
             'add' => 'Platzhalter hinzufügen',

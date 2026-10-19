@@ -21,23 +21,23 @@ class ContractTemplatesTable
             ->defaultSort('updated_at', 'desc')
             ->recordUrl(fn ($record): string => ContractTemplateResource::getUrl('edit', ['record' => $record]))
             ->columns([
-                TextColumn::make('name')->label('Vorlagentitel')->searchable()->sortable(),
-                TextColumn::make('status')->label('Status')->badge()
-                    ->formatStateUsing(fn (string $state): string => $state === 'active' ? 'Aktiv' : 'Entwurf')
+                TextColumn::make('name')->label(__('contracts::messages.template.fields.title'))->searchable()->sortable(),
+                TextColumn::make('status')->label(__('contracts::messages.template.fields.status'))->badge()
+                    ->formatStateUsing(fn (string $state): string => __('contracts::messages.template.statuses.'.$state))
                     ->color(fn (string $state): string => $state === 'active' ? 'success' : 'gray'),
-                TextColumn::make('version')->label('Version')->sortable(),
-                TextColumn::make('updated_at')->label('Geändert')->dateTime('d.m.Y H:i')->sortable(),
+                TextColumn::make('version')->label(__('contracts::messages.template.fields.version'))->sortable(),
+                TextColumn::make('updated_at')->label(__('contracts::messages.template.fields.modified'))->dateTime('d.m.Y H:i')->sortable(),
             ])
             ->filters([
                 SelectFilter::make('status')
-                    ->label('Status')
+                    ->label(__('contracts::messages.template.fields.status'))
                     ->options([
-                        'active' => 'Aktiv',
-                        'draft' => 'Entwurf',
+                        'active' => __('contracts::messages.template.statuses.active'),
+                        'draft' => __('contracts::messages.template.statuses.draft'),
                     ]),
             ])
             ->toolbarActions([
-                CreateAction::make()->label('Vertragsvorlage')->icon(Heroicon::Plus),
+                CreateAction::make()->label(__('contracts::messages.template.singular'))->icon(Heroicon::Plus),
             ])
             ->recordActions([
                 ActionGroup::make([
@@ -45,7 +45,7 @@ class ContractTemplatesTable
                     DeleteAction::make()
                         ->disabled(fn (ContractTemplate $record): bool => $record->contracts()->exists())
                         ->tooltip(fn (ContractTemplate $record): ?string => $record->contracts()->exists()
-                            ? 'Verwendete Vorlagen können nicht gelöscht werden.'
+                            ? __('contracts::messages.template.delete.in_use')
                             : null),
                 ])->iconButton()->icon(Heroicon::OutlinedEllipsisVertical)->color('gray'),
             ]);

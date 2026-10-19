@@ -2,11 +2,13 @@
 
 namespace Tests\Feature\TradeFairs;
 
+use App\Features\TradeFairs\Livewire\UpcomingTradeFairsTable;
 use App\Features\TradeFairs\Models\TradeFair;
 use App\Features\TradeFairs\Services\TradeFairCsvImporter;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class TradeFairTest extends TestCase
@@ -118,6 +120,36 @@ CSV);
         $this->getJson(route('trade-fairs.upcoming'))->assertUnauthorized();
         $this->getJson(route('trade-fairs.range', ['start' => '2027-03-01', 'end' => '2027-04-01']))
             ->assertUnauthorized();
+    }
+
+    public function test_upcoming_trade_fairs_use_a_filterable_paginated_filament_table(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $past = TradeFair::query()->create($this->fair([
+            'identity_key' => hash('sha256', 'past'),
+            'name' => 'Vergangene Messe',
+            'start_date' => '2026-01-01',
+            'end_date' => '2026-01-02',
+        ]));
+        $future = TradeFair::query()->create($this->fair([
+            'identity_key' => hash('sha256', 'future'),
+            'name' => 'Zukünftige Messe',
+            'start_date' => '2030-01-01',
+            'end_date' => '2030-01-02',
+        ]));
+
+        $component = Livewire::test(UpcomingTradeFairsTable::class)
+            ->assertCanSeeTableRecords([$past, $future])
+            ->assertTableColumnExists('name')
+            ->assertTableColumnExists('start_date')
+            ->assertTableColumnExists('end_date')
+            ->assertTableColumnExists('location')
+            ->assertTableColumnExists('website')
+            ->assertTableFilterExists('period');
+
+        $this->assertSame([5, 10, 25, 50], $component->instance()->getTable()->getPaginationPageOptions());
+        $this->assertSame(5, $component->instance()->getTable()->getDefaultPaginationPageOption());
+        $this->assertSame('upcoming-trade-fairs', $component->instance()->getTable()->getQueryStringIdentifier());
     }
 
     /** @param array<string, mixed> $overrides
