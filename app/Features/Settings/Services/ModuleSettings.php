@@ -21,6 +21,7 @@ class ModuleSettings
         'bank_transactions',
         'assignments',
         'payments',
+        'terminals',
         'reports',
         'data_import',
         'webmail',

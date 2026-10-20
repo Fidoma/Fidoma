@@ -19,6 +19,7 @@ return [
             'bank_transactions' => 'Bank transactions',
             'assignments' => 'Assignments',
             'payments' => 'Payments',
+            'terminals' => 'Terminals',
             'reports' => 'Reports',
             'data_import' => 'Data import',
             'webmail' => 'Webmail',

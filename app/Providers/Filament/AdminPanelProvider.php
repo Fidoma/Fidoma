@@ -13,6 +13,7 @@ use App\Features\Reports\Filament\Pages\Reports;
 use App\Features\Settings\Filament\Clusters\SettingsCluster;
 use App\Features\Settings\Filament\Pages\Modules;
 use App\Features\Settings\Services\ModuleSettings;
+use App\Features\Terminals\Filament\Pages\Terminal;
 use App\Features\TradeFairs\Filament\Pages\TradeFairs;
 use App\Features\Webmail\Filament\Pages\Webmail;
 use Filament\Actions\Action;
@@ -113,6 +114,7 @@ class AdminPanelProvider extends PanelProvider
                 InvoiceLayout::class,
                 Reports::class,
                 TradeFairs::class,
+                Terminal::class,
                 Webmail::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')

@@ -3,6 +3,9 @@
 namespace App\Providers;
 
 use App\Features\Documents\Livewire\AssignBankTransaction;
+use App\Features\Terminals\Contracts\PaymentTerminalInterface;
+use App\Features\Terminals\Services\InternalApiTerminalGateway;
+use App\Features\Terminals\Services\SimulatorTerminalGateway;
 use App\Features\TradeFairs\Livewire\UpcomingTradeFairsTable;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
@@ -22,7 +25,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(PaymentTerminalInterface::class, function ($app): PaymentTerminalInterface {
+            return config('terminal.mode') === 'gateway'
+                ? $app->make(InternalApiTerminalGateway::class)
+                : $app->make(SimulatorTerminalGateway::class);
+        });
     }
 
     /**
