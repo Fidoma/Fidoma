@@ -39,10 +39,9 @@ class ReservationSchedule extends Page
     {
         return Action::make('scheduleLegend')
             ->label(__('reservations::messages.schedule.legend.action'))
-            ->extraAttributes([
-                'id' => 'schedule-legend-action-trigger',
-                'style' => 'display: none',
-            ])
+            ->tooltip(__('reservations::messages.schedule.legend.action'))
+            ->icon(Heroicon::OutlinedInformationCircle)
+            ->iconButton()
             ->modalHeading(__('reservations::messages.schedule.legend.heading'))
             ->modalSubmitAction(false)
             ->modalCancelActionLabel(__('reservations::messages.schedule.legend.close'))

@@ -1,13 +1,13 @@
 @php($schedule = $this->schedule())
 
 <x-filament-panels::page>
-    {{ $this->scheduleLegendAction }}
+    <div class="flex justify-end">
+        {{ $this->scheduleLegendAction }}
+    </div>
 
     <div class="reservation-scheduler-card" wire:ignore>
         <div id="reservations-scheduler" aria-label="Belegungsplan"></div>
     </div>
-
-    @livewire(\App\Features\TradeFairs\Livewire\UpcomingTradeFairsTable::class)
 
     @assets
         <link rel="stylesheet" href="{{ asset('vendor/daypilot/reservations.css') }}">
@@ -20,7 +20,6 @@
             const config = @js($schedule);
             const container = document.getElementById('reservations-scheduler');
             const rangeUrl = @js(route('trade-fairs.range'));
-            const scheduleLegendLabel = @js(__('reservations::messages.schedule.legend.action'));
             const TRADE_FAIR_HEADER_COLOR = '#FFD966';
             let tradeFairs = [];
             const escapeHtml = value => String(value ?? '')
@@ -45,16 +44,7 @@
                 startDate: config.startDate,
                 days: config.days,
                 scale: 'Day',
-                cornerHtml: `
-                    <button id="reservation-scheduler-info-button" class="reservation-scheduler-info-button" type="button"
-                        title="${escapeHtml(scheduleLegendLabel)}" aria-label="${escapeHtml(scheduleLegendLabel)}">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                            <circle cx="12" cy="12" r="9"></circle>
-                            <path stroke-linecap="round" d="M12 10.75v5.5"></path>
-                            <circle cx="12" cy="7.5" r=".75" fill="currentColor" stroke="none"></circle>
-                        </svg>
-                    </button>
-                `,
+                cornerHtml: '',
                 cellWidthSpec: 'Fixed',
                 cellWidth: 90,
                 timeHeaders: [
@@ -122,9 +112,6 @@
             });
 
             scheduler.init();
-            document.getElementById('reservation-scheduler-info-button')?.addEventListener('click', () => {
-                document.getElementById('schedule-legend-action-trigger')?.click();
-            });
             scheduler.scrollTo(DayPilot.Date.today().addDays(-5));
 
             const loadRange = async () => {
@@ -142,22 +129,7 @@
 
                 scheduler.update();
             };
-            const scheduleNextDailyRefresh = () => {
-                const now = new Date();
-                const nextRefresh = new Date(now);
-                nextRefresh.setHours(24, 0, 5, 0);
-                window.setTimeout(() => {
-                    $wire.dispatch('trade-fairs-day-changed');
-                    scheduleNextDailyRefresh();
-                }, nextRefresh.getTime() - now.getTime());
-            };
-
             void loadRange();
-            scheduleNextDailyRefresh();
-            $wire.on('trade-fairs-imported', () => {
-                void loadUpcoming();
-                void loadRange();
-            });
         })();
     </script>
     @endscript

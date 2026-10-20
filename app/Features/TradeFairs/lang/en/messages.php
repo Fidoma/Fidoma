@@ -1,10 +1,9 @@
 <?php
 
 return [
-    'upcoming' => 'Trade fairs in Stuttgart',
+    'upcoming' => 'Trade fairs',
     'website' => 'Open website',
     'table' => [
-        'description' => 'Active trade fairs in Stuttgart.',
         'name' => 'Trade fair',
         'start_date' => 'Start',
         'end_date' => 'End',

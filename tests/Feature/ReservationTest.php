@@ -16,6 +16,7 @@ use App\Features\Reservations\Filament\Resources\Reservations\Pages\ReservationS
 use App\Features\Reservations\Filament\Resources\Reservations\ReservationResource;
 use App\Features\Reservations\Models\Room;
 use App\Features\TaxRates\Models\TaxRate;
+use App\Features\TradeFairs\Filament\Pages\TradeFairs;
 use App\Features\Units\Models\Unit;
 use App\Models\User;
 use Filament\Facades\Filament;
@@ -123,11 +124,16 @@ class ReservationTest extends TestCase
             ->assertDontSeeText('Gültig bis');
         $this->get('/admin/reservations/belegungsplan')
             ->assertOk()
-            ->assertSee('aria-label="Messetermine importieren"', false)
-            ->assertSeeText('Messen in Stuttgart')
-            ->assertSee('reservation-scheduler-info-button', false)
+            ->assertSee('aria-label="Statuslegende anzeigen"', false)
+            ->assertDontSee('aria-label="Messetermine importieren"', false)
+            ->assertDontSee('reservation-scheduler-info-button', false)
             ->assertDontSeeText('Die Reservierung wurde noch nicht bestätigt.')
             ->assertDontSeeText('Die zugehörige Rechnung ist vollständig bezahlt.');
+        $this->get(TradeFairs::getUrl())
+            ->assertOk()
+            ->assertSeeText('Messen')
+            ->assertSee('aria-label="Messetermine importieren"', false)
+            ->assertDontSeeText('Aktive Messetermine in Stuttgart.');
         $this->get('/admin/rooms')->assertOk();
 
         $schedule = Livewire::test(ReservationSchedule::class);
@@ -139,18 +145,23 @@ class ReservationTest extends TestCase
             ->assertActionMounted('scheduleLegend');
 
         $this->view('reservations::schedule-legend')
+            ->assertSeeText('Reservierungs-Events')
+            ->assertSeeText('Jeder Block im Belegungsplan zeigt den Aufenthalt einer Reservierung.')
             ->assertSeeText('Senkrechter Rand')
             ->assertSeeText('Offen')
             ->assertSeeText('Bestätigt')
             ->assertSeeText('Storniert')
             ->assertSeeText('Oberer Balken')
             ->assertSeeText('Offen / nicht berechnet')
-            ->assertSeeText('Bezahlt');
+            ->assertSeeText('Bezahlt')
+            ->assertSeeText('Datumszeile')
+            ->assertSeeText('Gelber Datumskopf')
+            ->assertSeeText('Gelb markierte Tage liegen innerhalb mindestens eines aktiven Messetermins.');
 
         Filament::setCurrentPanel(Filament::getPanel('admin'));
         $navigationItems = ReservationResource::getNavigationItems();
 
-        $this->assertSame(['Reservierungen', 'Belegungsplan'], array_map(
+        $this->assertSame(['Reservierungen', 'Belegungsplan', 'Messen'], array_map(
             fn ($item): string => $item->getLabel(),
             $navigationItems,
         ));
@@ -158,5 +169,6 @@ class ReservationTest extends TestCase
             ReservationResource::getUrl('schedule'),
             $navigationItems[1]->getUrl(),
         );
+        $this->assertSame(TradeFairs::getUrl(), $navigationItems[2]->getUrl());
     }
 }

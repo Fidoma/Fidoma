@@ -11,6 +11,7 @@ use App\Features\Imports\Filament\Pages\DataImport;
 use App\Features\Invoices\Filament\Pages\InvoiceLayout;
 use App\Features\Reports\Filament\Pages\Reports;
 use App\Features\Settings\Filament\Clusters\SettingsCluster;
+use App\Features\TradeFairs\Filament\Pages\TradeFairs;
 use App\Features\Webmail\Filament\Pages\Webmail;
 use Filament\Actions\Action;
 use Filament\Http\Middleware\Authenticate;
@@ -107,6 +108,7 @@ class AdminPanelProvider extends PanelProvider
                 DataImport::class,
                 InvoiceLayout::class,
                 Reports::class,
+                TradeFairs::class,
                 Webmail::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')

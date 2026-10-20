@@ -47,7 +47,6 @@ class UpcomingTradeFairsTable extends Component implements HasActions, HasSchema
                 ->orderBy('name'))
             ->queryStringIdentifier('upcoming-trade-fairs')
             ->heading(__('trade-fairs::messages.upcoming'))
-            ->description(__('trade-fairs::messages.table.description'))
             ->columns([
                 TextColumn::make('name')
                     ->label(__('trade-fairs::messages.table.name'))

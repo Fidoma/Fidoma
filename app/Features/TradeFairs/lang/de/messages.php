@@ -1,10 +1,9 @@
 <?php
 
 return [
-    'upcoming' => 'Messen in Stuttgart',
+    'upcoming' => 'Messen',
     'website' => 'Webseite öffnen',
     'table' => [
-        'description' => 'Aktive Messetermine in Stuttgart.',
         'name' => 'Messe',
         'start_date' => 'Beginn',
         'end_date' => 'Ende',

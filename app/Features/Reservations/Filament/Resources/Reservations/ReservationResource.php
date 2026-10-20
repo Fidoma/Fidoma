@@ -9,6 +9,7 @@ use App\Features\Reservations\Filament\Resources\Reservations\Pages\ReservationS
 use App\Features\Reservations\Filament\Resources\Reservations\Schemas\ReservationForm;
 use App\Features\Reservations\Filament\Resources\Reservations\Tables\ReservationsTable;
 use App\Features\Reservations\Models\Reservation;
+use App\Features\TradeFairs\Filament\Pages\TradeFairs;
 use BackedEnum;
 use Filament\Navigation\NavigationItem;
 use Filament\Resources\Resource;
@@ -82,6 +83,13 @@ class ReservationResource extends Resource
                 ->sort(2)
                 ->url(static::getUrl('schedule'))
                 ->isActiveWhen(fn (): bool => request()->routeIs($routeBaseName.'.schedule')),
+            NavigationItem::make(fn (): string => __('trade-fairs::messages.upcoming'))
+                ->key(TradeFairs::class)
+                ->group(static::getNavigationGroup())
+                ->icon(Heroicon::OutlinedBuildingOffice2)
+                ->sort(3)
+                ->url(fn (): string => TradeFairs::getUrl())
+                ->isActiveWhen(fn (): bool => request()->routeIs(TradeFairs::getRouteName())),
         ];
     }
 
