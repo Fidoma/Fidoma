@@ -17,7 +17,7 @@ class DashboardTasks extends Widget
 
     protected static ?int $sort = 5;
 
-    protected string $view = 'features.dashboard.widgets.dashboard-tasks';
+    protected string $view = 'dashboard::widgets.dashboard-tasks';
 
     protected int|string|array $columnSpan = 'full';
 

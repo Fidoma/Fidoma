@@ -180,6 +180,6 @@ class LinkedBankTransactions extends Component implements HasActions, HasSchemas
 
     public function render(): View
     {
-        return view('livewire.features.documents.linked-bank-transactions');
+        return view('documents::linked-bank-transactions');
     }
 }

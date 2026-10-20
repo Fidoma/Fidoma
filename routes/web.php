@@ -7,9 +7,7 @@ use App\Features\TradeFairs\Http\Controllers\TradeFairController;
 use App\Features\Webmail\Http\Controllers\RoundcubeController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::view('/', 'welcome::welcome');
 
 Route::middleware('auth')->post('admin/locale/{locale}', LocaleController::class)
     ->whereIn('locale', ['de', 'en'])

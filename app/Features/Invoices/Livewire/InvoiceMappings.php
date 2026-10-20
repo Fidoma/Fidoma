@@ -183,7 +183,7 @@ class InvoiceMappings extends Component implements HasActions, HasSchemas, HasTa
             ->modalHeading('Zahlungseingang zuordnen')
             ->modalSubmitAction(false)
             ->modalCancelActionLabel('Schließen')
-            ->modalContent(fn (array $arguments) => view('filament.pages.partials.assign-invoice-bank-transaction', [
+            ->modalContent(fn (array $arguments) => view('invoices::assign-bank-transaction-modal', [
                 'invoiceId' => (int) $arguments['invoiceId'],
                 'paymentId' => isset($arguments['paymentId']) ? (int) $arguments['paymentId'] : null,
             ]));
@@ -241,6 +241,6 @@ class InvoiceMappings extends Component implements HasActions, HasSchemas, HasTa
 
     public function render(): View
     {
-        return view('livewire.features.invoices.invoice-mappings');
+        return view('invoices::invoice-mappings');
     }
 }

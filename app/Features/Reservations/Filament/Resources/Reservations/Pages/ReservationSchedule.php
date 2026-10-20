@@ -29,7 +29,7 @@ class ReservationSchedule extends Page
 
     protected static string $resource = ReservationResource::class;
 
-    protected string $view = 'filament.resources.reservations.pages.reservation-schedule';
+    protected string $view = 'reservations::reservation-schedule';
 
     protected static ?string $title = 'Belegungsplan';
 

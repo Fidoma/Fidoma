@@ -108,7 +108,7 @@ class ContractTemplateForm
                     ->schema([
                         Hidden::make('custom_placeholders')
                             ->default([]),
-                        View::make('features.contracts.placeholders')
+                        View::make('contracts::placeholders')
                             ->statePath('custom_placeholders')
                             ->viewData(['groups' => ContractPlaceholders::groups()]),
                     ])

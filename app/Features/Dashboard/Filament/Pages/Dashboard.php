@@ -151,6 +151,6 @@ class Dashboard extends BaseDashboard
 
     public function getHeader(): ?View
     {
-        return view('features.dashboard.dashboard-header');
+        return view('dashboard::dashboard-header');
     }
 }

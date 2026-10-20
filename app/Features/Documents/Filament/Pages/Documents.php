@@ -43,7 +43,7 @@ class Documents extends Page implements HasTable
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedLink;
 
-    protected string $view = 'filament.pages.documents';
+    protected string $view = 'documents::documents';
 
     public ?string $paperlessError = null;
 
@@ -220,7 +220,7 @@ class Documents extends Page implements HasTable
             ->modalHeading('Banktransaktion zuordnen')
             ->modalSubmitAction(false)
             ->modalCancelActionLabel('Schließen')
-            ->modalContent(fn (array $arguments) => view('filament.pages.partials.assign-bank-transaction', [
+            ->modalContent(fn (array $arguments) => view('documents::assign-bank-transaction-modal', [
                 'documentId' => (int) $arguments['documentId'],
             ]));
     }

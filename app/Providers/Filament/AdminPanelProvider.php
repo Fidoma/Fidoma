@@ -52,7 +52,7 @@ class AdminPanelProvider extends PanelProvider
             ->favicon(asset('images/brand/fidoma-mark.png'))
             ->renderHook(
                 PanelsRenderHook::SIMPLE_LAYOUT_START,
-                fn () => view('features.authentication.login-story'),
+                fn () => view('authentication::login-story'),
                 scopes: Login::class,
             )
             ->sidebarWidth('17rem')
@@ -90,7 +90,7 @@ class AdminPanelProvider extends PanelProvider
                         ->visible(fn (): bool => SettingsCluster::canAccessClusteredComponents())
                         ->sort(0),
                     Action::make('language')
-                        ->view('features.authentication.user-menu-language-switcher')
+                        ->view('authentication::user-menu-language-switcher')
                         ->sort(1),
                 ],
                 [

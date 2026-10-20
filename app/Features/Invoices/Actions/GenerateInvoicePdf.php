@@ -29,7 +29,7 @@ final class GenerateInvoicePdf
             ))->setPaper('a4');
         }
 
-        return Pdf::loadView('features.invoices.documents.invoice', [
+        return Pdf::loadView('invoices::documents.invoice', [
             'invoice' => $this->documentData->prepare($invoice),
             'preview' => false,
         ])->setPaper('a4');

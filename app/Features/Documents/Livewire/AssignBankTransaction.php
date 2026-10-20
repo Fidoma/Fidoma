@@ -387,7 +387,7 @@ class AssignBankTransaction extends Component implements HasActions, HasSchemas,
 
     public function render(): View
     {
-        return view('livewire.features.documents.assign-bank-transaction');
+        return view('documents::assign-bank-transaction');
     }
 
     private function paperlessDocument(): PaperlessDocument

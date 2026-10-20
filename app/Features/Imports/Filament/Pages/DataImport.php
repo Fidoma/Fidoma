@@ -44,7 +44,7 @@ class DataImport extends Page
 
     protected static ?int $navigationSort = 5;
 
-    protected string $view = 'filament.pages.data-import';
+    protected string $view = 'imports::data-import';
 
     protected Width|string|null $maxContentWidth = Width::Full;
 
@@ -111,7 +111,7 @@ class DataImport extends Page
                     ->description('Ordnen Sie die CSV-Spalten den Banktransaktionsfeldern zu. Leere Zellen können durch einen festen Standardwert ersetzt werden.')
                     ->schema([
                         ...$this->mappingStateComponents(),
-                        View::make('features.imports.column-mapping')
+                        View::make('imports::column-mapping')
                             ->viewData(fn (): array => [
                                 'mappingRows' => $this->mappingRows(),
                                 'csvHeaders' => $this->csvHeaders,

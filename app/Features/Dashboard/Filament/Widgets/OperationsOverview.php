@@ -13,7 +13,7 @@ class OperationsOverview extends Widget
 
     protected static ?int $sort = 4;
 
-    protected string $view = 'features.dashboard.widgets.operations-overview';
+    protected string $view = 'dashboard::widgets.operations-overview';
 
     protected int|string|array $columnSpan = 'full';
 

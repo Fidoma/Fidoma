@@ -29,7 +29,7 @@ final class InvoiceDocumentController
             ))->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
         }
 
-        return view('features.invoices.documents.invoice', [
+        return view('invoices::documents.invoice', [
             'invoice' => $documentData->prepare($invoice),
             'preview' => true,
         ]);

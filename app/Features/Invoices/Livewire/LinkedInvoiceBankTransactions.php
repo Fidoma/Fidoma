@@ -186,6 +186,6 @@ class LinkedInvoiceBankTransactions extends Component implements HasActions, Has
 
     public function render(): View
     {
-        return view('livewire.features.invoices.linked-invoice-bank-transactions');
+        return view('invoices::linked-invoice-bank-transactions');
     }
 }

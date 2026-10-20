@@ -264,6 +264,6 @@ class AssignInvoiceBankTransaction extends Component implements HasActions, HasS
 
     public function render(): View
     {
-        return view('livewire.features.invoices.assign-invoice-bank-transaction');
+        return view('invoices::assign-invoice-bank-transaction');
     }
 }

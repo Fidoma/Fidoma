@@ -58,7 +58,7 @@ class Reports extends Page implements HasTable
 
     protected static ?int $navigationSort = 4;
 
-    protected string $view = 'filament.pages.reports';
+    protected string $view = 'reports::reports';
 
     protected Width|string|null $maxContentWidth = Width::Full;
 
@@ -236,7 +236,7 @@ class Reports extends Page implements HasTable
                 $row = collect($this->ustvaReport()['rows'])
                     ->firstWhere('code', (string) ($arguments['code'] ?? ''));
 
-                return view('filament.pages.reports-ustva-details', [
+                return view('reports::reports-ustva-details', [
                     'code' => (string) ($row['code'] ?? ''),
                     'description' => (string) ($row['description'] ?? 'Keine Beschreibung verfügbar.'),
                     'excludedDraftCount' => (int) ($row['excluded_draft_count'] ?? 0),
@@ -295,7 +295,7 @@ class Reports extends Page implements HasTable
         [$start, $end] = $this->dates();
         $path = tempnam(sys_get_temp_dir(), 'fidoma-ustva-');
 
-        Pdf::loadView('filament.pages.reports-ustva-pdf', [
+        Pdf::loadView('reports::reports-ustva-pdf', [
             'report' => $this->ustvaReport(),
             'start' => $start,
             'end' => $end,

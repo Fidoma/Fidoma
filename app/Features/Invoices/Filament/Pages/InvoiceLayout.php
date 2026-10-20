@@ -28,7 +28,7 @@ class InvoiceLayout extends Page
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
 
-    protected string $view = 'filament.pages.invoice-layout';
+    protected string $view = 'invoices::invoice-layout';
 
     protected Width|string|null $maxContentWidth = Width::Full;
 

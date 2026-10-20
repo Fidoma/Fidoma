@@ -158,7 +158,7 @@ class BankTransactionCsvPreview extends TableComponent
 
     public function render(): View
     {
-        return view('livewire.features.imports.bank-transaction-csv-preview');
+        return view('imports::bank-transaction-csv-preview');
     }
 
     private function records(int $page, int $recordsPerPage): LengthAwarePaginator

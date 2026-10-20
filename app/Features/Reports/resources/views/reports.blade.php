@@ -106,7 +106,7 @@
         @endif
 
         @if ($activeTab === 'tax')
-            @include('filament.pages.reports-ustva', ['report' => $ustvaReport])
+            @include('reports::reports-ustva', ['report' => $ustvaReport])
         @else
             {{ $this->table }}
         @endif

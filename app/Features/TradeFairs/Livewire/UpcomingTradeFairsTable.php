@@ -182,7 +182,7 @@ class UpcomingTradeFairsTable extends Component implements HasActions, HasSchema
 
     public function render(): View
     {
-        return view('livewire.features.trade-fairs.upcoming-trade-fairs-table');
+        return view('trade-fairs::upcoming-trade-fairs-table');
     }
 
     private function uploadedPath(mixed $state): string

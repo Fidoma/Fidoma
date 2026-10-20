@@ -111,6 +111,6 @@ class UstvaDetailsTable extends Component implements HasActions, HasSchemas, Has
 
     public function render(): View
     {
-        return view('livewire.features.reports.ustva-details-table');
+        return view('reports::ustva-details-table');
     }
 }
