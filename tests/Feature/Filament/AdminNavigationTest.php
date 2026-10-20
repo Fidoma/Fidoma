@@ -13,6 +13,7 @@ use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
 use App\Features\Products\Filament\Resources\Products\ProductResource;
 use App\Features\Quotes\Filament\Resources\Quotes\QuoteResource;
 use App\Features\Settings\Filament\Clusters\SettingsCluster;
+use App\Features\Settings\Filament\Pages\Modules;
 use App\Features\TaxRates\Filament\Resources\TaxRates\TaxRateResource;
 use App\Features\Units\Filament\Resources\Units\UnitResource;
 use App\Features\Users\Filament\Resources\Users\UserResource;
@@ -63,6 +64,8 @@ class AdminNavigationTest extends TestCase
         );
         $this->assertNotContains('Familien', $navigationLabels);
         $this->assertNotContains('Einheiten', $navigationLabels);
+        $this->assertNotContains('Vertragsvorlagen', $navigationLabels);
+        $this->assertSame(SettingsCluster::class, ContractTemplateResource::getCluster());
 
         $this->get(ProductResource::getUrl())
             ->assertOk()
@@ -83,8 +86,8 @@ class AdminNavigationTest extends TestCase
         $groups = $panel->getUserMenuItemGroups();
 
         $this->assertCount(2, $groups);
-        $this->assertSame(['profile', 'settings', 'language'], array_keys($groups[0]));
-        $this->assertSame(['logout'], array_keys($groups[1]));
+        $this->assertSame(['profile', 'language'], array_keys($groups[0]));
+        $this->assertSame(['settings', 'logout'], array_keys($groups[1]));
         $this->assertFalse(SettingsCluster::shouldRegisterNavigation());
 
         $this->get(SettingsCluster::getUrl())
@@ -95,9 +98,11 @@ class AdminNavigationTest extends TestCase
             ->assertSeeTextInOrder([
                 'PDF-Layout',
                 EmailTemplateResource::getNavigationLabel(),
+                ContractTemplateResource::getNavigationLabel(),
                 InvoiceGroupResource::getNavigationLabel(),
                 TaxRateResource::getNavigationLabel(),
                 UserResource::getNavigationLabel(),
+                Modules::getNavigationLabel(),
             ]);
     }
 

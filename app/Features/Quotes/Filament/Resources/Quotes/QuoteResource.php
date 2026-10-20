@@ -8,6 +8,7 @@ use App\Features\Quotes\Filament\Resources\Quotes\Pages\ListQuotes;
 use App\Features\Quotes\Filament\Resources\Quotes\Schemas\QuoteForm;
 use App\Features\Quotes\Filament\Resources\Quotes\Tables\QuotesTable;
 use App\Features\Quotes\Models\Quote;
+use App\Filament\Concerns\HasConfigurableNavigation;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -16,7 +17,14 @@ use Filament\Tables\Table;
 
 class QuoteResource extends Resource
 {
+    use HasConfigurableNavigation;
+
     protected static ?string $model = Quote::class;
+
+    protected static function navigationModule(): string
+    {
+        return 'quotes';
+    }
 
     protected static ?string $modelLabel = 'Angebot';
 

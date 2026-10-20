@@ -8,6 +8,7 @@ use App\Features\Projects\Filament\Resources\Projects\Pages\ListProjects;
 use App\Features\Projects\Filament\Resources\Projects\Schemas\ProjectForm;
 use App\Features\Projects\Filament\Resources\Projects\Tables\ProjectsTable;
 use App\Features\Projects\Models\Project;
+use App\Filament\Concerns\HasConfigurableNavigation;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -16,7 +17,14 @@ use Filament\Tables\Table;
 
 class ProjectResource extends Resource
 {
+    use HasConfigurableNavigation;
+
     protected static ?string $model = Project::class;
+
+    protected static function navigationModule(): string
+    {
+        return 'projects';
+    }
 
     protected static ?string $modelLabel = 'Projekt';
 

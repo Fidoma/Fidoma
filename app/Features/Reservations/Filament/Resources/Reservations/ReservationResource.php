@@ -10,6 +10,7 @@ use App\Features\Reservations\Filament\Resources\Reservations\Schemas\Reservatio
 use App\Features\Reservations\Filament\Resources\Reservations\Tables\ReservationsTable;
 use App\Features\Reservations\Models\Reservation;
 use App\Features\TradeFairs\Filament\Pages\TradeFairs;
+use App\Filament\Concerns\HasConfigurableNavigation;
 use BackedEnum;
 use Filament\Navigation\NavigationItem;
 use Filament\Resources\Resource;
@@ -19,7 +20,14 @@ use Filament\Tables\Table;
 
 class ReservationResource extends Resource
 {
+    use HasConfigurableNavigation;
+
     protected static ?string $model = Reservation::class;
+
+    protected static function navigationModule(): string
+    {
+        return 'reservations';
+    }
 
     protected static ?string $modelLabel = 'Reservierung';
 

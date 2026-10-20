@@ -21,10 +21,11 @@ class InvoiceLayoutPageTest extends TestCase
 
     public function test_layout_page_shows_editor_preview_and_sample_invoice(): void
     {
-        $this->actingAs(User::factory()->create())
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
             ->get(InvoiceLayoutPage::getUrl())
             ->assertOk()
-            ->assertSee('PDF-Layouts')
             ->assertSee('Rechnungen')
             ->assertSee('Angebote')
             ->assertSee('Reservierungen')
@@ -33,6 +34,13 @@ class InvoiceLayoutPageTest extends TestCase
             ->assertSee('{{ invoice.number }}')
             ->assertSee('Musterwerk GmbH')
             ->assertSee('RE-2026-1042');
+
+        $this->assertNull(
+            Livewire::actingAs($user)
+                ->test(InvoiceLayoutPage::class)
+                ->instance()
+                ->getHeading(),
+        );
     }
 
     public function test_layout_can_be_saved_and_loaded_again(): void

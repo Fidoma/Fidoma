@@ -6,6 +6,7 @@ use App\Features\BankTransactions\Models\BankTransaction;
 use App\Features\BankTransactions\Models\BankTransactionMapping;
 use App\Features\Documents\Data\PaperlessDocument;
 use App\Features\Documents\Services\PaperlessClient;
+use App\Filament\Concerns\HasConfigurableNavigation;
 use App\Filament\Concerns\WithoutPageHeading;
 use BackedEnum;
 use Carbon\CarbonImmutable;
@@ -31,7 +32,12 @@ use UnitEnum;
 
 class Documents extends Page implements HasTable
 {
-    use InteractsWithTable, WithoutPageHeading;
+    use HasConfigurableNavigation, InteractsWithTable, WithoutPageHeading;
+
+    protected static function navigationModule(): string
+    {
+        return 'assignments';
+    }
 
     protected static ?string $title = 'Zuordnungen';
 

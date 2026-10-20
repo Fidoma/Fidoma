@@ -8,6 +8,7 @@ use App\Features\Contracts\Filament\Resources\ContractTemplates\Pages\ListContra
 use App\Features\Contracts\Filament\Resources\ContractTemplates\Schemas\ContractTemplateForm;
 use App\Features\Contracts\Filament\Resources\ContractTemplates\Tables\ContractTemplatesTable;
 use App\Features\Contracts\Models\ContractTemplate;
+use App\Features\Settings\Filament\Clusters\SettingsCluster;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -20,7 +21,9 @@ class ContractTemplateResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
 
-    protected static ?int $navigationSort = 7;
+    protected static ?string $cluster = SettingsCluster::class;
+
+    protected static ?int $navigationSort = 2;
 
     protected static ?string $slug = 'contract-templates';
 

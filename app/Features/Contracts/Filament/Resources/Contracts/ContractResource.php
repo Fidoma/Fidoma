@@ -10,6 +10,7 @@ use App\Features\Contracts\Filament\Resources\Contracts\Schemas\ContractForm;
 use App\Features\Contracts\Filament\Resources\Contracts\Schemas\ContractInfolist;
 use App\Features\Contracts\Filament\Resources\Contracts\Tables\ContractsTable;
 use App\Features\Contracts\Models\Contract;
+use App\Filament\Concerns\HasConfigurableNavigation;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -18,7 +19,14 @@ use Filament\Tables\Table;
 
 class ContractResource extends Resource
 {
+    use HasConfigurableNavigation;
+
     protected static ?string $model = Contract::class;
+
+    protected static function navigationModule(): string
+    {
+        return 'contracts';
+    }
 
     protected static ?string $modelLabel = 'Vertrag';
 

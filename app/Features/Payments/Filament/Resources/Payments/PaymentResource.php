@@ -5,6 +5,7 @@ namespace App\Features\Payments\Filament\Resources\Payments;
 use App\Features\Payments\Filament\Resources\Payments\Pages\ListPayments;
 use App\Features\Payments\Filament\Resources\Payments\Tables\PaymentsTable;
 use App\Features\Payments\Models\Payment;
+use App\Filament\Concerns\HasConfigurableNavigation;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Support\Icons\Heroicon;
@@ -13,7 +14,14 @@ use UnitEnum;
 
 class PaymentResource extends Resource
 {
+    use HasConfigurableNavigation;
+
     protected static ?string $model = Payment::class;
+
+    protected static function navigationModule(): string
+    {
+        return 'payments';
+    }
 
     protected static ?string $modelLabel = 'Zahlung';
 

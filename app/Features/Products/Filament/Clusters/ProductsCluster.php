@@ -2,6 +2,7 @@
 
 namespace App\Features\Products\Filament\Clusters;
 
+use App\Filament\Concerns\HasConfigurableNavigation;
 use BackedEnum;
 use Filament\Clusters\Cluster;
 use Filament\Pages\Enums\SubNavigationPosition;
@@ -9,7 +10,14 @@ use Filament\Support\Icons\Heroicon;
 
 class ProductsCluster extends Cluster
 {
+    use HasConfigurableNavigation;
+
     protected static ?string $navigationLabel = 'Produkte';
+
+    protected static function navigationModule(): string
+    {
+        return 'products';
+    }
 
     protected static ?int $navigationSort = 2;
 

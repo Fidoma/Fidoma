@@ -8,6 +8,7 @@ use App\Features\Invoices\Filament\Resources\Invoices\Pages\ListInvoices;
 use App\Features\Invoices\Filament\Resources\Invoices\Schemas\InvoiceForm;
 use App\Features\Invoices\Filament\Resources\Invoices\Tables\InvoicesTable;
 use App\Features\Invoices\Models\Invoice;
+use App\Filament\Concerns\HasConfigurableNavigation;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -16,7 +17,14 @@ use Filament\Tables\Table;
 
 class InvoiceResource extends Resource
 {
+    use HasConfigurableNavigation;
+
     protected static ?string $model = Invoice::class;
+
+    protected static function navigationModule(): string
+    {
+        return 'invoices';
+    }
 
     protected static ?string $modelLabel = 'Rechnung';
 

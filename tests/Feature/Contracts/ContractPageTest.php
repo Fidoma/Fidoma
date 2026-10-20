@@ -23,7 +23,7 @@ class ContractPageTest extends TestCase
         $user = User::factory()->create();
         Filament::setCurrentPanel(Filament::getPanel('admin'));
 
-        $this->assertStringEndsWith('/admin/contract-templates', ContractTemplateResource::getUrl());
+        $this->assertStringEndsWith('/admin/settings/contract-templates', ContractTemplateResource::getUrl());
 
         $this->actingAs($user)
             ->get(ContractTemplateResource::getUrl())

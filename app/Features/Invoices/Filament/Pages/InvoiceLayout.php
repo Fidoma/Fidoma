@@ -7,6 +7,7 @@ use App\Features\Invoices\Services\InvoiceLayoutDefaults;
 use App\Features\Invoices\Services\InvoiceTemplateData;
 use App\Features\Invoices\Services\InvoiceTemplateRenderer;
 use App\Features\Settings\Filament\Clusters\SettingsCluster;
+use App\Filament\Concerns\WithoutPageHeading;
 use BackedEnum;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -16,6 +17,8 @@ use Livewire\Attributes\Renderless;
 
 class InvoiceLayout extends Page
 {
+    use WithoutPageHeading;
+
     protected static ?string $title = 'PDF-Layouts';
 
     protected static ?string $navigationLabel = 'PDF-Layout';

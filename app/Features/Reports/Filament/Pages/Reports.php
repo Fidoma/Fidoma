@@ -18,6 +18,7 @@ use App\Features\Reports\Services\SalesReportService;
 use App\Features\Reports\Services\TaxReportService;
 use App\Features\Reports\Services\UstvaReportService;
 use App\Features\TaxRates\Models\TaxRate;
+use App\Filament\Concerns\HasConfigurableNavigation;
 use App\Filament\Concerns\WithoutPageHeading;
 use BackedEnum;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -44,7 +45,12 @@ use ZipArchive;
 
 class Reports extends Page implements HasTable
 {
-    use InteractsWithTable, WithoutPageHeading;
+    use HasConfigurableNavigation, InteractsWithTable, WithoutPageHeading;
+
+    protected static function navigationModule(): string
+    {
+        return 'reports';
+    }
 
     protected static ?string $title = 'Berichte';
 

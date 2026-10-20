@@ -4,6 +4,7 @@ namespace App\Features\Reservations\Filament\Resources\Rooms;
 
 use App\Features\Reservations\Filament\Resources\Rooms\Pages\ListRooms;
 use App\Features\Reservations\Models\Room;
+use App\Filament\Concerns\HasConfigurableNavigation;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
@@ -22,7 +23,14 @@ use Filament\Tables\Table;
 
 class RoomResource extends Resource
 {
+    use HasConfigurableNavigation;
+
     protected static ?string $model = Room::class;
+
+    protected static function navigationModule(): string
+    {
+        return 'reservations';
+    }
 
     protected static ?string $modelLabel = 'Zimmer';
 

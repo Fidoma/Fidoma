@@ -10,6 +10,7 @@ use App\Features\Dashboard\Filament\Widgets\OperationsOverview;
 use App\Features\Dashboard\Filament\Widgets\RevenueChart;
 use App\Features\Invoices\Models\Invoice;
 use App\Features\Quotes\Models\Quote;
+use App\Filament\Concerns\HasConfigurableNavigation;
 use Carbon\CarbonImmutable;
 use Filament\Pages\Dashboard as BaseDashboard;
 use Filament\Widgets\Widget;
@@ -17,7 +18,14 @@ use Illuminate\Contracts\View\View;
 
 class Dashboard extends BaseDashboard
 {
+    use HasConfigurableNavigation;
+
     protected static ?string $title = 'Dashboard';
+
+    protected static function navigationModule(): string
+    {
+        return 'dashboard';
+    }
 
     /** @var array<string, mixed> */
     public array $filters = [];

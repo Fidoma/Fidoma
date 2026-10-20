@@ -27,7 +27,7 @@ class TaxRateResource extends Resource
 
     protected static ?string $cluster = SettingsCluster::class;
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 4;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedReceiptPercent;
 

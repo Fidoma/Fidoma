@@ -8,6 +8,7 @@ use App\Features\BankTransactions\Filament\Resources\BankTransactions\Pages\List
 use App\Features\BankTransactions\Filament\Resources\BankTransactions\Schemas\BankTransactionForm;
 use App\Features\BankTransactions\Filament\Resources\BankTransactions\Tables\BankTransactionsTable;
 use App\Features\BankTransactions\Models\BankTransaction;
+use App\Filament\Concerns\HasConfigurableNavigation;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -17,7 +18,14 @@ use UnitEnum;
 
 class BankTransactionResource extends Resource
 {
+    use HasConfigurableNavigation;
+
     protected static ?string $model = BankTransaction::class;
+
+    protected static function navigationModule(): string
+    {
+        return 'bank_transactions';
+    }
 
     protected static ?string $modelLabel = 'Banktransaktion';
 

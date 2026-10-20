@@ -13,6 +13,7 @@ use App\Features\Clients\Filament\Resources\Clients\Schemas\ClientForm;
 use App\Features\Clients\Filament\Resources\Clients\Schemas\ClientInfolist;
 use App\Features\Clients\Filament\Resources\Clients\Tables\ClientsTable;
 use App\Features\Clients\Models\Client;
+use App\Filament\Concerns\HasConfigurableNavigation;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -21,7 +22,14 @@ use Filament\Tables\Table;
 
 class ClientResource extends Resource
 {
+    use HasConfigurableNavigation;
+
     protected static ?string $model = Client::class;
+
+    protected static function navigationModule(): string
+    {
+        return 'clients';
+    }
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserGroup;
 

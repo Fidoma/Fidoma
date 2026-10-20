@@ -11,6 +11,8 @@ use App\Features\Imports\Filament\Pages\DataImport;
 use App\Features\Invoices\Filament\Pages\InvoiceLayout;
 use App\Features\Reports\Filament\Pages\Reports;
 use App\Features\Settings\Filament\Clusters\SettingsCluster;
+use App\Features\Settings\Filament\Pages\Modules;
+use App\Features\Settings\Services\ModuleSettings;
 use App\Features\TradeFairs\Filament\Pages\TradeFairs;
 use App\Features\Webmail\Filament\Pages\Webmail;
 use Filament\Actions\Action;
@@ -71,7 +73,8 @@ class AdminPanelProvider extends PanelProvider
                     ->icon(Heroicon::OutlinedDocumentText)
                     ->sort(3)
                     ->url(fn (): string => rtrim((string) config('services.paperless.url'), '/'))
-                    ->visible(fn (): bool => filter_var(config('services.paperless.url'), FILTER_VALIDATE_URL) !== false)
+                    ->visible(fn (): bool => app(ModuleSettings::class)->isEnabled('paperless')
+                        && filter_var(config('services.paperless.url'), FILTER_VALIDATE_URL) !== false)
                     ->extraAttributes(function (): array {
                         $url = Js::from(rtrim((string) config('services.paperless.url'), '/'));
 
@@ -84,17 +87,17 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->userMenuItems([
                 [
+                    Action::make('language')
+                        ->view('authentication::user-menu-language-switcher')
+                        ->sort(1),
+                ],
+                [
                     Action::make('settings')
                         ->label(fn (): string => __('authentication::messages.user_menu.settings'))
                         ->icon(Heroicon::OutlinedCog6Tooth)
                         ->url(fn (): string => SettingsCluster::getUrl())
                         ->visible(fn (): bool => SettingsCluster::canAccessClusteredComponents())
                         ->sort(0),
-                    Action::make('language')
-                        ->view('authentication::user-menu-language-switcher')
-                        ->sort(1),
-                ],
-                [
                     'logout' => fn (Action $action): Action => $action->sort(PHP_INT_MAX),
                 ],
             ])
@@ -107,6 +110,7 @@ class AdminPanelProvider extends PanelProvider
                 Documents::class,
                 DataImport::class,
                 InvoiceLayout::class,
+                Modules::class,
                 Reports::class,
                 TradeFairs::class,
                 Webmail::class,

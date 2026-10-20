@@ -3,6 +3,7 @@
 namespace App\Features\Webmail\Filament\Pages;
 
 use App\Features\Webmail\Services\RoundcubeInstaller;
+use App\Filament\Concerns\HasConfigurableNavigation;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
@@ -14,6 +15,13 @@ use UnitEnum;
 
 class Webmail extends Page
 {
+    use HasConfigurableNavigation;
+
+    protected static function navigationModule(): string
+    {
+        return 'webmail';
+    }
+
     protected static ?string $title = 'Webmail';
 
     protected static ?string $navigationLabel = 'Webmail';
