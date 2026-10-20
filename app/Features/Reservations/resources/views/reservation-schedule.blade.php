@@ -56,7 +56,7 @@
                 eventHeight: 56,
                 eventTextWrappingEnabled: false,
                 durationBarVisible: false,
-                rowHeaderWidth: 220,
+                rowHeaderWidth: 90,
                 useEventBoxes: 'Never',
                 eventMoveHandling: 'Disabled',
                 eventResizeHandling: 'Disabled',
@@ -84,6 +84,15 @@
                         args.header.toolTip = fairsForDay.map(fair => fair.name).join('\n');
                     } else if (isToday) {
                         args.header.cssClass = 'reservation-scheduler-today-header';
+                    }
+
+                    if (isToday) {
+                        args.header.html = `
+                            <span class="reservation-scheduler-today-label">
+                                <span class="reservation-scheduler-today-dot" title="Heute" aria-hidden="true"></span>
+                                ${escapeHtml(args.header.text)}
+                            </span>
+                        `;
                     }
                 },
                 onBeforeEventRender: args => {

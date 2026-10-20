@@ -52,6 +52,20 @@
     font-weight: 700;
 }
 
+.reservation-scheduler-today-label {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+}
+
+.reservation-scheduler-today-dot {
+    width: .4rem;
+    height: .4rem;
+    flex: 0 0 auto;
+    border-radius: 9999px;
+    background: rgb(220 38 38);
+}
+
 .reservation-scheduler-card .scheduler_default_rowheader {
     border-color: rgb(229 231 235);
     background: white;

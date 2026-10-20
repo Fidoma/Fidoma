@@ -28,6 +28,22 @@ class ReservationTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_schedule_displays_only_the_room_number_in_its_resource_column(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $room = Room::query()->create([
+            'room_number' => '987',
+            'room_name' => 'Gartenblick',
+            'room_capacity' => 2,
+            'room_active' => true,
+        ]);
+
+        $schedule = Livewire::test(ReservationSchedule::class)->instance()->schedule();
+        $resource = collect($schedule['resources'])->firstWhere('id', 'room-'.$room->getKey());
+
+        $this->assertSame('987', $resource['name']);
+    }
+
     public function test_it_calculates_a_reservation_and_converts_it_to_an_invoice_once(): void
     {
         $this->actingAs(User::factory()->create());

@@ -158,7 +158,7 @@ class ReservationSchedule extends Page
         }
 
         $resources = Room::query()->orderBy('room_number')->get()
-            ->map(fn (Room $room): array => ['id' => 'room-'.$room->getKey(), 'name' => $room->displayName()])
+            ->map(fn (Room $room): array => ['id' => 'room-'.$room->getKey(), 'name' => $room->room_number])
             ->values()->all();
 
         $events = ReservationItem::query()
