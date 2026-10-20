@@ -4,7 +4,7 @@ namespace App\Features\TaxRates\Filament\Resources\TaxRates\Pages;
 
 use App\Features\TaxRates\Actions\CreateTaxRate as CreateTaxRateAction;
 use App\Features\TaxRates\Filament\Resources\TaxRates\TaxRateResource;
-use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 
 class CreateTaxRate extends CreateRecord

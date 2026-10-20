@@ -5,7 +5,7 @@ namespace App\Features\Reservations\Filament\Resources\Reservations\Pages;
 use App\Features\Reservations\Actions\CreateReservation as CreateReservationAction;
 use App\Features\Reservations\Actions\RecalculateReservation;
 use App\Features\Reservations\Filament\Resources\Reservations\ReservationResource;
-use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Resources\Pages\CreateRecord;
 use Filament\Support\Enums\Width;
 use Illuminate\Database\Eloquent\Model;
 

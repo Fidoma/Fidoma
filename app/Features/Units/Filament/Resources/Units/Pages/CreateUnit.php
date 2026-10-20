@@ -4,7 +4,7 @@ namespace App\Features\Units\Filament\Resources\Units\Pages;
 
 use App\Features\Units\Actions\CreateUnit as CreateUnitAction;
 use App\Features\Units\Filament\Resources\Units\UnitResource;
-use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 
 class CreateUnit extends CreateRecord

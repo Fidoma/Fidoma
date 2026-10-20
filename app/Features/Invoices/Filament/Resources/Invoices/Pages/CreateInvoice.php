@@ -6,7 +6,7 @@ use App\Features\Invoices\Actions\CreateInvoice as CreateInvoiceAction;
 use App\Features\Invoices\Actions\RecalculateInvoice;
 use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
 use App\Filament\Concerns\WithoutPageHeading;
-use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Resources\Pages\CreateRecord;
 use Filament\Support\Enums\Width;
 use Illuminate\Database\Eloquent\Model;
 

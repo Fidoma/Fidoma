@@ -4,7 +4,7 @@ namespace App\Features\Contracts\Filament\Resources\ContractTemplates\Pages;
 
 use App\Features\Contracts\Filament\Resources\ContractTemplates\ContractTemplateResource;
 use App\Features\Contracts\Filament\Resources\ContractTemplates\Pages\Concerns\ManagesContractTemplateFields;
-use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Resources\Pages\CreateRecord;
 
 class CreateContractTemplate extends CreateRecord
 {

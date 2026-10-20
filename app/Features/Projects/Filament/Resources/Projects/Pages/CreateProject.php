@@ -4,7 +4,7 @@ namespace App\Features\Projects\Filament\Resources\Projects\Pages;
 
 use App\Features\Projects\Actions\CreateProject as CreateProjectAction;
 use App\Features\Projects\Filament\Resources\Projects\ProjectResource;
-use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 
 class CreateProject extends CreateRecord

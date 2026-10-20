@@ -8,6 +8,7 @@ use App\Features\Webmail\Http\Controllers\RoundcubeController;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome::welcome');
+Route::view('/preise', 'welcome::pricing')->name('pricing');
 
 Route::middleware('auth')->post('admin/locale/{locale}', LocaleController::class)
     ->whereIn('locale', ['de', 'en'])

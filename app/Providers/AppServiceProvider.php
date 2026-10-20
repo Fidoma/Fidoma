@@ -4,8 +4,11 @@ namespace App\Providers;
 
 use App\Features\Documents\Livewire\AssignBankTransaction;
 use App\Features\TradeFairs\Livewire\UpcomingTradeFairsTable;
+use Filament\Actions\Action;
+use Filament\Actions\CreateAction;
 use Filament\Forms\Components\Select;
 use Filament\Support\Facades\FilamentView;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\Column;
 use Filament\Tables\Table;
 use Filament\Tables\View\TablesRenderHook;
@@ -32,8 +35,19 @@ class AppServiceProvider extends ServiceProvider
                 ->selectablePlaceholder(fn (Select $component): bool => self::isLinkedSelect($component))
                 ->default(fn (Select $component): mixed => self::isLinkedSelect($component)
                     ? null
-                    : self::firstOptionValue($component->getOptions()));
+                    : self::firstOptionValue($component->getOptions()))
+                ->createOptionAction(fn (Action $action): Action => $action
+                    ->extraModalFooterActions(fn (Action $action, Select $component): array => $component->isMultiple() ? [
+                        $action->makeModalSubmitAction('createAnother', arguments: ['another' => true])
+                            ->label(__('filament-forms::components.select.actions.create_option.modal.actions.create.label'))
+                            ->icon(Heroicon::ArrowPath),
+                    ] : []));
         });
+
+        CreateAction::configureUsing(fn (CreateAction $action): CreateAction => $action
+            ->createAnotherAction(fn (Action $createAnotherAction): Action => $createAnotherAction
+                ->label(__('filament-actions::create.single.modal.actions.create.label'))
+                ->icon(Heroicon::ArrowPath)));
 
         Column::configureUsing(fn (Column $column): Column => $column->toggleable());
 

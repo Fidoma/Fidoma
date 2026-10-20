@@ -4,7 +4,7 @@ namespace App\Features\Families\Filament\Resources\Families\Pages;
 
 use App\Features\Families\Actions\CreateFamily as CreateFamilyAction;
 use App\Features\Families\Filament\Resources\Families\FamilyResource;
-use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 
 class CreateFamily extends CreateRecord

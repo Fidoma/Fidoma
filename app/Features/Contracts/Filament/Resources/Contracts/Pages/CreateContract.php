@@ -4,7 +4,7 @@ namespace App\Features\Contracts\Filament\Resources\Contracts\Pages;
 
 use App\Features\Contracts\Actions\CreateContract as CreateContractAction;
 use App\Features\Contracts\Filament\Resources\Contracts\ContractResource;
-use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 
 class CreateContract extends CreateRecord

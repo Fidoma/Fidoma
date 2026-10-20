@@ -4,7 +4,7 @@ namespace App\Features\BankTransactions\Filament\Resources\BankTransactions\Page
 
 use App\Features\BankTransactions\Actions\CreateBankTransaction as CreateBankTransactionAction;
 use App\Features\BankTransactions\Filament\Resources\BankTransactions\BankTransactionResource;
-use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 
 class CreateBankTransaction extends CreateRecord
