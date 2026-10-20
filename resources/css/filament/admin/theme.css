@@ -359,18 +359,18 @@
 .terminal-invoice-filters,
 .terminal-payment-form,
 .terminal-field,
-.terminal-status-card > div,
-.terminal-demo-banner > div {
+.terminal-selected-invoice,
+.terminal-demo-copy,
+.terminal-payment-feedback > div,
+.terminal-device-card > div {
     display: grid;
     gap: 0.5rem;
 }
 
-.terminal-filter-row,
-.terminal-amount-row {
+.terminal-filter-row {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.75rem;
-    align-items: end;
 }
 
 .terminal-invoice-list {
@@ -383,68 +383,73 @@
 }
 
 .terminal-invoice-item {
-    display: grid;
-    gap: 0.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
     width: 100%;
     border: 1px solid rgb(228 228 231);
     border-radius: 0.8rem;
-    padding: 0.85rem;
+    padding: 0.9rem;
     background: white;
     text-align: left;
     transition: border-color 150ms, background-color 150ms, box-shadow 150ms;
 }
 
 .terminal-invoice-item:hover { border-color: rgb(255 0 146 / 0.45); }
-.terminal-invoice-item.is-selected { border-color: rgb(255 0 146); background: rgb(255 0 146 / 0.04); box-shadow: 0 0 0 2px rgb(255 0 146 / 0.12); }
-.terminal-invoice-item__top, .terminal-invoice-item__bottom { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
-.terminal-invoice-item__customer, .terminal-invoice-item__bottom { color: rgb(113 113 122); font-size: 0.82rem; }
-.terminal-invoice-item__bottom strong { color: rgb(24 24 27); font-size: 0.95rem; }
+.terminal-invoice-item.is-selected { border-color: rgb(255 0 146); background: rgb(255 0 146 / 0.04); box-shadow: inset 3px 0 rgb(255 0 146); }
+.terminal-invoice-item__content, .terminal-invoice-item__amount { display: grid; gap: 0.35rem; }
+.terminal-invoice-item__content > span:not(.fi-badge), .terminal-invoice-item__amount > span { color: rgb(113 113 122); font-size: 0.78rem; }
+.terminal-invoice-item__content .fi-badge { width: max-content; }
+.terminal-invoice-item__amount { flex: none; justify-items: end; text-align: right; }
+.terminal-invoice-item__amount strong { color: rgb(24 24 27); white-space: nowrap; }
 .terminal-payment-panel { display: grid; align-content: start; gap: 1.25rem; }
 
-.terminal-demo-banner {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-    border: 1px solid rgb(245 158 11 / 0.35);
-    border-radius: 0.85rem;
-    padding: 0.85rem 1rem;
-    background: rgb(245 158 11 / 0.08);
-    color: rgb(146 64 14);
+.terminal-demo-copy span,
+.terminal-selected-invoice__identity span,
+.terminal-device-card span,
+.terminal-payment-feedback span {
+    color: rgb(113 113 122);
+    font-size: 0.8rem;
 }
 
-.terminal-demo-banner > svg { width: 1.5rem; flex: none; }
-.terminal-demo-banner span { font-size: 0.82rem; }
-.terminal-invoice-summary { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.75rem; }
-.terminal-invoice-summary > div { display: grid; gap: 0.25rem; border-right: 1px solid rgb(228 228 231); padding-right: 0.75rem; }
-.terminal-invoice-summary > div:last-child { border-right: 0; }
-.terminal-invoice-summary span, .terminal-status-card span, .terminal-field label { color: rgb(113 113 122); font-size: 0.75rem; font-weight: 600; }
-.terminal-invoice-summary .is-balance strong { color: rgb(219 0 125); font-size: 1.2rem; }
-.terminal-amount-row .terminal-field input { font-size: 1.25rem; font-weight: 700; }
+.terminal-selected-invoice__identity {
+    display: grid;
+    gap: 0.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgb(228 228 231);
+}
 
-.terminal-status-card {
+.terminal-selected-invoice__identity strong { font-size: 1.25rem; }
+.terminal-summary-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; font-size: 0.875rem; }
+.terminal-balance { display: grid; gap: 0.3rem; margin-top: 0.5rem; padding-top: 1rem; border-top: 1px solid rgb(228 228 231); }
+.terminal-balance span { color: rgb(113 113 122); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.terminal-balance strong { color: rgb(219 0 125); font-size: clamp(1.9rem, 5vw, 2.4rem); line-height: 1; letter-spacing: -0.04em; }
+.terminal-field label { color: rgb(82 82 91); font-size: 0.8rem; font-weight: 600; }
+
+.terminal-device-card,
+.terminal-payment-feedback {
     display: flex;
     align-items: center;
-    gap: 0.9rem;
-    margin-top: 1rem;
-    border: 1px solid rgb(228 228 231);
+    justify-content: space-between;
+    gap: 1rem;
     border-radius: 0.85rem;
     padding: 1rem;
-    background: rgb(250 250 250);
 }
 
-.terminal-status-card > button { margin-left: auto; }
-.terminal-status-card p { color: rgb(113 113 122); font-size: 0.82rem; }
-.terminal-status-icon { display: grid; width: 2.5rem; height: 2.5rem; place-items: center; border-radius: 9999px; background: rgb(255 0 146 / 0.1); color: rgb(219 0 125); }
-.terminal-status-icon svg { width: 1.4rem; }
-.terminal-status-card--success { border-color: rgb(34 197 94 / 0.35); background: rgb(34 197 94 / 0.06); }
-.terminal-status-card--warning { border-color: rgb(245 158 11 / 0.35); background: rgb(245 158 11 / 0.06); }
-.terminal-status-card--danger { border-color: rgb(239 68 68 / 0.35); background: rgb(239 68 68 / 0.06); }
+.terminal-device-card { border: 1px solid rgb(34 197 94 / 0.25); background: rgb(34 197 94 / 0.06); }
+.terminal-payment-feedback { margin-top: 1rem; border: 1px solid rgb(228 228 231); background: rgb(250 250 250); }
+.terminal-payment-feedback > svg { width: 1.35rem; flex: none; color: rgb(219 0 125); }
+.terminal-payment-feedback > button { margin-left: auto; }
+.terminal-amount-field input { font-size: 1.3rem; font-weight: 700; }
+.terminal-pay-button { width: 100%; justify-content: center; }
 
 .terminal-history { display: grid; }
 .terminal-history-item { display: grid; grid-template-columns: 1fr 0.75fr 1fr 1.2fr 1.2fr; gap: 0.75rem; align-items: center; border-bottom: 1px solid rgb(228 228 231); padding: 0.75rem 0; font-size: 0.82rem; }
 .terminal-history-item:last-child { border-bottom: 0; }
 .terminal-history-item code { overflow: hidden; text-overflow: ellipsis; color: rgb(113 113 122); }
-.terminal-history-empty { color: rgb(113 113 122); font-size: 0.875rem; }
+.terminal-history-empty { display: flex; align-items: center; gap: 0.5rem; color: rgb(113 113 122); font-size: 0.875rem; }
+.terminal-history-empty svg { width: 1.1rem; }
 .terminal-empty-state { display: grid; justify-items: center; gap: 0.5rem; padding: 2rem 1rem; color: rgb(113 113 122); text-align: center; }
 .terminal-empty-state svg { width: 2rem; }
 .terminal-empty-state--large { min-height: 28rem; align-content: center; }
@@ -452,10 +457,10 @@
 
 .dark .terminal-invoice-item { border-color: rgb(255 255 255 / 0.1); background: rgb(255 255 255 / 0.025); }
 .dark .terminal-invoice-item.is-selected { border-color: rgb(255 0 146); background: rgb(255 0 146 / 0.08); }
-.dark .terminal-invoice-item__bottom strong { color: white; }
-.dark .terminal-invoice-summary > div, .dark .terminal-history-item, .dark .terminal-status-card { border-color: rgb(255 255 255 / 0.1); }
-.dark .terminal-status-card { background: rgb(255 255 255 / 0.025); }
-.dark .terminal-demo-banner { color: rgb(253 186 116); }
+.dark .terminal-invoice-item__amount strong { color: white; }
+.dark .terminal-selected-invoice__identity, .dark .terminal-balance, .dark .terminal-history-item, .dark .terminal-payment-feedback { border-color: rgb(255 255 255 / 0.1); }
+.dark .terminal-device-card { background: rgb(34 197 94 / 0.08); }
+.dark .terminal-payment-feedback { background: rgb(255 255 255 / 0.025); }
 
 @media (min-width: 64rem) {
     .terminal-workspace { grid-template-columns: minmax(19rem, 35fr) minmax(0, 65fr); align-items: start; }
@@ -463,11 +468,10 @@
 }
 
 @media (max-width: 47.999rem) {
-    .terminal-filter-row, .terminal-amount-row, .terminal-invoice-summary { grid-template-columns: 1fr; }
-    .terminal-invoice-summary > div { border-right: 0; border-bottom: 1px solid rgb(228 228 231); padding: 0 0 0.5rem; }
+    .terminal-filter-row { grid-template-columns: 1fr; }
     .terminal-history-item { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .terminal-history-item code { grid-column: 1 / -1; }
-    .terminal-status-card { align-items: flex-start; flex-wrap: wrap; }
+    .terminal-device-card, .terminal-payment-feedback { align-items: flex-start; flex-wrap: wrap; }
 }
 
 .reports-toolbar,

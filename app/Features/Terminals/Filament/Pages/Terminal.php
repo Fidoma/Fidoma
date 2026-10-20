@@ -6,12 +6,13 @@ use App\Features\Invoices\Enums\InvoiceStatus;
 use App\Features\Invoices\Enums\InvoiceType;
 use App\Features\Invoices\Models\Invoice;
 use App\Features\Terminals\Enums\TerminalPaymentStatus;
+use App\Features\Terminals\Filament\Resources\PaymentTerminals\PaymentTerminalResource;
 use App\Features\Terminals\Models\PaymentTerminal;
 use App\Features\Terminals\Models\TerminalPaymentAttempt;
 use App\Features\Terminals\Services\TerminalPaymentService;
 use App\Filament\Concerns\HasConfigurableNavigation;
-use App\Filament\Concerns\WithoutPageHeading;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Enums\Width;
@@ -23,7 +24,7 @@ use UnitEnum;
 
 class Terminal extends Page
 {
-    use HasConfigurableNavigation, WithoutPageHeading;
+    use HasConfigurableNavigation;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCreditCard;
 
@@ -73,6 +74,11 @@ class Terminal extends Page
         return __('terminals::messages.feature');
     }
 
+    public function getSubheading(): ?string
+    {
+        return __('terminals::messages.subtitle');
+    }
+
     public static function canAccess(): bool
     {
         return auth()->check();
@@ -108,6 +114,19 @@ class Terminal extends Page
             ->where('is_enabled', true)
             ->orderBy('name')
             ->get();
+    }
+
+    #[Computed]
+    public function selectedTerminal(): ?PaymentTerminal
+    {
+        if ($this->selectedTerminalId === null) {
+            return null;
+        }
+
+        return PaymentTerminal::query()
+            ->where('user_id', auth()->id())
+            ->where('is_enabled', true)
+            ->find($this->selectedTerminalId);
     }
 
     #[Computed]
@@ -229,5 +248,17 @@ class Terminal extends Page
         return Invoice::query()
             ->where('user_id', auth()->id())
             ->with(['client', 'amount']);
+    }
+
+    /** @return array<Action> */
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('manageTerminals')
+                ->label(__('terminals::messages.management.feature'))
+                ->icon(Heroicon::OutlinedCog6Tooth)
+                ->color('gray')
+                ->url(PaymentTerminalResource::getUrl()),
+        ];
     }
 }
