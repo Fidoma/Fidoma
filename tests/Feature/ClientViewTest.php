@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use App\Features\Clients\Models\Client;
+use App\Features\Invoices\Filament\Resources\Invoices\Pages\CreateInvoice;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class ClientViewTest extends TestCase
@@ -65,5 +67,19 @@ class ClientViewTest extends TestCase
             ->assertSeeText('Anschrift')
             ->assertSeeText('Kontakt')
             ->assertSeeText('Rechnungs- und Steuerdaten');
+    }
+
+    public function test_invoice_created_from_client_details_has_the_client_preselected(): void
+    {
+        $user = User::factory()->create();
+        $client = Client::query()->create([
+            'client_name' => 'Max Mustermann',
+            'client_active' => true,
+        ]);
+
+        Livewire::withQueryParams(['client_id' => $client->getKey()])
+            ->actingAs($user)
+            ->test(CreateInvoice::class)
+            ->assertFormSet(['client_id' => $client->getKey()]);
     }
 }

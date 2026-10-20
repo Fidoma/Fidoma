@@ -4,6 +4,7 @@ namespace App\Features\Settings\Filament\Pages;
 
 use App\Features\Settings\Filament\Clusters\SettingsCluster;
 use App\Features\Settings\Services\ModuleSettings;
+use App\Filament\Concerns\WithoutPageHeading;
 use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -15,11 +16,11 @@ use Filament\Support\Icons\Heroicon;
 
 class Modules extends Page implements HasSchemas
 {
-    use InteractsWithSchemas;
+    use InteractsWithSchemas, WithoutPageHeading;
 
     protected static ?string $cluster = SettingsCluster::class;
 
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = -1;
 
     protected static ?string $slug = 'modules';
 
@@ -51,17 +52,18 @@ class Modules extends Page implements HasSchemas
 
         return $schema
             ->statePath('data')
-            ->components([
-                Section::make(__('settings::messages.modules.section'))
-                    ->description(__('settings::messages.modules.description'))
-                    ->columns(2)
-                    ->schema(array_map(
-                        fn (string $module): Toggle => Toggle::make("modules.{$module}")
+            ->columns(2)
+            ->components(array_map(
+                fn (string $module): Section => Section::make(__("settings::messages.modules.items.{$module}"))
+                    ->afterHeader(
+                        Toggle::make("modules.{$module}")
                             ->label(__("settings::messages.modules.items.{$module}"))
+                            ->hiddenLabel()
                             ->default(true),
-                        $settings->modules(),
-                    )),
-            ]);
+                    )
+                    ->schema([]),
+                $settings->modules(),
+            ));
     }
 
     public function save(ModuleSettings $settings): void

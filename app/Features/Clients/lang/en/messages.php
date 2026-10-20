@@ -18,6 +18,7 @@ return [
         'billing_information' => 'Billing information',
     ],
     'fields' => [
+        'number' => 'Client number',
         'name' => 'Name',
         'email' => 'Email',
         'phone' => 'Phone',

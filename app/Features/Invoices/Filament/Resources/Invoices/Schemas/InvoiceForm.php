@@ -144,6 +144,7 @@ class InvoiceForm
                         ->relationship('client', 'client_name')
                         ->searchable(['client_name', 'client_email'])
                         ->preload()
+                        ->default(fn (): ?int => request()->integer('client_id') ?: null)
                         ->required()
                         ->createOptionForm([
                             TextInput::make('client_name')->label(__('invoices::messages.fields.name'))->required()->maxLength(100),

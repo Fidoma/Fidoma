@@ -2,11 +2,13 @@
 
 namespace App\Features\Clients\Models;
 
+use App\Features\InvoiceGroups\Models\InvoiceGroup;
 use App\Features\Invoices\Models\Invoice;
 use App\Features\Payments\Models\Payment;
 use App\Features\Projects\Models\Project;
 use App\Features\Quotes\Models\Quote;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
@@ -21,6 +23,8 @@ class Client extends Model
     public const UPDATED_AT = 'client_date_modified';
 
     protected $fillable = [
+        'invoice_group_id',
+        'client_number',
         'client_name',
         'client_company',
         'client_address_1',
@@ -50,6 +54,12 @@ class Client extends Model
         'client_birthdate',
         'client_gender',
     ];
+
+    /** @return BelongsTo<InvoiceGroup, $this> */
+    public function invoiceGroup(): BelongsTo
+    {
+        return $this->belongsTo(InvoiceGroup::class, 'invoice_group_id', 'invoice_group_id');
+    }
 
     protected function casts(): array
     {

@@ -27,6 +27,10 @@ class ClientsTable
         return $table
             ->recordUrl(fn (Client $record): string => ClientResource::getUrl('view', ['record' => $record]))
             ->columns([
+                TextColumn::make('client_number')
+                    ->label(__('clients::messages.fields.number'))
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('client_name')
                     ->label(__('clients::messages.fields.name'))
                     ->searchable()
@@ -50,6 +54,13 @@ class ClientsTable
                     ->sortable(),
             ])
             ->filters([
+                Filter::make('client_number')
+                    ->label(__('clients::messages.fields.number'))
+                    ->schema([TextInput::make('value')->label(__('clients::messages.fields.number'))])
+                    ->query(fn (Builder $query, array $data): Builder => $query->when(
+                        filled($data['value'] ?? null),
+                        fn (Builder $query): Builder => $query->where('client_number', 'like', '%'.trim((string) $data['value']).'%'),
+                    )),
                 Filter::make('client_name')
                     ->label(__('clients::messages.fields.name'))
                     ->schema([TextInput::make('value')->label(__('clients::messages.fields.name'))])

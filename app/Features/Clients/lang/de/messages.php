@@ -18,6 +18,7 @@ return [
         'billing_information' => 'Rechnungsinformationen',
     ],
     'fields' => [
+        'number' => 'Kundennummer',
         'name' => 'Name',
         'email' => 'E-Mail',
         'phone' => 'Telefon',

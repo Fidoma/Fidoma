@@ -18,6 +18,7 @@ class ClientInfolist
                 Section::make(__('clients::messages.sections.contact_information'))
                     ->columns(2)
                     ->schema([
+                        TextEntry::make('client_number')->label(__('clients::messages.fields.number')),
                         TextEntry::make('client_company')->label(__('clients::messages.fields.company'))->placeholder('–'),
                         TextEntry::make('display_name')
                             ->label(__('clients::messages.fields.name'))

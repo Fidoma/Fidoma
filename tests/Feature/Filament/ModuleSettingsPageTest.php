@@ -51,6 +51,13 @@ class ModuleSettingsPageTest extends TestCase
                 'Webmail',
                 'Paperless-ngx',
             ]);
+
+        $this->assertNull(
+            Livewire::actingAs($user)
+                ->test(Modules::class)
+                ->instance()
+                ->getHeading(),
+        );
     }
 
     public function test_disabled_module_is_removed_from_the_main_navigation(): void

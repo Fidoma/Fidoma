@@ -91,18 +91,18 @@ class AdminNavigationTest extends TestCase
         $this->assertFalse(SettingsCluster::shouldRegisterNavigation());
 
         $this->get(SettingsCluster::getUrl())
-            ->assertRedirect(InvoiceLayout::getUrl());
+            ->assertRedirect(Modules::getUrl());
 
         $this->get(InvoiceLayout::getUrl())
             ->assertOk()
             ->assertSeeTextInOrder([
+                Modules::getNavigationLabel(),
                 'PDF-Layout',
                 EmailTemplateResource::getNavigationLabel(),
                 ContractTemplateResource::getNavigationLabel(),
                 InvoiceGroupResource::getNavigationLabel(),
                 TaxRateResource::getNavigationLabel(),
                 UserResource::getNavigationLabel(),
-                Modules::getNavigationLabel(),
             ]);
     }
 
