@@ -65,6 +65,21 @@ services:
     networks:
       - fidoma
 
+  phpmyadmin:
+    image: phpmyadmin:5.2-apache
+    restart: unless-stopped
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      UPLOAD_LIMIT: 128M
+    ports:
+      - "${FIDOMA_PHPMYADMIN_BIND_ADDRESS:-127.0.0.1}:${FIDOMA_PHPMYADMIN_PORT:-5556}:80"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - fidoma
+
 networks:
   fidoma:
     driver: bridge

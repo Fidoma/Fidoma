@@ -71,17 +71,14 @@ if [ ! -f "$ENV_FILE" ]; then
     set_env_value APP_KEY "$app_key" "$ENV_FILE"
     set_env_value DB_PASSWORD "$database_password" "$ENV_FILE"
     set_env_value APP_URL "${FIDOMA_APP_URL:-http://localhost:${FIDOMA_PORT:-5555}}" "$ENV_FILE"
-
-    cat >> "$ENV_FILE" <<EOF
-
-# Werte für Docker Compose
-FIDOMA_IMAGE=${FIDOMA_IMAGE:-ghcr.io/fidoma/fidoma:latest}
-FIDOMA_PORT=${FIDOMA_PORT:-5555}
-FIDOMA_DB_DATABASE=fidoma
-FIDOMA_DB_USERNAME=fidoma
-FIDOMA_DB_PASSWORD=$database_password
-FIDOMA_DB_ROOT_PASSWORD=$database_root_password
-EOF
+    set_env_value FIDOMA_IMAGE "${FIDOMA_IMAGE:-ghcr.io/fidoma/fidoma:latest}" "$ENV_FILE"
+    set_env_value FIDOMA_PORT "${FIDOMA_PORT:-5555}" "$ENV_FILE"
+    set_env_value FIDOMA_PHPMYADMIN_BIND_ADDRESS "${FIDOMA_PHPMYADMIN_BIND_ADDRESS:-127.0.0.1}" "$ENV_FILE"
+    set_env_value FIDOMA_PHPMYADMIN_PORT "${FIDOMA_PHPMYADMIN_PORT:-5556}" "$ENV_FILE"
+    set_env_value FIDOMA_DB_DATABASE fidoma "$ENV_FILE"
+    set_env_value FIDOMA_DB_USERNAME fidoma "$ENV_FILE"
+    set_env_value FIDOMA_DB_PASSWORD "$database_password" "$ENV_FILE"
+    set_env_value FIDOMA_DB_ROOT_PASSWORD "$database_root_password" "$ENV_FILE"
 fi
 
 printf 'Fidoma-Container werden geladen und gestartet ...\n'

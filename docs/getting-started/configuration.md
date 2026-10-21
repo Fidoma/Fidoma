@@ -20,6 +20,21 @@ docker compose --env-file .env.production -f compose.production.yaml exec app \
 
 Die Compose-Werte `FIDOMA_DB_*` konfigurieren den MySQL-Container. `DB_*` müssen dazu passen.
 
+## phpMyAdmin
+
+Die Produktionsinstallation startet phpMyAdmin standardmäßig unter
+`127.0.0.1:5556`. `FIDOMA_PHPMYADMIN_PORT` ändert den Host-Port und
+`FIDOMA_PHPMYADMIN_BIND_ADDRESS` die gebundene Adresse. Die lokale Bindung verhindert, dass
+phpMyAdmin unbeabsichtigt öffentlich im Internet erreichbar ist. Für einen entfernten Server kann
+ein SSH-Tunnel verwendet werden:
+
+```bash
+ssh -L 5556:127.0.0.1:5556 user@example.org
+```
+
+Danach ist phpMyAdmin lokal unter `http://localhost:5556` erreichbar. Eine öffentliche Bindung
+wie `0.0.0.0` sollte nur hinter zusätzlicher Zugriffskontrolle und einer Firewall verwendet werden.
+
 ## E-Mail
 
 Rechnungen und Angebote werden über Laravels Mail-Konfiguration versendet. Relevant sind `MAIL_MAILER`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS` und `MAIL_VERIFY_CERTIFICATES`.
