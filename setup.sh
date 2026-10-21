@@ -68,13 +68,13 @@ if [ ! -f "$ENV_FILE" ]; then
 
     set_env_value APP_KEY "$app_key" "$ENV_FILE"
     set_env_value DB_PASSWORD "$database_password" "$ENV_FILE"
-    set_env_value APP_URL "${FIDOMA_APP_URL:-http://localhost:${FIDOMA_PORT:-8000}}" "$ENV_FILE"
+    set_env_value APP_URL "${FIDOMA_APP_URL:-http://localhost:${FIDOMA_PORT:-5555}}" "$ENV_FILE"
 
     cat >> "$ENV_FILE" <<EOF
 
 # Werte für Docker Compose
 FIDOMA_IMAGE=${FIDOMA_IMAGE:-ghcr.io/fidoma/fidoma:latest}
-FIDOMA_PORT=${FIDOMA_PORT:-8000}
+FIDOMA_PORT=${FIDOMA_PORT:-5555}
 FIDOMA_DB_DATABASE=fidoma
 FIDOMA_DB_USERNAME=fidoma
 FIDOMA_DB_PASSWORD=$database_password
@@ -114,7 +114,7 @@ EOF
 fi
 
 port="$(awk -F= '/^FIDOMA_PORT=/{print $2; exit}' "$ENV_FILE")"
-port="${port:-8000}"
+port="${port:-5555}"
 
 printf '\nFidoma ist bereit: http://localhost:%s/admin\n' "$port"
 if [ -f "$ADMIN_STATE_FILE" ]; then

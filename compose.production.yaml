@@ -7,7 +7,7 @@ services:
     env_file:
       - ${FIDOMA_ENV_FILE:-.env.production}
     ports:
-      - "${FIDOMA_PORT:-8000}:80"
+      - "${FIDOMA_PORT:-5555}:80"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:

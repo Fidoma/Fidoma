@@ -16,7 +16,7 @@ chmod +x setup.sh
 Das Skript erzeugt `.env.production`, sichere Datenbankwerte und einen Anwendungsschlüssel, startet App, Queue, Scheduler und MySQL, führt Migrationen aus und legt beim ersten Lauf ein Administratorkonto an. Die einmaligen Zugangsdaten stehen in `.fidoma-admin`.
 
 ::: danger Zugangsdaten schützen
-Melde dich sofort unter `http://localhost:8000/admin` an, ändere das Kennwort und lösche anschließend `.fidoma-admin`. Sichere `.env.production` niemals im Repository.
+Melde dich sofort unter `http://localhost:5555/admin` an, ändere das Kennwort und lösche anschließend `.fidoma-admin`. Sichere `.env.production` niemals im Repository.
 :::
 
 Wichtige Werte lassen sich beim ersten Aufruf vorgeben:
