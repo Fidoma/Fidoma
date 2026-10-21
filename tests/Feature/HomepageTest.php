@@ -21,6 +21,8 @@ class HomepageTest extends TestCase
             ->assertSee('Handwerk & Bau', escape: false)
             ->assertSee('Terminal-Zahlungen')
             ->assertSee('FinTS-Banking')
+            ->assertDontSee('Kunden & Produkte', escape: false)
+            ->assertDontSee('>Auswertungen<', escape: false)
             ->assertSee('Ihre Software. Ihre Entscheidung.')
             ->assertSee('/preise', escape: false)
             ->assertSee('/admin/login', escape: false)
