@@ -91,7 +91,8 @@ class RoomResource extends Resource
                     ->label('Zimmer')
                     ->icon(Heroicon::Plus)
                     ->modalHeading('Zimmer hinzufügen')
-                    ->modalSubmitActionLabel('Zimmer erstellen'),
+                    ->modalSubmitActionLabel('Zimmer erstellen')
+                    ->forceRenderAfterCreateAnother(),
                 Action::make('edit')
                     ->modalHeading('Zimmer bearbeiten')
                     ->modalSubmitActionLabel('Änderungen speichern')

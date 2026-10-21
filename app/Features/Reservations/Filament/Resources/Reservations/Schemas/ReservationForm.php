@@ -8,7 +8,6 @@ use App\Features\Quotes\Services\QuoteAmountCalculator;
 use App\Features\Reservations\Enums\ReservationStatus;
 use App\Features\Reservations\Filament\Resources\Reservations\Schemas\Components\ReservationItemsRepeater;
 use App\Features\Reservations\Models\Reservation;
-use App\Features\Reservations\Models\ReservationItem;
 use App\Features\Reservations\Models\Room;
 use App\Features\TaxRates\Models\TaxRate;
 use Carbon\CarbonImmutable;
@@ -117,21 +116,25 @@ class ReservationForm
                                 TableColumn::make('Aktionen')->hiddenHeaderLabel()->width('56px'),
                             ])
                             ->schema([
-                                Select::make('product_template')
+                                TextInput::make('item_name')
                                     ->label('Position')
-                                    ->options(fn () => Product::query()->orderBy('product_name')->pluck('product_name', 'product_id'))
-                                    ->native()
-                                    ->live()
+                                    ->datalist(fn (): array => Product::query()
+                                        ->orderBy('product_name')
+                                        ->pluck('product_name')
+                                        ->all())
+                                    ->live(debounce: 300)
                                     ->required()
-                                    ->dehydrated(false)
-                                    ->afterStateHydrated(fn (Select $component, ?ReservationItem $record) => $component->state($record?->item_product_id))
                                     ->afterStateUpdated(function (mixed $state, Set $set): void {
-                                        $product = Product::query()->find($state);
+                                        $product = Product::query()
+                                            ->where('product_name', $state)
+                                            ->first();
+
+                                        $set('item_product_id', $product?->getKey());
+
                                         if (! $product) {
                                             return;
                                         }
-                                        $set('item_product_id', $product->getKey());
-                                        $set('item_name', $product->product_name);
+
                                         $set('item_description', $product->product_description);
                                         $set('item_price', $product->product_price);
                                         $set('item_tax_rate_id', $product->tax_rate_id);
@@ -139,7 +142,6 @@ class ReservationForm
                                         $set('item_tax_included', $product->product_tax_included);
                                     }),
                                 Hidden::make('item_product_id'),
-                                Hidden::make('item_name')->required()->validationAttribute('Position'),
                                 TextInput::make('item_description')->label('Beschreibung'),
                                 DatePicker::make('arrival_date')
                                     ->label('Anreise')->required()->live()

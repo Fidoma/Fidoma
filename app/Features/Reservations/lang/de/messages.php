@@ -5,6 +5,14 @@ return [
     'singular' => 'Reservierung',
     'rooms' => 'Zimmer',
     'room_singular' => 'Zimmer',
+    'table' => [
+        'arrival_in' => 'Ankunft in',
+        'arrival_today' => 'Heute',
+        'arrival_future_one' => '+1 Tag',
+        'arrival_future_many' => '+:count Tage',
+        'arrival_past_one' => '-1 Tag',
+        'arrival_past_many' => '-:count Tage',
+    ],
     'schedule' => [
         'legend' => [
             'action' => 'Statuslegende anzeigen',

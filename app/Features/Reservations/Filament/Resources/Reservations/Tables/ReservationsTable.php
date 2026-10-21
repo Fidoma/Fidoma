@@ -8,6 +8,7 @@ use App\Features\Reservations\Actions\ConvertReservationToInvoice;
 use App\Features\Reservations\Enums\ReservationStatus;
 use App\Features\Reservations\Filament\Resources\Reservations\ReservationResource;
 use App\Features\Reservations\Models\Reservation;
+use Carbon\CarbonImmutable;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\CreateAction;
@@ -42,8 +43,41 @@ class ReservationsTable
                     ->url(fn (Reservation $record): string => ClientResource::getUrl('view', ['record' => $record->client_id]))
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('items.0.arrival_date')->label('Anreise')->date('d.m.Y'),
-                TextColumn::make('items.0.departure_date')->label('Abreise')->date('d.m.Y'),
+                TextColumn::make('arrival_date')
+                    ->label('Anreise')
+                    ->state(fn (Reservation $record) => $record->items->first()?->arrival_date)
+                    ->date('d.m.Y')
+                    ->placeholder('–'),
+                TextColumn::make('departure_date')
+                    ->label('Abreise')
+                    ->state(fn (Reservation $record) => $record->items->first()?->departure_date)
+                    ->date('d.m.Y')
+                    ->placeholder('–'),
+                TextColumn::make('arrival_in_days')
+                    ->label(__('reservations::messages.table.arrival_in'))
+                    ->state(function (Reservation $record): ?int {
+                        $arrivalDate = $record->items->first()?->arrival_date;
+
+                        if ($arrivalDate === null) {
+                            return null;
+                        }
+
+                        return (int) CarbonImmutable::today()->diffInDays($arrivalDate, false);
+                    })
+                    ->formatStateUsing(fn (?int $state): ?string => $state === null ? null : match (true) {
+                        $state === 0 => __('reservations::messages.table.arrival_today'),
+                        $state === 1 => __('reservations::messages.table.arrival_future_one'),
+                        $state > 1 => __('reservations::messages.table.arrival_future_many', ['count' => $state]),
+                        $state === -1 => __('reservations::messages.table.arrival_past_one'),
+                        default => __('reservations::messages.table.arrival_past_many', ['count' => abs($state)]),
+                    })
+                    ->badge()
+                    ->color(fn (?int $state): string => match (true) {
+                        $state > 0 => 'success',
+                        $state < 0 => 'danger',
+                        default => 'gray',
+                    })
+                    ->placeholder('–'),
                 TextColumn::make('reservation_status_id')->label('Status')->badge()
                     ->formatStateUsing(fn (ReservationStatus $state): string => $state->label())
                     ->color(fn (ReservationStatus $state): string => $state->color()),
