@@ -8,6 +8,7 @@
 .phpactor.json
 .phpunit.result.cache
 /.codex
+/.codex-attachments/
 /.cursor/
 /.idea
 /.nova

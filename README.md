@@ -41,8 +41,9 @@ klar weiterentwickeln, ohne Geschäftslogik über die gesamte Anwendung zu verte
 | Projekte | Projekte, Bauvorhaben und Aufträge mit eigener Projektnummer und Kundenbezug |
 | Angebote | Erstellung, Statusverwaltung und Weiterverarbeitung von Angeboten |
 | Rechnungen | Rechnungen, Abschlagsrechnungen, Gutschriften, Stornierungen und Archivierung |
-| Zahlungen | Manuelle Zahlungen, Zahlungsarten und Verknüpfung mit Banktransaktionen |
-| Banking & Zuordnungen | Importierte Banktransaktionen sowie Rechnungs- und Zahlungszuordnung |
+| Zahlungen | Manuelle Zahlungen, Zahlungsarten sowie Terminalzahlungen für offene Rechnungen |
+| Banking & Zuordnungen | CSV-Import, Rechnungs- und Zahlungszuordnung sowie automatisierter Banktransaktionsabruf über FinTS im Cloud-Paket |
+| Kartenterminals | Zahlungen über einen konfigurierten ZVTAPI-Gateway starten, Status verfolgen und erfolgreiche Zahlungen verbuchen |
 | Verträge | Individuelle Verträge, Vorlagen und projektspezifische Felder |
 | Hotel & Reservierungen | Zimmer, Reservierungen und abrechenbare Reservierungspositionen |
 | Produkte & Stammdaten | Produkte, Familien, Einheiten, Steuersätze und Nummernkreise |
@@ -53,6 +54,20 @@ klar weiterentwickeln, ohne Geschäftslogik über die gesamte Anwendung zu verte
 Elektronische Rechnungen werden über `horstoeko/invoicesuite` erzeugt. PDF-Ausgaben und
 Vorschauen verwenden dieselbe Template-Verarbeitung; eigene Layouts lassen sich mit einem
 integrierten HTML-/CSS-Editor bearbeiten.
+
+### Banking und Terminalzahlungen
+
+Banktransaktionen können per CSV importiert und anschließend Rechnungen, Zahlungen oder
+Dokumenten aus Paperless-ngx zugeordnet werden. Im Fidoma-Cloud-Paket kann der Abruf der
+Banktransaktionen zusätzlich automatisiert über FinTS erfolgen. Die FinTS-Anbindung ist eine
+Cloud-Leistung und derzeit nicht Bestandteil des frei ausgelieferten Self-Hosting-Kerns.
+
+Für Kartenzahlungen stellt Fidoma eine Terminal-Oberfläche bereit. Dort lassen sich offene
+Rechnungen auswählen, Zahlungen starten und deren Status nachvollziehen. Die Kommunikation
+mit dem Zahlungsterminal erfolgt über einen separat betriebenen und per API-Schlüssel
+abgesicherten ZVTAPI-Gateway. Nach einer bestätigten Zahlung legt Fidoma den zugehörigen
+Zahlungseingang an der Rechnung an. Bei einem unklaren Verbindungs- oder Terminalstatus wird
+keine erfolgreiche Zahlung angenommen; der Status kann erneut abgeglichen werden.
 
 ## Einblicke in Fidoma
 
@@ -236,6 +251,10 @@ Die zugehörigen Werte werden in `.env` konfiguriert:
 - **SMTP:** Versand von Rechnungen, Angeboten und weiteren Geschäftsdokumenten
 - **IMAP / Roundcube:** eingebundener Webmail-Zugriff
 - **Paperless-ngx:** Übergabe und Verknüpfung externer Dokumente über die Paperless API
+- **ZVTAPI-Gateway:** Anbindung eines Zahlungsterminals über das ZVT-Protokoll; URL,
+  API-Schlüssel, Zeitlimits und Zahlungsart werden über `TERMINAL_*`-Variablen konfiguriert
+- **FinTS-Banking:** automatisierter Abruf von Banktransaktionen als Bestandteil des
+  Fidoma-Cloud-Pakets
 
 Nicht konfigurierte Integrationen werden in der Oberfläche ausgeblendet oder deaktiviert.
 
