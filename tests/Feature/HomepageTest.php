@@ -28,4 +28,15 @@ class HomepageTest extends TestCase
             ->assertSee('/admin/login', escape: false)
             ->assertSee('images/brand/fidoma-mark.png', escape: false);
     }
+
+    public function test_install_script_is_available_on_the_website(): void
+    {
+        $this->get('/install.sh')
+            ->assertOk()
+            ->assertHeader('Content-Type', 'text/plain; charset=UTF-8')
+            ->assertHeader('X-Content-Type-Options', 'nosniff')
+            ->assertSee('#!/bin/sh', escape: false)
+            ->assertSee('raw.githubusercontent.com', escape: false)
+            ->assertSee('exec ./setup.sh', escape: false);
+    }
 }

@@ -102,9 +102,25 @@ erstellt. Bestehende Produkte, Einheiten und Steuersätze können dabei wiederve
 
 ### Produktionsinstallation mit einem Befehl
 
-Für eine veröffentlichte Fidoma-Version werden nur Docker Engine und Docker Compose v2
-benötigt. Nach dem Entpacken des Release-Archivs startet ein Befehl die Anwendung, MySQL,
-den Queue-Worker und den Scheduler:
+Für eine veröffentlichte Fidoma-Version werden nur `curl`, Docker Engine und Docker Compose
+v2 benötigt. Der Bootstrap-Installer lädt die drei benötigten Deployment-Dateien in den
+Ordner `fidoma` und startet anschließend die Anwendung, MySQL, den Queue-Worker und den
+Scheduler:
+
+```bash
+curl -fsSL https://fidoma.de/install.sh | bash
+```
+
+Wer das Skript vor der Ausführung prüfen möchte, kann es zunächst separat herunterladen:
+
+```bash
+curl -fsSLO https://fidoma.de/install.sh
+less install.sh
+bash install.sh
+```
+
+Innerhalb eines bereits entpackten Release-Archivs steht weiterhin der direkte Aufruf zur
+Verfügung:
 
 ```bash
 ./setup.sh
@@ -126,6 +142,14 @@ FIDOMA_APP_URL=https://erp.example.com \
 FIDOMA_ADMIN_EMAIL=admin@example.com \
 FIDOMA_IMAGE=ghcr.io/fidoma/fidoma:v1.0.0 \
 ./setup.sh
+```
+
+Auch der Curl-Installer kann konfiguriert oder auf eine konkrete Release-Version festgesetzt
+werden:
+
+```bash
+curl -fsSL https://fidoma.de/install.sh | \
+  FIDOMA_VERSION=v1.0.0 FIDOMA_INSTALL_DIR=/opt/fidoma bash
 ```
 
 Ein erneuter Aufruf aktualisiert die Container auf das konfigurierte Image und führt noch
