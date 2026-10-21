@@ -7,8 +7,13 @@ use App\Features\TradeFairs\Http\Controllers\TradeFairController;
 use App\Features\Webmail\Http\Controllers\RoundcubeController;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'welcome::welcome');
-Route::view('/preise', 'welcome::pricing')->name('pricing');
+$welcomeRoutes = app_path('Features/Welcome/routes/web.php');
+
+if (is_file($welcomeRoutes)) {
+    require $welcomeRoutes;
+} else {
+    Route::redirect('/', '/admin/login');
+}
 
 Route::middleware('auth')->post('admin/locale/{locale}', LocaleController::class)
     ->whereIn('locale', ['de', 'en'])

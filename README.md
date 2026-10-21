@@ -100,6 +100,40 @@ erstellt. Bestehende Produkte, Einheiten und Steuersätze können dabei wiederve
 
 ## Installation
 
+### Produktionsinstallation mit einem Befehl
+
+Für eine veröffentlichte Fidoma-Version werden nur Docker Engine und Docker Compose v2
+benötigt. Nach dem Entpacken des Release-Archivs startet ein Befehl die Anwendung, MySQL,
+den Queue-Worker und den Scheduler:
+
+```bash
+./setup.sh
+```
+
+Das Skript erzeugt beim ersten Lauf `.env.production` mit einem zufälligen Anwendungsschlüssel
+und zufälligen Datenbankpasswörtern, lädt das veröffentlichte Fidoma-Image, führt die
+Migrationen aus und erstellt ein initiales Administratorkonto. Die einmalig erzeugten
+Zugangsdaten werden in `.fidoma-admin` mit ausschließlich lokalen Leserechten gespeichert.
+Die Datei sollte nach dem ersten Login gelöscht werden. Der unkritische Statusmarker
+`.fidoma-installed` bleibt bestehen, damit spätere Aktualisierungen kein zweites Konto anlegen.
+
+Die Installation ist ohne Rückfragen lauffähig. Bei Bedarf können die wichtigsten Werte für
+den ersten Lauf überschrieben werden:
+
+```bash
+FIDOMA_PORT=8080 \
+FIDOMA_APP_URL=https://erp.example.com \
+FIDOMA_ADMIN_EMAIL=admin@example.com \
+FIDOMA_IMAGE=ghcr.io/fidoma/fidoma:v1.0.0 \
+./setup.sh
+```
+
+Ein erneuter Aufruf aktualisiert die Container auf das konfigurierte Image und führt noch
+offene Migrationen aus, ohne Schlüssel, Datenbankpasswörter oder das Administratorkonto neu
+anzulegen. Die dauerhaften Daten liegen in benannten Docker-Volumes.
+
+### Lokale Entwicklungsinstallation
+
 ### Voraussetzungen
 
 - Docker Engine mit Docker Compose

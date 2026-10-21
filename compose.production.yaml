@@ -1,0 +1,74 @@
+name: fidoma
+
+services:
+  app:
+    image: ${FIDOMA_IMAGE:-ghcr.io/fidoma/fidoma:latest}
+    restart: unless-stopped
+    env_file:
+      - ${FIDOMA_ENV_FILE:-.env.production}
+    ports:
+      - "${FIDOMA_PORT:-8000}:80"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - fidoma-storage:/var/www/html/storage
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - fidoma
+
+  queue:
+    image: ${FIDOMA_IMAGE:-ghcr.io/fidoma/fidoma:latest}
+    restart: unless-stopped
+    command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--timeout=120"]
+    env_file:
+      - ${FIDOMA_ENV_FILE:-.env.production}
+    volumes:
+      - fidoma-storage:/var/www/html/storage
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - fidoma
+
+  scheduler:
+    image: ${FIDOMA_IMAGE:-ghcr.io/fidoma/fidoma:latest}
+    restart: unless-stopped
+    command: ["php", "artisan", "schedule:work"]
+    env_file:
+      - ${FIDOMA_ENV_FILE:-.env.production}
+    volumes:
+      - fidoma-storage:/var/www/html/storage
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - fidoma
+
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${FIDOMA_DB_DATABASE:-fidoma}
+      MYSQL_USER: ${FIDOMA_DB_USERNAME:-fidoma}
+      MYSQL_PASSWORD: ${FIDOMA_DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${FIDOMA_DB_ROOT_PASSWORD}
+    volumes:
+      - fidoma-mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    networks:
+      - fidoma
+
+networks:
+  fidoma:
+    driver: bridge
+
+volumes:
+  fidoma-mysql:
+  fidoma-storage:

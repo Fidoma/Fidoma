@@ -3,6 +3,8 @@
 .env
 .env.backup
 .env.production
+.fidoma-admin
+.fidoma-installed
 .phpactor.json
 .phpunit.result.cache
 /.codex
