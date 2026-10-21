@@ -1,6 +1,7 @@
 @php
     $plans = config('website.plans');
     $links = config('website.links');
+    $paypal = config('website.paypal');
 @endphp
 <!DOCTYPE html>
 <html lang="de">
@@ -36,7 +37,7 @@
                 <span class="popular-badge">Bequem starten</span>
                 <div><span class="plan-kicker">Gehostet</span><h2>{{ $plans['cloud']['name'] }}</h2><p>Fidoma nutzen, ohne sich selbst um Server, Installation und Wartung kümmern zu müssen.</p></div>
                 <div class="price"><strong>{{ $plans['cloud']['price'] }}</strong><span>{{ $plans['cloud']['suffix'] }}</span></div>
-                <ul><li>Gehostete Fidoma-Instanz</li><li>Serverbetrieb und Wartung</li><li>Regelmäßige Backups</li><li>Software-Updates</li><li>HTTPS-Verschlüsselung</li><li>ERP-Kernfunktionen</li><li>Kein eigener Server erforderlich</li></ul>
+                <ul><li>Gehostete Fidoma-Instanz</li><li>Serverbetrieb und Wartung</li><li>Regelmäßige Backups und Software-Updates</li><li>HTTPS-Verschlüsselung</li><li>Terminal-Zahlungen</li><li>Automatisierter Banktransaktionsabruf über FinTS</li><li>ERP-Kernfunktionen</li><li>Kein eigener Server erforderlich</li></ul>
                 <a class="button button-primary button-wide" href="{{ $links['cloud'] ?: '#kontakt' }}">Cloud anfragen <span aria-hidden="true">→</span></a>
             </article>
             <article class="pricing-card">
@@ -46,10 +47,16 @@
                 <a class="button button-secondary button-wide" href="{{ $links['support'] ?: '#kontakt' }}">Support anfragen <span aria-hidden="true">→</span></a>
             </article>
         </div>
-        <p class="pricing-note">Die genannten Beträge sind vorgesehene Startpreise. Konkreter Leistungsumfang, Verfügbarkeit und Bedingungen für Cloud und Support werden vor einer Buchung individuell vereinbart. Support kann unabhängig vom Hosting angefragt werden.</p>
+        <p class="pricing-note">Cloud und Support werden individuell angeboten. Leistungsumfang, Verfügbarkeit und Preis erhalten Sie auf Anfrage. Support kann unabhängig vom Hosting angefragt werden.</p>
     </div></section>
 
-    <section class="support-project-section" id="unterstuetzen"><div class="site-container support-project-card"><span class="heart-icon" aria-hidden="true">♡</span><div><span class="section-kicker">Freiwillige Projektunterstützung</span><h2>Fidoma gefällt Ihnen? Unterstützen Sie das Projekt.</h2><p>Fidoma wird unabhängig entwickelt und bleibt kostenlos als Open-Source-Software verfügbar. Mit einer freiwilligen Unterstützung helfen Sie dabei, neue Funktionen zu entwickeln, bestehende Funktionen zu verbessern und das Projekt langfristig weiterzuführen.</p></div>@if($links['donation'])<a class="button button-primary" href="{{ $links['donation'] }}">Fidoma unterstützen <span aria-hidden="true">→</span></a>@else<div class="configuration-note">Ein Zahlungsweg ist noch nicht veröffentlicht. Der Unterstützungslink kann zentral konfiguriert werden.</div>@endif</div></section>
+    <section class="payment-section" id="bezahlen"><div class="site-container"><div class="section-heading"><div><span class="section-kicker">Unterstützen oder anfragen</span><h2>Wählen Sie Ihr Anliegen.</h2></div><p>Freiwillige Spenden sind direkt über PayPal möglich. Für Cloud und Support erhalten Sie nach Ihrer Anfrage ein Angebot, das zu Ihrem benötigten Leistungsumfang passt.</p></div><div class="payment-options">
+        <article class="payment-option-featured"><span class="heart-icon" aria-hidden="true">♡</span><h3>Freiwillig spenden</h3><p>Unterstützen Sie die unabhängige Weiterentwicklung von Fidoma mit einem freiwilligen Betrag.</p><a class="button button-primary button-wide" href="{{ $paypal['donation'] }}">Über PayPal spenden</a></article>
+        <article><span class="feature-icon">☁</span><h3>Cloud anfragen</h3><p>Teilen Sie uns Ihre Anforderungen mit und erhalten Sie ein individuelles Angebot für den Cloud-Betrieb.</p><a class="button button-secondary button-wide" href="{{ $links['cloud'] ?: 'mailto:info@fidoma.de?subject=Fidoma%20Cloud' }}">Cloud-Angebot anfragen</a></article>
+        <article><span class="feature-icon">◇</span><h3>Support anfragen</h3><p>Beschreiben Sie Ihren Unterstützungsbedarf und erhalten Sie ein passendes Supportangebot.</p><a class="button button-secondary button-wide" href="{{ $links['support'] ?: 'mailto:info@fidoma.de?subject=Fidoma%20Support' }}">Support-Angebot anfragen</a></article>
+    </div><p class="pricing-note">Cloud- und Supportleistungen werden erst nach individueller Abstimmung angeboten. Kontakt: <a href="mailto:info@fidoma.de">info@fidoma.de</a>.</p></div></section>
+
+    <section class="support-project-section" id="unterstuetzen"><div class="site-container support-project-card"><span class="heart-icon" aria-hidden="true">♡</span><div><span class="section-kicker">Freiwillige Projektunterstützung</span><h2>Fidoma gefällt Ihnen? Unterstützen Sie das Projekt.</h2><p>Fidoma wird unabhängig entwickelt und bleibt kostenlos als Open-Source-Software verfügbar. Mit einer freiwilligen Unterstützung helfen Sie dabei, neue Funktionen zu entwickeln, bestehende Funktionen zu verbessern und das Projekt langfristig weiterzuführen.</p></div><a class="button button-primary" href="{{ $paypal['donation'] }}">Über PayPal spenden <span aria-hidden="true">→</span></a></div></section>
 
     <section class="faq-section"><div class="site-container faq-layout"><div><span class="section-kicker">Häufige Fragen</span><h2>Gut zu wissen.</h2><p>Die wichtigsten Unterschiede zwischen freier Software, Hosting und persönlicher Unterstützung.</p></div><div class="faq-list">
         <details open><summary>Ist Fidoma wirklich kostenlos?</summary><p>Ja. Fidoma ist als Open-Source-Software kostenlos nutzbar. Kosten entstehen nur, wenn Sie zusätzliche Dienstleistungen wie Hosting oder persönlichen Support buchen.</p></details>

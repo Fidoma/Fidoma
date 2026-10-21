@@ -2,7 +2,7 @@
 
 return [
     'feature' => 'Data import',
-    'navigation_group' => 'Finance',
+    'navigation_group' => 'External services',
     'fields' => [
         'account_iban' => 'Account IBAN',
         'booking_date' => 'Booking date',

@@ -6,34 +6,14 @@
 
     <div class="terminal-workspace">
         <x-filament::section class="terminal-invoices-panel">
-            <x-slot name="heading">{{ __('terminals::messages.invoices.heading') }}</x-slot>
-            <x-slot name="description">{{ __('terminals::messages.invoices.description') }}</x-slot>
             <x-slot name="afterHeader">
-                <x-filament::badge color="gray">{{ $this->invoices->count() }} {{ __('terminals::messages.invoices.open') }}</x-filament::badge>
-            </x-slot>
-
-            <div class="terminal-invoice-filters">
-                <x-filament::input.wrapper prefix-icon="heroicon-m-magnifying-glass">
-                    <x-filament::input wire:model.live.debounce.300ms="search" :placeholder="__('terminals::messages.invoices.search')" />
-                </x-filament::input.wrapper>
-                <div class="terminal-filter-row">
-                    <x-filament::input.wrapper>
-                        <x-filament::input.select wire:model.live="invoiceFilter" aria-label="{{ __('terminals::messages.invoices.all') }}">
-                            <option value="all">{{ __('terminals::messages.invoices.all') }}</option>
-                            <option value="open">{{ __('terminals::messages.invoices.open') }}</option>
-                            <option value="partial">{{ __('terminals::messages.invoices.partial') }}</option>
-                        </x-filament::input.select>
+                <div class="terminal-invoices-header-actions">
+                    <x-filament::input.wrapper prefix-icon="heroicon-m-magnifying-glass">
+                        <x-filament::input wire:model.live.debounce.300ms="search" :placeholder="__('terminals::messages.invoices.search')" />
                     </x-filament::input.wrapper>
-                    <x-filament::input.wrapper>
-                        <x-filament::input.select wire:model.live="sort" aria-label="{{ __('terminals::messages.invoices.newest') }}">
-                            <option value="date_desc">{{ __('terminals::messages.invoices.newest') }}</option>
-                            <option value="date_asc">{{ __('terminals::messages.invoices.oldest') }}</option>
-                            <option value="amount_desc">{{ __('terminals::messages.invoices.amount_desc') }}</option>
-                            <option value="amount_asc">{{ __('terminals::messages.invoices.amount_asc') }}</option>
-                        </x-filament::input.select>
-                    </x-filament::input.wrapper>
+                    <x-filament::badge color="gray">{{ $this->invoices->count() }} {{ __('terminals::messages.invoices.open') }}</x-filament::badge>
                 </div>
-            </div>
+            </x-slot>
 
             <div class="terminal-invoice-list">
                 @forelse ($this->invoices as $listedInvoice)
@@ -82,8 +62,7 @@
                     </div>
                 </x-filament::section>
 
-                <x-filament::section icon="heroicon-o-credit-card">
-                    <x-slot name="heading">{{ __('terminals::messages.payment.terminal_and_amount') }}</x-slot>
+                <x-filament::section>
                     <x-slot name="afterHeader">
                         <x-filament::badge :color="$attempt?->status->color() ?? (($terminalAvailable && ! $terminalBlocked) ? 'success' : 'danger')">
                             {{ $attempt?->status->label() ?? (($terminalAvailable && ! $terminalBlocked) ? __('terminals::messages.payment_status.ready') : __('terminals::messages.payment_status.unavailable')) }}

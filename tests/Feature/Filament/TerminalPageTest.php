@@ -14,8 +14,7 @@ use App\Features\Terminals\Data\GatewayPaymentResult;
 use App\Features\Terminals\Data\TerminalHealth;
 use App\Features\Terminals\Enums\TerminalPaymentStatus;
 use App\Features\Terminals\Filament\Pages\Terminal;
-use App\Features\Terminals\Filament\Resources\TerminalPaymentAttempts\Pages\ListTerminalPaymentAttempts;
-use App\Features\Terminals\Filament\Resources\TerminalPaymentAttempts\TerminalPaymentAttemptResource;
+use App\Features\Terminals\Livewire\TerminalPaymentAttemptsTable;
 use App\Features\Terminals\Models\TerminalPaymentAttempt;
 use App\Features\Terminals\Services\TerminalPaymentService;
 use App\Models\User;
@@ -37,19 +36,18 @@ class TerminalPageTest extends TestCase
     /** @var list<int> */
     private array $paymentMethodIds = [];
 
-    public function test_invoice_list_can_be_searched_filtered_sorted_and_selected(): void
+    public function test_invoice_list_can_be_searched_and_selected(): void
     {
         $user = User::factory()->create();
         $open = $this->invoice($user, 'RE-OPEN', 'Alpha GmbH', 100, 0, '2026-10-01');
         $partial = $this->invoice($user, 'RE-PART', 'Beta GmbH', 200, 50, '2026-10-02');
 
         Livewire::actingAs($user)->test(Terminal::class)
+            ->assertSee('Offene Rechnungen suchen')
             ->assertSee('RE-OPEN')->assertSee('RE-PART')
-            ->set('invoiceFilter', 'partial')
-            ->assertDontSee('RE-OPEN')->assertSee('RE-PART')
-            ->set('invoiceFilter', 'all')->set('search', 'Alpha')
+            ->set('search', 'Alpha')
             ->assertSee('RE-OPEN')->assertDontSee('RE-PART')
-            ->set('search', '')->set('sort', 'amount_desc')
+            ->set('search', '')
             ->call('selectInvoice', $partial->getKey())
             ->assertSet('selectedInvoiceId', $partial->getKey())
             ->assertSet('amount', '150.00')
@@ -100,7 +98,7 @@ class TerminalPageTest extends TestCase
             ->assertDontSee('RE-HISTORY-FOREIGN');
     }
 
-    public function test_payment_history_resource_is_read_only_and_user_scoped(): void
+    public function test_embedded_payment_history_is_user_scoped(): void
     {
         $user = User::factory()->create();
         $other = User::factory()->create();
@@ -109,24 +107,21 @@ class TerminalPageTest extends TestCase
         $ownAttempt = $this->attempt($user, $ownInvoice, TerminalPaymentStatus::Successful);
         $foreignAttempt = $this->attempt($other, $foreignInvoice, TerminalPaymentStatus::Failed);
 
-        $this->assertFalse(TerminalPaymentAttemptResource::canCreate());
-        $this->assertSame(['index'], array_keys(TerminalPaymentAttemptResource::getPages()));
-
-        Livewire::actingAs($user)->test(ListTerminalPaymentAttempts::class)
+        Livewire::actingAs($user)->test(TerminalPaymentAttemptsTable::class)
             ->assertCanSeeTableRecords([$ownAttempt])
             ->assertCanNotSeeTableRecords([$foreignAttempt])
             ->assertSee('RE-RESOURCE-OWN')
             ->assertDontSee('RE-RESOURCE-FOREIGN');
     }
 
-    public function test_payment_history_resource_can_be_filtered_by_status_and_date(): void
+    public function test_embedded_payment_history_can_be_filtered_by_status_and_date(): void
     {
         $user = User::factory()->create();
         $invoice = $this->invoice($user, 'RE-RESOURCE-FILTER', 'Filterkunde', 100, 0);
         $successful = $this->attempt($user, $invoice, TerminalPaymentStatus::Successful, '2026-10-10 12:00:00');
         $failed = $this->attempt($user, $invoice, TerminalPaymentStatus::Failed, '2026-10-20 12:00:00');
 
-        Livewire::actingAs($user)->test(ListTerminalPaymentAttempts::class)
+        Livewire::actingAs($user)->test(TerminalPaymentAttemptsTable::class)
             ->filterTable('status', TerminalPaymentStatus::Failed->value)
             ->assertCanSeeTableRecords([$failed])
             ->assertCanNotSeeTableRecords([$successful])

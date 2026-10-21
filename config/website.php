@@ -4,12 +4,16 @@ return [
     'links' => [
         'repository' => env('FIDOMA_REPOSITORY_URL', 'https://github.com/Fidoma/Fidoma'),
         'documentation' => env('FIDOMA_DOCUMENTATION_URL', 'https://github.com/Fidoma/Fidoma#readme'),
-        'contact' => env('FIDOMA_CONTACT_URL'),
-        'support' => env('FIDOMA_SUPPORT_URL'),
-        'cloud' => env('FIDOMA_CLOUD_URL'),
-        'donation' => env('FIDOMA_DONATION_URL'),
+        'contact' => env('FIDOMA_CONTACT_URL', 'mailto:info@fidoma.de'),
+        'support' => env('FIDOMA_SUPPORT_URL', 'mailto:info@fidoma.de?subject=Fidoma%20Support'),
+        'cloud' => env('FIDOMA_CLOUD_URL', 'mailto:info@fidoma.de?subject=Fidoma%20Cloud'),
+        'donation' => env('FIDOMA_DONATION_URL', 'https://www.paypal.com/ncp/payment/4J8LA2Z8TNGNQ'),
         'imprint' => env('FIDOMA_IMPRINT_URL'),
         'privacy' => env('FIDOMA_PRIVACY_URL'),
+    ],
+
+    'paypal' => [
+        'donation' => env('FIDOMA_PAYPAL_DONATION_URL', 'https://www.paypal.com/ncp/payment/4J8LA2Z8TNGNQ'),
     ],
 
     'plans' => [
@@ -20,13 +24,13 @@ return [
         ],
         'cloud' => [
             'name' => 'Fidoma Cloud',
-            'price' => '19 €',
-            'suffix' => 'pro Monat',
+            'price' => 'Auf Anfrage',
+            'suffix' => 'individuelles Angebot',
         ],
         'support' => [
             'name' => 'Fidoma Support',
-            'price' => 'ab 11 €',
-            'suffix' => 'pro Monat',
+            'price' => 'Auf Anfrage',
+            'suffix' => 'individuelles Angebot',
         ],
     ],
 ];

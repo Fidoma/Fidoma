@@ -2,7 +2,7 @@
 
 namespace App\Features\Terminals\Livewire;
 
-use App\Features\Terminals\Filament\Resources\TerminalPaymentAttempts\Tables\TerminalPaymentAttemptsTable as TableConfiguration;
+use App\Features\Terminals\Filament\Tables\TerminalPaymentAttemptsTable as TableConfiguration;
 use App\Features\Terminals\Models\TerminalPaymentAttempt;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;

@@ -356,7 +356,6 @@
     gap: 1.25rem;
 }
 
-.terminal-invoice-filters,
 .terminal-payment-form,
 .terminal-field,
 .terminal-selected-invoice,
@@ -365,11 +364,8 @@
     gap: 0.5rem;
 }
 
-.terminal-filter-row {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.75rem;
-}
+.terminal-invoices-header-actions { display: flex; align-items: center; gap: 0.75rem; }
+.terminal-invoices-header-actions .fi-input-wrp { width: min(18rem, 42vw); }
 
 .terminal-invoice-list {
     --terminal-invoice-item-height: 6rem;
@@ -462,7 +458,8 @@
 }
 
 @media (max-width: 47.999rem) {
-    .terminal-filter-row { grid-template-columns: 1fr; }
+    .terminal-invoices-header-actions { align-items: stretch; flex-direction: column; }
+    .terminal-invoices-header-actions .fi-input-wrp { width: 100%; }
     .terminal-payment-feedback { align-items: flex-start; flex-wrap: wrap; }
 }
 

@@ -10,6 +10,7 @@ use App\Features\Terminals\Enums\TerminalPaymentStatus;
 use App\Features\Terminals\Models\TerminalPaymentAttempt;
 use App\Features\Terminals\Services\TerminalPaymentService;
 use App\Filament\Concerns\HasConfigurableNavigation;
+use App\Filament\Concerns\WithoutPageHeading;
 use BackedEnum;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -23,11 +24,11 @@ use UnitEnum;
 
 class Terminal extends Page
 {
-    use HasConfigurableNavigation;
+    use HasConfigurableNavigation, WithoutPageHeading;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCreditCard;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Finanzen';
+    protected static string|UnitEnum|null $navigationGroup = 'Externe Dienste';
 
     protected static ?int $navigationSort = 5;
 
@@ -38,10 +39,6 @@ class Terminal extends Page
     protected Width|string|null $maxContentWidth = Width::Full;
 
     public string $search = '';
-
-    public string $invoiceFilter = 'all';
-
-    public string $sort = 'date_desc';
 
     public ?int $selectedInvoiceId = null;
 
@@ -77,16 +74,6 @@ class Terminal extends Page
     public static function getNavigationGroup(): ?string
     {
         return __('terminals::messages.navigation_group');
-    }
-
-    public function getTitle(): string
-    {
-        return __('terminals::messages.feature');
-    }
-
-    public function getSubheading(): ?string
-    {
-        return __('terminals::messages.subtitle');
     }
 
     public static function canAccess(): bool
@@ -236,15 +223,7 @@ class Terminal extends Page
             });
         });
 
-        $query->when($this->invoiceFilter === 'open', fn (Builder $query): Builder => $query->whereHas('amount', fn (Builder $query): Builder => $query->where('invoice_paid', '<=', 0)))
-            ->when($this->invoiceFilter === 'partial', fn (Builder $query): Builder => $query->whereHas('amount', fn (Builder $query): Builder => $query->where('invoice_paid', '>', 0)));
-
-        return match ($this->sort) {
-            'date_asc' => $query->orderBy('invoice_date_created'),
-            'amount_desc' => $query->orderByDesc(Invoice::query()->from('ip_invoice_amounts')->select('invoice_balance')->whereColumn('ip_invoice_amounts.invoice_id', 'ip_invoices.invoice_id')),
-            'amount_asc' => $query->orderBy(Invoice::query()->from('ip_invoice_amounts')->select('invoice_balance')->whereColumn('ip_invoice_amounts.invoice_id', 'ip_invoices.invoice_id')),
-            default => $query->orderByDesc('invoice_date_created'),
-        };
+        return $query->orderByDesc('invoice_date_created');
     }
 
     /** @return Builder<Invoice> */

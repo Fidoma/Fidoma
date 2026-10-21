@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Features\Terminals\Filament\Resources\TerminalPaymentAttempts\Tables;
+namespace App\Features\Terminals\Filament\Tables;
 
 use App\Features\Terminals\Enums\TerminalPaymentStatus;
 use Filament\Forms\Components\DatePicker;

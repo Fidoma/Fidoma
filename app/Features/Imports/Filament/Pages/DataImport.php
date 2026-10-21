@@ -46,7 +46,7 @@ class DataImport extends Page
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArrowUpTray;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Finanzen';
+    protected static string|UnitEnum|null $navigationGroup = 'Externe Dienste';
 
     protected static ?int $navigationSort = 5;
 

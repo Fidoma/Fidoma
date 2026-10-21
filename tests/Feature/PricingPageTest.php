@@ -12,6 +12,7 @@ class PricingPageTest extends TestCase
         config()->set('website.links.support');
         config()->set('website.links.contact');
         config()->set('website.links.donation');
+        config()->set('website.paypal.donation', 'https://www.paypal.com/ncp/payment/4J8LA2Z8TNGNQ');
 
         $this->get('/preise')
             ->assertOk()
@@ -20,12 +21,17 @@ class PricingPageTest extends TestCase
             ->assertSee('Fidoma Community')
             ->assertSee('0 €')
             ->assertSee('Fidoma Cloud')
-            ->assertSee('19 €')
+            ->assertSee('Auf Anfrage')
             ->assertSee('Fidoma Support')
-            ->assertSee('ab 11 €')
+            ->assertDontSee('19 €')
+            ->assertDontSee('9,99 €')
+            ->assertSee('Terminal-Zahlungen')
+            ->assertSee('Automatisierter Banktransaktionsabruf über FinTS')
             ->assertSee('Support kann unabhängig vom Hosting angefragt werden.')
             ->assertSee('Fidoma gefällt Ihnen? Unterstützen Sie das Projekt.')
-            ->assertSee('Ein Zahlungsweg ist noch nicht veröffentlicht.')
+            ->assertSee('Wählen Sie Ihr Anliegen.')
+            ->assertSee('Über PayPal spenden')
+            ->assertSee('https://www.paypal.com/ncp/payment/4J8LA2Z8TNGNQ', escape: false)
             ->assertSee('Der direkte Kontaktweg ist noch nicht veröffentlicht')
             ->assertSee('Kann ich später von Self-Hosting zur Cloud wechseln?')
             ->assertDontSee('href=""', escape: false);
@@ -37,12 +43,15 @@ class PricingPageTest extends TestCase
         config()->set('website.links.support', 'https://example.test/support');
         config()->set('website.links.contact', 'https://example.test/contact');
         config()->set('website.links.donation', 'https://example.test/donation');
+        config()->set('website.paypal.donation', 'https://paypal.test/donation');
 
         $this->get('/preise')
             ->assertOk()
             ->assertSee('https://example.test/cloud', escape: false)
             ->assertSee('https://example.test/support', escape: false)
             ->assertSee('https://example.test/contact', escape: false)
-            ->assertSee('https://example.test/donation', escape: false);
+            ->assertSee('https://paypal.test/donation', escape: false)
+            ->assertSee('https://example.test/cloud', escape: false)
+            ->assertSee('https://example.test/support', escape: false);
     }
 }

@@ -7,6 +7,7 @@ use App\Features\Contracts\Filament\Resources\ContractTemplates\ContractTemplate
 use App\Features\Documents\Services\PaperlessClient;
 use App\Features\EmailTemplates\Filament\Resources\EmailTemplates\EmailTemplateResource;
 use App\Features\Families\Filament\Resources\Families\FamilyResource;
+use App\Features\Imports\Filament\Pages\DataImport;
 use App\Features\InvoiceGroups\Filament\Resources\InvoiceGroups\InvoiceGroupResource;
 use App\Features\Invoices\Filament\Pages\InvoiceLayout;
 use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
@@ -15,6 +16,7 @@ use App\Features\Quotes\Filament\Resources\Quotes\QuoteResource;
 use App\Features\Settings\Filament\Clusters\SettingsCluster;
 use App\Features\Settings\Filament\Pages\Modules;
 use App\Features\TaxRates\Filament\Resources\TaxRates\TaxRateResource;
+use App\Features\Terminals\Filament\Pages\Terminal;
 use App\Features\Units\Filament\Resources\Units\UnitResource;
 use App\Features\Users\Filament\Resources\Users\UserResource;
 use App\Models\User;
@@ -42,6 +44,25 @@ class AdminNavigationTest extends TestCase
     {
         $this->assertSame('Kunden', ClientResource::getNavigationLabel());
         $this->assertSame(Heroicon::OutlinedUserGroup, ClientResource::getNavigationIcon());
+    }
+
+    public function test_external_integrations_share_the_external_services_navigation_group(): void
+    {
+        $this->assertSame('Externe Dienste', DataImport::getNavigationGroup());
+        $this->assertSame('Externe Dienste', Terminal::getNavigationGroup());
+
+        $this->actingAs(User::factory()->create());
+        $panel = Filament::getPanel('admin');
+        Filament::setCurrentPanel($panel);
+        $externalServiceLabels = collect($panel->getNavigation())
+            ->firstWhere(fn ($group): bool => $group->getLabel() === 'Externe Dienste')
+            ?->getItems()
+            ->map(fn ($item): string => $item->getLabel())
+            ->all() ?? [];
+
+        $this->assertContains('Datenimport', $externalServiceLabels);
+        $this->assertContains('Terminals', $externalServiceLabels);
+        $this->assertNotContains('Zahlungshistorie', $externalServiceLabels);
     }
 
     public function test_products_resources_share_one_navigation_item_and_top_tabs(): void

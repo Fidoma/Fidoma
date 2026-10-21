@@ -17,6 +17,7 @@ use App\Features\Terminals\Filament\Pages\Terminal;
 use App\Features\TradeFairs\Filament\Pages\TradeFairs;
 use App\Features\Webmail\Filament\Pages\Webmail;
 use Filament\Actions\Action;
+use Filament\Auth\MultiFactor\App\AppAuthentication;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -45,6 +46,12 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login(Login::class)
+            ->profile()
+            ->multiFactorAuthentication([
+                AppAuthentication::make()
+                    ->brandName('Fidoma')
+                    ->recoverable(),
+            ])
             ->brandName('Fidoma')
             ->brandLogo(fn (): HtmlString => new HtmlString(
                 '<span class="fidoma-brand">'
