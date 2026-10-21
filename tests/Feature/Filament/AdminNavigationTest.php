@@ -63,6 +63,14 @@ class AdminNavigationTest extends TestCase
         $this->assertContains('Datenimport', $externalServiceLabels);
         $this->assertContains('Terminals', $externalServiceLabels);
         $this->assertNotContains('Zahlungshistorie', $externalServiceLabels);
+        $this->assertSame('Datenimport', array_last($externalServiceLabels));
+
+        $navigationLabels = collect($panel->getNavigation())
+            ->flatMap(fn ($group) => $group->getItems())
+            ->map(fn ($item): string => $item->getLabel())
+            ->all();
+
+        $this->assertSame('Datenimport', array_last($navigationLabels));
     }
 
     public function test_products_resources_share_one_navigation_item_and_top_tabs(): void

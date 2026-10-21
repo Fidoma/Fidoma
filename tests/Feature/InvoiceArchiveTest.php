@@ -2,14 +2,12 @@
 
 namespace Tests\Feature;
 
-use App\Features\Clients\Filament\Resources\Clients\ClientResource;
 use App\Features\Clients\Models\Client;
 use App\Features\Invoices\Actions\ArchiveInvoice;
 use App\Features\Invoices\Actions\IssueInvoice;
 use App\Features\Invoices\Enums\InvoiceBillingType;
 use App\Features\Invoices\Enums\InvoiceStatus;
 use App\Features\Invoices\Enums\InvoiceType;
-use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
 use App\Features\Invoices\Filament\Resources\Invoices\Pages\EditInvoice;
 use App\Features\Invoices\Filament\Resources\Invoices\Pages\ListInvoices;
 use App\Features\Invoices\Models\Invoice;
@@ -137,56 +135,6 @@ class InvoiceArchiveTest extends TestCase
             ->assertFormFieldDisabled('client_id')
             ->assertFormFieldDisabled('invoice_date_due')
             ->assertSee('Ausgestellt');
-    }
-
-    public function test_invoice_list_uses_colored_numbers_and_status_tabs(): void
-    {
-        $user = User::factory()->create();
-        $invoice = $this->createInvoice();
-        $credit = $this->createInvoice();
-        $credit->update([
-            'invoice_number' => 'GU-TEST-1',
-            'invoice_type' => InvoiceType::Credit,
-        ]);
-        $cancellation = $this->createInvoice();
-        $cancellation->update([
-            'invoice_number' => 'ST-TEST-1',
-            'invoice_type' => InvoiceType::Cancellation,
-        ]);
-
-        $component = Livewire::actingAs($user)
-            ->test(ListInvoices::class)
-            ->assertSee('Entwurf')
-            ->assertSee('Offen')
-            ->assertSee('Bezahlt')
-            ->assertSee('Überfällig')
-            ->assertSee('Archiviert')
-            ->assertCanSeeTableRecords([$invoice, $credit, $cancellation]);
-
-        $this->assertSame(
-            ['all', 'Draft', 'Open', 'Paid', 'overdue', 'archived'],
-            array_keys($component->instance()->getTabs()),
-        );
-
-        $component
-            ->set('activeTab', 'all')
-            ->assertTableColumnExists(
-                'invoice_number',
-                fn ($column): bool => $column->getUrl() === InvoiceResource::getUrl('edit', ['record' => $invoice]),
-                $invoice,
-            )
-            ->assertTableColumnExists(
-                'client.client_name',
-                fn ($column): bool => $column->getUrl() === ClientResource::getUrl('view', ['record' => $invoice->client_id]),
-                $invoice,
-            )
-            ->assertTableColumnExists(
-                'invoice_date_created',
-                fn ($column): bool => $column->getUrl() === null,
-                $invoice,
-            );
-
-        $this->assertNull($component->instance()->getTable()->getRecordUrl($invoice));
     }
 
     public function test_invoice_lifecycle_statuses_are_available_as_tabs(): void

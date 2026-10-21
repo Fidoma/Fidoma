@@ -48,7 +48,7 @@ class DataImport extends Page
 
     protected static string|UnitEnum|null $navigationGroup = 'Externe Dienste';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = PHP_INT_MAX;
 
     protected string $view = 'imports::data-import';
 

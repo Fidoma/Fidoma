@@ -21,6 +21,7 @@ class MultiFactorAuthenticationTest extends TestCase
         $providers = $panel->getMultiFactorAuthenticationProviders();
 
         $this->assertTrue($panel->hasProfile());
+        $this->assertFalse($panel->isProfilePageSimple());
         $this->assertArrayHasKey('app', $providers);
         $this->assertInstanceOf(AppAuthentication::class, $providers['app']);
         $this->assertTrue($providers['app']->isRecoverable());
@@ -61,6 +62,7 @@ class MultiFactorAuthenticationTest extends TestCase
             ->assertOk()
             ->assertSeeText('Zwei-Faktor-Authentifizierung (2FA)')
             ->assertSeeText('Authenticator-App')
-            ->assertSeeText('Einrichten');
+            ->assertSeeText('Einrichten')
+            ->assertSee('fi-sidebar', escape: false);
     }
 }

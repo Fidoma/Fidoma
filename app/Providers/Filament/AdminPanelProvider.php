@@ -46,7 +46,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login(Login::class)
-            ->profile()
+            ->profile(isSimple: false)
             ->multiFactorAuthentication([
                 AppAuthentication::make()
                     ->brandName('Fidoma')
