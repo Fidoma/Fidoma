@@ -45,6 +45,11 @@ Fidoma mit einem einzigen Befehl installieren:
 curl -fsSL https://raw.githubusercontent.com/Fidoma/Fidoma/main/install.sh | bash
 ```
 
+Der Schnellinstaller legt die Produktionsdateien gesammelt unter `./fidoma/` ab. Dort ist
+`.env.production` die einzige aktive Produktionskonfiguration. Beim Aufruf von `./install.sh`
+innerhalb eines geklonten Fidoma-Repositories wird stattdessen direkt das Repository-Verzeichnis
+verwendet und kein zusätzlicher `fidoma/`-Unterordner angelegt.
+
 > **Hinweis:** Den Skriptpfad vor Verwendung prüfen. Der Befehl setzt voraus, dass `install.sh` im Branch `main` existiert.
 
 ### Lokale Installation

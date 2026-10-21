@@ -31,7 +31,29 @@ FIDOMA_IMAGE=ghcr.io/fidoma/fidoma:latest \
 
 ::: info Schnellinstaller
 Die öffentliche Startseite stellt `/install.sh` dynamisch bereit. Vor dem Einsatz eines per `curl` geladenen Skripts sollte dessen Inhalt geprüft werden. Das Repository selbst enthält als belastbaren Einstiegspunkt `setup.sh`.
+
+Beim Aufruf über `curl` liegen alle Produktionsdateien unter `./fidoma/`; die aktive
+Konfiguration ist dann ausschließlich `./fidoma/.env.production`. Wird `./install.sh`
+innerhalb eines geklonten Fidoma-Repositories oder entpackten Release-Verzeichnisses gestartet,
+verwendet der Installer dieses Verzeichnis direkt und erzeugt keinen weiteren Unterordner.
+`.env.production.example` ist nur eine Vorlage und wird von der Anwendung nicht gelesen.
 :::
+
+### Alten Installer-Unterordner zusammenführen
+
+Hat ein früherer Aufruf innerhalb eines Repository-Checkouts den Unterordner `fidoma/`
+angelegt, müssen Konfiguration und Installationsstatus einmalig in den Repository-Root verschoben
+werden:
+
+```bash
+mv fidoma/.env.production .env.production
+test ! -f fidoma/.fidoma-installed || mv fidoma/.fidoma-installed .fidoma-installed
+test ! -f fidoma/.fidoma-admin || mv fidoma/.fidoma-admin .fidoma-admin
+./setup.sh
+```
+
+Die Docker-Volumes bleiben dabei unverändert erhalten. Nach erfolgreicher Prüfung kann der alte
+Unterordner entfernt werden.
 
 ## Lokale Entwicklungsinstallation
 

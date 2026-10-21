@@ -3,7 +3,14 @@ set -eu
 
 REPOSITORY="${FIDOMA_REPOSITORY:-Fidoma/Fidoma}"
 VERSION="${FIDOMA_VERSION:-main}"
-INSTALL_DIR="${FIDOMA_INSTALL_DIR:-fidoma}"
+
+if [ -n "${FIDOMA_INSTALL_DIR:-}" ]; then
+    INSTALL_DIR="$FIDOMA_INSTALL_DIR"
+elif [ -f setup.sh ] && [ -f compose.production.yaml ] && [ -f .env.production.example ]; then
+    INSTALL_DIR=.
+else
+    INSTALL_DIR=fidoma
+fi
 
 fail() {
     printf 'Fehler: %s\n' "$1" >&2
@@ -25,6 +32,10 @@ esac
 command -v curl >/dev/null 2>&1 || fail 'curl ist nicht installiert.'
 command -v docker >/dev/null 2>&1 || fail 'Docker ist nicht installiert.'
 docker compose version >/dev/null 2>&1 || fail 'Docker Compose v2 ist nicht verfügbar.'
+
+if [ "$INSTALL_DIR" = "." ] && [ -f fidoma/.env.production ]; then
+    fail 'Alte Installation unter ./fidoma gefunden. Verschiebe deren .env.production und Statusdateien zuerst in dieses Verzeichnis.'
+fi
 
 mkdir -p "$INSTALL_DIR"
 

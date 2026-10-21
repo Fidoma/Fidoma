@@ -58,6 +58,8 @@ docker compose version >/dev/null 2>&1 || fail 'Docker Compose v2 ist nicht verf
 [ -f "$COMPOSE_FILE" ] || fail "$COMPOSE_FILE wurde nicht gefunden."
 [ -f "$ENV_EXAMPLE" ] || fail "$ENV_EXAMPLE wurde nicht gefunden."
 
+printf 'Produktionskonfiguration: %s/%s\n' "$(pwd)" "$ENV_FILE"
+
 if [ ! -f "$ENV_FILE" ]; then
     cp "$ENV_EXAMPLE" "$ENV_FILE"
     chmod 600 "$ENV_FILE"
