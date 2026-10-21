@@ -17,6 +17,8 @@
 /.zed
 /auth.json
 /node_modules
+/docs/.vitepress/cache
+/docs/.vitepress/dist
 /public/build
 /public/css/filament
 /public/fonts-manifest.dev.json
