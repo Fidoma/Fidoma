@@ -14,6 +14,8 @@ use App\Features\Terminals\Data\GatewayPaymentResult;
 use App\Features\Terminals\Data\TerminalHealth;
 use App\Features\Terminals\Enums\TerminalPaymentStatus;
 use App\Features\Terminals\Filament\Pages\Terminal;
+use App\Features\Terminals\Filament\Resources\TerminalPaymentAttempts\Pages\ListTerminalPaymentAttempts;
+use App\Features\Terminals\Filament\Resources\TerminalPaymentAttempts\TerminalPaymentAttemptResource;
 use App\Features\Terminals\Models\TerminalPaymentAttempt;
 use App\Features\Terminals\Services\TerminalPaymentService;
 use App\Models\User;
@@ -55,6 +57,83 @@ class TerminalPageTest extends TestCase
             ->assertDontSee('Terminal auswählen');
 
         $this->assertSame('100.00', $open->amount->invoice_balance);
+    }
+
+    public function test_global_history_is_visible_without_selecting_an_invoice_and_is_user_scoped(): void
+    {
+        $user = User::factory()->create();
+        $other = User::factory()->create();
+        $firstInvoice = $this->invoice($user, 'RE-HISTORY-1', 'Historie Eins', 100, 0);
+        $secondInvoice = $this->invoice($user, 'RE-HISTORY-2', 'Historie Zwei', 200, 0);
+        $foreignInvoice = $this->invoice($other, 'RE-HISTORY-FOREIGN', 'Fremde Historie', 300, 0);
+        $this->app->instance(PaymentTerminalInterface::class, new StubTerminalGateway(TerminalPaymentStatus::Failed));
+
+        foreach ([$firstInvoice, $secondInvoice] as $invoice) {
+            TerminalPaymentAttempt::query()->create([
+                'user_id' => $user->getKey(),
+                'invoice_id' => $invoice->getKey(),
+                'amount' => '10.00',
+                'status' => TerminalPaymentStatus::Failed,
+                'gateway_mode' => 'zvtapi',
+                'status_message' => 'Teststatus',
+                'started_at' => now(),
+                'completed_at' => now(),
+            ]);
+        }
+        TerminalPaymentAttempt::query()->create([
+            'user_id' => $other->getKey(),
+            'invoice_id' => $foreignInvoice->getKey(),
+            'amount' => '10.00',
+            'status' => TerminalPaymentStatus::Failed,
+            'gateway_mode' => 'zvtapi',
+            'started_at' => now(),
+            'completed_at' => now(),
+        ]);
+        Invoice::query()->whereKey([$firstInvoice->getKey(), $secondInvoice->getKey(), $foreignInvoice->getKey()])
+            ->update(['is_archived' => true]);
+
+        Livewire::actingAs($user)->test(Terminal::class)
+            ->assertSet('selectedInvoiceId', null)
+            ->assertSee('Die letzten Terminal-Zahlungsversuche für alle Rechnungen.')
+            ->assertSee('RE-HISTORY-1')
+            ->assertSee('RE-HISTORY-2')
+            ->assertDontSee('RE-HISTORY-FOREIGN');
+    }
+
+    public function test_payment_history_resource_is_read_only_and_user_scoped(): void
+    {
+        $user = User::factory()->create();
+        $other = User::factory()->create();
+        $ownInvoice = $this->invoice($user, 'RE-RESOURCE-OWN', 'Eigener Kunde', 100, 0);
+        $foreignInvoice = $this->invoice($other, 'RE-RESOURCE-FOREIGN', 'Fremder Kunde', 100, 0);
+        $ownAttempt = $this->attempt($user, $ownInvoice, TerminalPaymentStatus::Successful);
+        $foreignAttempt = $this->attempt($other, $foreignInvoice, TerminalPaymentStatus::Failed);
+
+        $this->assertFalse(TerminalPaymentAttemptResource::canCreate());
+        $this->assertSame(['index'], array_keys(TerminalPaymentAttemptResource::getPages()));
+
+        Livewire::actingAs($user)->test(ListTerminalPaymentAttempts::class)
+            ->assertCanSeeTableRecords([$ownAttempt])
+            ->assertCanNotSeeTableRecords([$foreignAttempt])
+            ->assertSee('RE-RESOURCE-OWN')
+            ->assertDontSee('RE-RESOURCE-FOREIGN');
+    }
+
+    public function test_payment_history_resource_can_be_filtered_by_status_and_date(): void
+    {
+        $user = User::factory()->create();
+        $invoice = $this->invoice($user, 'RE-RESOURCE-FILTER', 'Filterkunde', 100, 0);
+        $successful = $this->attempt($user, $invoice, TerminalPaymentStatus::Successful, '2026-10-10 12:00:00');
+        $failed = $this->attempt($user, $invoice, TerminalPaymentStatus::Failed, '2026-10-20 12:00:00');
+
+        Livewire::actingAs($user)->test(ListTerminalPaymentAttempts::class)
+            ->filterTable('status', TerminalPaymentStatus::Failed->value)
+            ->assertCanSeeTableRecords([$failed])
+            ->assertCanNotSeeTableRecords([$successful])
+            ->removeTableFilter('status')
+            ->filterTable('started_at', ['from' => '2026-10-09', 'until' => '2026-10-11'])
+            ->assertCanSeeTableRecords([$successful])
+            ->assertCanNotSeeTableRecords([$failed]);
     }
 
     public function test_confirmed_partial_payment_uses_configured_payment_method_and_is_idempotent(): void
@@ -249,6 +328,24 @@ class TerminalPageTest extends TestCase
         $this->paymentMethodIds[] = $method->getKey();
 
         return $method;
+    }
+
+    private function attempt(
+        User $user,
+        Invoice $invoice,
+        TerminalPaymentStatus $status,
+        string $startedAt = '2026-10-20 12:00:00',
+    ): TerminalPaymentAttempt {
+        return TerminalPaymentAttempt::query()->create([
+            'user_id' => $user->getKey(),
+            'invoice_id' => $invoice->getKey(),
+            'amount' => '25.00',
+            'status' => $status,
+            'gateway_mode' => 'zvtapi',
+            'gateway_reference' => 'REF-'.str()->uuid(),
+            'started_at' => $startedAt,
+            'completed_at' => $startedAt,
+        ]);
     }
 
     protected function tearDown(): void

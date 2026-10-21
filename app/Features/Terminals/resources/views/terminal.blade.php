@@ -135,22 +135,6 @@
                     </div>
                 </x-filament::section>
 
-                <x-filament::section>
-                    <x-slot name="heading">{{ __('terminals::messages.history.heading') }}</x-slot>
-                    <div class="terminal-history">
-                        @forelse ($this->history as $historyItem)
-                            <div class="terminal-history-item">
-                                <span>{{ $historyItem->started_at->format('d.m.Y H:i') }}</span>
-                                <strong>{{ number_format((float) $historyItem->amount, 2, ',', '.') }} €</strong>
-                                <x-filament::badge :color="$historyItem->status->color()">{{ $historyItem->status->label() }}</x-filament::badge>
-                                <code>{{ $historyItem->gateway_reference ?: '–' }}</code>
-                                @if ($historyItem->status_message)<span>{{ $historyItem->status_message }}</span>@endif
-                            </div>
-                        @empty
-                            <div class="terminal-history-empty"><x-filament::icon icon="heroicon-o-clock" /><span>{{ __('terminals::messages.history.empty') }}</span></div>
-                        @endforelse
-                    </div>
-                </x-filament::section>
             @else
                 <x-filament::section>
                     <div class="terminal-empty-state terminal-empty-state--large">
@@ -161,5 +145,9 @@
                 </x-filament::section>
             @endif
         </div>
+    </div>
+
+    <div class="terminal-global-history">
+        @livewire(\App\Features\Terminals\Livewire\TerminalPaymentAttemptsTable::class)
     </div>
 </x-filament-panels::page>

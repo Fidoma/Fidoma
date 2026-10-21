@@ -111,21 +111,6 @@ class Terminal extends Page
     }
 
     #[Computed]
-    public function history(): Collection
-    {
-        if ($this->selectedInvoiceId === null) {
-            return collect();
-        }
-
-        return TerminalPaymentAttempt::query()
-            ->where('user_id', auth()->id())
-            ->where('invoice_id', $this->selectedInvoiceId)
-            ->latest('started_at')
-            ->limit(10)
-            ->get();
-    }
-
-    #[Computed]
     public function activeAttempt(): ?TerminalPaymentAttempt
     {
         return $this->activeAttemptId === null
@@ -161,7 +146,7 @@ class Terminal extends Page
             ->value('id');
         $this->automaticStatusChecks = 0;
         $this->resetValidation();
-        unset($this->selectedInvoice, $this->history, $this->activeAttempt);
+        unset($this->selectedInvoice, $this->activeAttempt);
     }
 
     public function startPayment(TerminalPaymentService $service): void
@@ -204,7 +189,8 @@ class Terminal extends Page
 
     private function afterAttemptUpdate(TerminalPaymentAttempt $attempt): void
     {
-        unset($this->activeAttempt, $this->history, $this->invoices, $this->selectedInvoice);
+        unset($this->activeAttempt, $this->invoices, $this->selectedInvoice);
+        $this->dispatch('terminal-payment-attempts-updated');
 
         if ($attempt->status === TerminalPaymentStatus::Successful) {
             Notification::make()->success()->title(__('terminals::messages.notifications.booked'))->send();
