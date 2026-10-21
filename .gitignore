@@ -19,6 +19,7 @@
 /node_modules
 /docs/.vitepress/cache
 /docs/.vitepress/dist
+/fidoma/
 /public/build
 /public/css/filament
 /public/fonts-manifest.dev.json
