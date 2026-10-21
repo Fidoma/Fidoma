@@ -5,20 +5,19 @@ namespace App\Features\Terminals\Filament\Pages;
 use App\Features\Invoices\Enums\InvoiceStatus;
 use App\Features\Invoices\Enums\InvoiceType;
 use App\Features\Invoices\Models\Invoice;
+use App\Features\Terminals\Contracts\PaymentTerminalInterface;
 use App\Features\Terminals\Enums\TerminalPaymentStatus;
-use App\Features\Terminals\Filament\Resources\PaymentTerminals\PaymentTerminalResource;
-use App\Features\Terminals\Models\PaymentTerminal;
 use App\Features\Terminals\Models\TerminalPaymentAttempt;
 use App\Features\Terminals\Services\TerminalPaymentService;
 use App\Filament\Concerns\HasConfigurableNavigation;
 use BackedEnum;
-use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use UnitEnum;
 
@@ -46,13 +45,24 @@ class Terminal extends Page
 
     public ?int $selectedInvoiceId = null;
 
-    public ?int $selectedTerminalId = null;
-
     public string $amount = '';
 
     public ?string $activeAttemptId = null;
 
     public int $automaticStatusChecks = 0;
+
+    public bool $terminalAvailable = false;
+
+    public bool $terminalSimulated = false;
+
+    public string $terminalHealthStatus = 'Unbekannt';
+
+    public ?string $terminalHealthMessage = null;
+
+    public function mount(PaymentTerminalInterface $gateway): void
+    {
+        $this->loadTerminalHealth($gateway);
+    }
 
     protected static function navigationModule(): string
     {
@@ -84,12 +94,6 @@ class Terminal extends Page
         return auth()->check();
     }
 
-    public function mount(): void
-    {
-        $this->selectedTerminalId = PaymentTerminal::query()
-            ->where('user_id', auth()->id())->where('is_enabled', true)->orderBy('name')->value('id');
-    }
-
     #[Computed]
     public function invoices(): Collection
     {
@@ -107,29 +111,6 @@ class Terminal extends Page
     }
 
     #[Computed]
-    public function terminals(): Collection
-    {
-        return PaymentTerminal::query()
-            ->where('user_id', auth()->id())
-            ->where('is_enabled', true)
-            ->orderBy('name')
-            ->get();
-    }
-
-    #[Computed]
-    public function selectedTerminal(): ?PaymentTerminal
-    {
-        if ($this->selectedTerminalId === null) {
-            return null;
-        }
-
-        return PaymentTerminal::query()
-            ->where('user_id', auth()->id())
-            ->where('is_enabled', true)
-            ->find($this->selectedTerminalId);
-    }
-
-    #[Computed]
     public function history(): Collection
     {
         if ($this->selectedInvoiceId === null) {
@@ -139,7 +120,6 @@ class Terminal extends Page
         return TerminalPaymentAttempt::query()
             ->where('user_id', auth()->id())
             ->where('invoice_id', $this->selectedInvoiceId)
-            ->with('terminal')
             ->latest('started_at')
             ->limit(10)
             ->get();
@@ -153,12 +133,32 @@ class Terminal extends Page
             : TerminalPaymentAttempt::query()->where('user_id', auth()->id())->find($this->activeAttemptId);
     }
 
+    #[Computed]
+    public function blockingAttempt(): ?TerminalPaymentAttempt
+    {
+        return TerminalPaymentAttempt::query()
+            ->whereIn('status', array_map(
+                fn (TerminalPaymentStatus $status): string => $status->value,
+                array_filter(TerminalPaymentStatus::cases(), fn (TerminalPaymentStatus $status): bool => $status->isActive() || $status === TerminalPaymentStatus::Unknown),
+            ))
+            ->latest('started_at')
+            ->first();
+    }
+
     public function selectInvoice(int $invoiceId): void
     {
         $invoice = $this->invoiceQuery(applyFilters: false)->findOrFail($invoiceId);
         $this->selectedInvoiceId = $invoice->getKey();
         $this->amount = number_format((float) $invoice->amount->invoice_balance, 2, '.', '');
-        $this->activeAttemptId = null;
+        $this->activeAttemptId = TerminalPaymentAttempt::query()
+            ->where('user_id', auth()->id())
+            ->where('invoice_id', $invoice->getKey())
+            ->whereIn('status', array_map(
+                fn (TerminalPaymentStatus $status): string => $status->value,
+                array_filter(TerminalPaymentStatus::cases(), fn (TerminalPaymentStatus $status): bool => $status->isActive() || $status === TerminalPaymentStatus::Unknown),
+            ))
+            ->latest('started_at')
+            ->value('id');
         $this->automaticStatusChecks = 0;
         $this->resetValidation();
         unset($this->selectedInvoice, $this->history, $this->activeAttempt);
@@ -168,16 +168,26 @@ class Terminal extends Page
     {
         $this->validate([
             'selectedInvoiceId' => ['required', 'integer'],
-            'selectedTerminalId' => ['required', 'integer'],
             'amount' => ['required', 'numeric', 'min:0.01'],
         ]);
 
+        if (! $this->terminalAvailable) {
+            throw ValidationException::withMessages([
+                'payment' => $this->terminalHealthMessage ?: __('terminals::messages.errors.gateway_unreachable'),
+            ]);
+        }
+
         $invoice = $this->invoiceQuery(applyFilters: false)->findOrFail($this->selectedInvoiceId);
-        $terminal = PaymentTerminal::query()->where('user_id', auth()->id())->findOrFail($this->selectedTerminalId);
-        $attempt = $service->start($invoice, $terminal, $this->amount, auth()->user());
+        $attempt = $service->start($invoice, $this->amount, auth()->user());
         $this->activeAttemptId = $attempt->getKey();
         $this->automaticStatusChecks = 0;
         $this->afterAttemptUpdate($attempt);
+    }
+
+    public function refreshTerminalHealth(PaymentTerminalInterface $gateway): void
+    {
+        $this->loadTerminalHealth($gateway);
+        unset($this->blockingAttempt);
     }
 
     public function refreshPaymentStatus(TerminalPaymentService $service): void
@@ -205,6 +215,15 @@ class Terminal extends Page
         } elseif ($attempt->status === TerminalPaymentStatus::Unknown) {
             Notification::make()->warning()->title(__('terminals::messages.payment_status.unknown'))->send();
         }
+    }
+
+    private function loadTerminalHealth(PaymentTerminalInterface $gateway): void
+    {
+        $health = $gateway->health();
+        $this->terminalAvailable = $health->available;
+        $this->terminalSimulated = $health->simulated;
+        $this->terminalHealthStatus = $health->status;
+        $this->terminalHealthMessage = $health->message;
     }
 
     /** @return Builder<Invoice> */
@@ -248,17 +267,5 @@ class Terminal extends Page
         return Invoice::query()
             ->where('user_id', auth()->id())
             ->with(['client', 'amount']);
-    }
-
-    /** @return array<Action> */
-    protected function getHeaderActions(): array
-    {
-        return [
-            Action::make('manageTerminals')
-                ->label(__('terminals::messages.management.feature'))
-                ->icon(Heroicon::OutlinedCog6Tooth)
-                ->color('gray')
-                ->url(PaymentTerminalResource::getUrl()),
-        ];
     }
 }

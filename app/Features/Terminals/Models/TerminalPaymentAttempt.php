@@ -17,7 +17,7 @@ class TerminalPaymentAttempt extends Model
     public $incrementing = false;
 
     protected $fillable = [
-        'id', 'user_id', 'payment_terminal_id', 'invoice_id', 'payment_id', 'amount', 'status',
+        'id', 'user_id', 'invoice_id', 'payment_id', 'amount', 'status',
         'gateway_mode', 'gateway_reference', 'status_message', 'gateway_payload', 'started_at', 'completed_at',
     ];
 
@@ -35,11 +35,6 @@ class TerminalPaymentAttempt extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }
-
-    public function terminal(): BelongsTo
-    {
-        return $this->belongsTo(PaymentTerminal::class, 'payment_terminal_id');
     }
 
     public function invoice(): BelongsTo

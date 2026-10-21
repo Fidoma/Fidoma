@@ -12,5 +12,6 @@ final readonly class GatewayPaymentResult
         public ?string $reference = null,
         public ?string $message = null,
         public array $payload = [],
+        public bool $simulated = false,
     ) {}
 }
