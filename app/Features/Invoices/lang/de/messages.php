@@ -62,6 +62,8 @@ return [
     'actions' => [
         'view_pdf' => 'PDF anzeigen',
         'create_pdf' => 'PDF erstellen',
+        'create_xrechnung' => 'XRechnung erstellen',
+        'issue_invoice' => 'Rechnung ausstellen',
         'download_xrechnung' => 'XRechnung herunterladen',
         'delete_draft' => 'Entwurf löschen',
         'archive' => 'Archivieren',
@@ -75,6 +77,7 @@ return [
         'tax_included' => 'Preis inklusive Steuer',
         'delete_item' => 'Position löschen',
         'apply_discount' => 'Rabatt übernehmen',
+        'apply_payment_terms' => 'Zahlungsbedingungen übernehmen',
         'apply_tax' => 'Steuer übernehmen',
         'add_tax' => 'Steuer hinzufügen',
         'open_original' => 'Originalrechnung :number öffnen',

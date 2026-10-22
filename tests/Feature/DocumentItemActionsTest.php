@@ -25,9 +25,8 @@ class DocumentItemActionsTest extends TestCase
             $response = $this->get($url)->assertOk()->assertSeeTextInOrder($expectedActions);
 
             $response
-                ->assertSee('fi-fo-summary-actions-in-table', escape: false)
-                ->assertSee('fi-fo-summary-table-actions', escape: false)
-                ->assertSee('fi-fo-summary-leading-component', escape: false);
+                ->assertSee('fi-fo-table-repeater', escape: false)
+                ->assertDontSee('fi-fo-summary-actions-in-table', escape: false);
         }
     }
 }

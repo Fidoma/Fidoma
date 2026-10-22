@@ -47,6 +47,22 @@ class QuoteAmountCalculatorTest extends TestCase
     }
 
     #[Test]
+    public function it_keeps_the_entered_gross_price_when_included_tax_requires_rounding(): void
+    {
+        $calculator = new QuoteAmountCalculator;
+
+        $amounts = $calculator->calculate([
+            ['quantity' => 1, 'price' => 60, 'tax_percent' => 7, 'tax_included' => true],
+        ]);
+
+        $this->assertSame(56.07, $amounts['subtotal']);
+        $this->assertSame(3.93, $amounts['itemTax']);
+        $this->assertSame([7 => 3.93], $amounts['taxBreakdown']);
+        $this->assertSame(60.0, $amounts['total']);
+        $this->assertSame(60.0, $amounts['items'][0]['total']);
+    }
+
+    #[Test]
     public function it_groups_included_item_tax_by_rate_and_keeps_zero_percent_visible(): void
     {
         $calculator = new QuoteAmountCalculator;

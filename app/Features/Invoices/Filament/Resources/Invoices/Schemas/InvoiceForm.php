@@ -3,10 +3,13 @@
 namespace App\Features\Invoices\Filament\Resources\Invoices\Schemas;
 
 use App\Features\Clients\Actions\CreateClient;
+use App\Features\Invoices\Actions\ArchiveInvoice;
 use App\Features\Invoices\Enums\InvoiceBillingType;
 use App\Features\Invoices\Enums\InvoiceStatus;
 use App\Features\Invoices\Enums\InvoiceType;
+use App\Features\Invoices\Filament\Actions\InvoiceEmailAction;
 use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
+use App\Features\Invoices\Filament\Resources\Invoices\Pages\CreateInvoice as CreateInvoicePage;
 use App\Features\Invoices\Filament\Resources\Invoices\Pages\EditInvoice;
 use App\Features\Invoices\Models\Invoice;
 use App\Features\Invoices\Services\InvoiceDefaults;
@@ -15,7 +18,6 @@ use App\Features\Projects\Models\Project;
 use App\Features\Quotes\Services\QuoteAmountCalculator;
 use App\Features\TaxRates\Models\TaxRate;
 use App\Features\Units\Models\Unit;
-use App\Filament\Forms\Components\SummaryTableRepeater;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Forms\Components\DatePicker;
@@ -27,6 +29,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Callout;
 use Filament\Schemas\Components\Component;
@@ -34,7 +37,6 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
-use Filament\Support\Enums\Size;
 use Filament\Support\Icons\Heroicon;
 
 class InvoiceForm
@@ -122,19 +124,84 @@ class InvoiceForm
                 ? __('invoices::messages.singular').' - '.$record->invoice_number
                 : __('invoices::messages.singular'))
                 ->afterHeader([
-                    Toggle::make('issue_invoice')
-                        ->label(__('invoices::messages.fields.issued'))
-                        ->formatStateUsing(fn (?Invoice $record): bool => $record !== null
-                            && $record->invoice_status_id !== InvoiceStatus::Draft)
-                        ->dehydrated(false)
-                        ->live()
-                        ->afterStateUpdated(function (bool $state, EditInvoice $livewire): void {
-                            if ($state) {
-                                $livewire->issue();
-                            }
-                        })
-                        ->disabled(fn (?Invoice $record): bool => $record?->invoice_status_id !== InvoiceStatus::Draft)
-                        ->visible(fn (?Invoice $record): bool => $record !== null && ! $record->is_archived),
+                    Actions::make([
+                        ActionGroup::make([
+                            Action::make('createInvoice')
+                                ->label(__('filament-panels::resources/pages/create-record.form.actions.create.label'))
+                                ->icon(Heroicon::OutlinedCheck)
+                                ->action(function (CreateInvoicePage $livewire): void {
+                                    $livewire->create();
+                                })
+                                ->keyBindings(['mod+s'])
+                                ->visible(fn ($livewire): bool => $livewire instanceof CreateInvoicePage),
+                            Action::make('createAnotherInvoice')
+                                ->label(__('filament-panels::resources/pages/create-record.form.actions.create_another.label'))
+                                ->icon(Heroicon::OutlinedPlus)
+                                ->action(function (CreateInvoicePage $livewire): void {
+                                    $livewire->createAnother();
+                                })
+                                ->visible(fn ($livewire): bool => $livewire instanceof CreateInvoicePage),
+                            Action::make('issueInvoice')
+                                ->label(__('invoices::messages.actions.issue_invoice'))
+                                ->icon(Heroicon::OutlinedCheckBadge)
+                                ->requiresConfirmation()
+                                ->action(function (EditInvoice $livewire): void {
+                                    $livewire->issue();
+                                })
+                                ->visible(fn ($livewire): bool => $livewire instanceof EditInvoice)
+                                ->disabled(fn (?Invoice $record): bool => ! self::isDraft($record)),
+                            InvoiceEmailAction::make()
+                                ->visible(fn (?Invoice $record): bool => $record !== null),
+                            Action::make('createPdf')
+                                ->label(__('invoices::messages.actions.create_pdf'))
+                                ->icon(Heroicon::OutlinedDocumentArrowDown)
+                                ->url(fn (Invoice $record): string => route('invoices.pdf', ['invoice' => $record]))
+                                ->openUrlInNewTab()
+                                ->visible(fn (?Invoice $record): bool => $record !== null),
+                            Action::make('createXRechnung')
+                                ->label(__('invoices::messages.actions.create_xrechnung'))
+                                ->icon(Heroicon::OutlinedCodeBracketSquare)
+                                ->url(fn (Invoice $record): string => route('invoices.xrechnung', ['invoice' => $record]))
+                                ->openUrlInNewTab()
+                                ->visible(fn (?Invoice $record): bool => $record !== null),
+                            Action::make('archiveInvoice')
+                                ->label(__('invoices::messages.actions.archive'))
+                                ->icon(Heroicon::OutlinedArchiveBox)
+                                ->color('danger')
+                                ->requiresConfirmation()
+                                ->modalHeading(__('invoices::messages.archive.heading'))
+                                ->modalDescription(__('invoices::messages.archive.description'))
+                                ->modalSubmitActionLabel(__('invoices::messages.actions.archive'))
+                                ->visible(fn ($livewire): bool => $livewire instanceof EditInvoice)
+                                ->disabled(fn (?Invoice $record): bool => $record === null
+                                    || $record->is_archived
+                                    || $record->invoice_status_id === InvoiceStatus::Draft)
+                                ->action(function (Invoice $record): void {
+                                    app(ArchiveInvoice::class)->handle($record);
+                                    $record->refresh();
+
+                                    Notification::make()
+                                        ->success()
+                                        ->title(__('invoices::messages.archive.success'))
+                                        ->send();
+                                }),
+                        ])
+                            ->label(__('invoices::messages.fields.actions'))
+                            ->icon(Heroicon::OutlinedEllipsisVertical)
+                            ->iconButton()
+                            ->tooltip(__('invoices::messages.fields.actions')),
+                        Action::make('saveInvoice')
+                            ->label(__('filament-panels::resources/pages/edit-record.form.actions.save.label'))
+                            ->icon(Heroicon::OutlinedCheck)
+                            ->iconButton()
+                            ->tooltip(__('filament-panels::resources/pages/edit-record.form.actions.save.label'))
+                            ->action(function (EditInvoice $livewire): void {
+                                $livewire->save();
+                            })
+                            ->keyBindings(['mod+s'])
+                            ->visible(fn ($livewire, ?Invoice $record): bool => $livewire instanceof EditInvoice
+                                && self::isDraft($record)),
+                    ]),
                 ])
                 ->columns(['default' => 1, 'md' => 2, 'xl' => 12])
                 ->columnSpan(['default' => 12])
@@ -182,9 +249,8 @@ class InvoiceForm
                 ->disabled(fn (?Invoice $record): bool => $record !== null && $record->invoice_status_id !== InvoiceStatus::Draft)
                 ->columnSpan(['default' => 12])
                 ->schema([
-                    SummaryTableRepeater::make('items')
+                    Repeater::make('items')
                         ->hiddenLabel()
-                        ->extraAttributes(['class' => 'invoice-items-table'])
                         ->relationship()
                         ->orderColumn('item_order')
                         ->defaultItems(1)
@@ -282,91 +348,103 @@ class InvoiceForm
                                     ->iconButton(),
                             ])->alignCenter(),
                         ])
-                        ->summaryLayout(tableColumnCount: 9, leadingColumnSpan: 5)
-                        ->summaryActionsInTable()
-                        ->summaryLeadingComponent(
-                            Textarea::make('invoice_terms')
-                                ->label(__('invoices::messages.fields.payment_terms'))
-                                ->hiddenLabel()
-                                ->placeholder(__('invoices::messages.placeholders.payment_terms'))
-                                ->disabled(fn ($livewire): bool => $livewire instanceof EditInvoice
-                                    && $livewire->getRecord()->invoice_status_id !== InvoiceStatus::Draft)
-                                ->extraAttributes([
-                                    'class' => 'ring-1! ring-gray-950/10! shadow-sm! dark:ring-white/20!',
-                                ])
-                                ->rows(4),
-                        )
-                        ->summaryActions([
-                            Action::make('editDiscount')
-                                ->label(__('invoices::messages.fields.discount'))
-                                ->icon(Heroicon::OutlinedReceiptPercent)
-                                ->color('gray')
-                                ->button()
-                                ->size(Size::Small)
-                                ->modalHeading(__('invoices::messages.fields.discount'))
-                                ->modalSubmitActionLabel(__('invoices::messages.actions.apply_discount'))
-                                ->fillForm(fn (Get $get): array => [
-                                    'discount_percent' => $get('invoice_discount_percent') ?? 0,
-                                    'discount_amount' => $get('invoice_discount_amount') ?? 0,
-                                ])
-                                ->schema(fn (Get $get): array => [
-                                    TextInput::make('discount_percent')
-                                        ->label(__('invoices::messages.fields.discount_percent'))
-                                        ->numeric()
-                                        ->minValue(0)
-                                        ->maxValue(100)
-                                        ->suffix('%'),
-                                    TextInput::make('discount_amount')
-                                        ->label(__('invoices::messages.fields.discount_amount'))
-                                        ->helperText(__('invoices::messages.hints.percentage_discount_priority'))
-                                        ->numeric()
-                                        ->minValue(self::invoiceType($get) === InvoiceType::Invoice ? 0 : null)
-                                        ->suffix('€'),
-                                ])
-                                ->action(function (array $data, Set $set): void {
-                                    $set('invoice_discount_percent', $data['discount_percent'] ?? 0);
-                                    $set('invoice_discount_amount', $data['discount_amount'] ?? 0);
-                                }),
-                            Action::make('editTaxes')
-                                ->label(__('invoices::messages.fields.tax'))
-                                ->icon(Heroicon::OutlinedCalculator)
-                                ->color('gray')
-                                ->button()
-                                ->size(Size::Small)
-                                ->modalHeading(__('invoices::messages.fields.tax'))
-                                ->modalSubmitActionLabel(__('invoices::messages.actions.apply_tax'))
-                                ->fillForm(fn (Get $get): array => [
-                                    'tax_rates' => $get('invoiceTaxRates') ?? [],
-                                ])
-                                ->schema([
-                                    Repeater::make('tax_rates')
-                                        ->label(__('invoices::messages.fields.tax_rates'))
-                                        ->defaultItems(0)
-                                        ->columns(2)
-                                        ->addActionLabel(__('invoices::messages.actions.add_tax'))
-                                        ->schema(self::invoiceTaxRateFields()),
-                                ])
-                                ->action(fn (array $data, Set $set) => $set(
-                                    'invoiceTaxRates',
-                                    $data['tax_rates'] ?? [],
-                                    shouldCallUpdatedHooks: true,
+                        ->columnSpanFull(),
+                    Actions::make([
+                        Action::make('editPaymentTerms')
+                            ->label(__('invoices::messages.fields.payment_terms'))
+                            ->icon(Heroicon::OutlinedDocumentText)
+                            ->color('gray')
+                            ->iconButton()
+                            ->tooltip(__('invoices::messages.fields.payment_terms'))
+                            ->modalHeading(__('invoices::messages.fields.payment_terms'))
+                            ->modalSubmitActionLabel(__('invoices::messages.actions.apply_payment_terms'))
+                            ->fillForm(fn (Get $get): array => [
+                                'invoice_terms' => $get('invoice_terms') ?? '',
+                            ])
+                            ->schema([
+                                Textarea::make('invoice_terms')
+                                    ->label(__('invoices::messages.fields.payment_terms'))
+                                    ->placeholder(__('invoices::messages.placeholders.payment_terms'))
+                                    ->rows(6),
+                            ])
+                            ->action(fn (array $data, Set $set) => $set(
+                                'invoice_terms',
+                                $data['invoice_terms'] ?? '',
+                            )),
+                        Action::make('editDiscount')
+                            ->label(__('invoices::messages.fields.discount'))
+                            ->icon(Heroicon::OutlinedReceiptPercent)
+                            ->color('gray')
+                            ->iconButton()
+                            ->tooltip(__('invoices::messages.fields.discount'))
+                            ->modalHeading(__('invoices::messages.fields.discount'))
+                            ->modalSubmitActionLabel(__('invoices::messages.actions.apply_discount'))
+                            ->fillForm(fn (Get $get): array => [
+                                'discount_percent' => $get('invoice_discount_percent') ?? 0,
+                                'discount_amount' => $get('invoice_discount_amount') ?? 0,
+                            ])
+                            ->schema(fn (Get $get): array => [
+                                TextInput::make('discount_percent')
+                                    ->label(__('invoices::messages.fields.discount_percent'))
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->maxValue(100)
+                                    ->suffix('%'),
+                                TextInput::make('discount_amount')
+                                    ->label(__('invoices::messages.fields.discount_amount'))
+                                    ->helperText(__('invoices::messages.hints.percentage_discount_priority'))
+                                    ->numeric()
+                                    ->minValue(self::invoiceType($get) === InvoiceType::Invoice ? 0 : null)
+                                    ->suffix('€'),
+                            ])
+                            ->action(function (array $data, Set $set): void {
+                                $set('invoice_discount_percent', $data['discount_percent'] ?? 0);
+                                $set('invoice_discount_amount', $data['discount_amount'] ?? 0);
+                            }),
+                        Action::make('editTaxes')
+                            ->label(__('invoices::messages.fields.tax'))
+                            ->icon(Heroicon::OutlinedCalculator)
+                            ->color('gray')
+                            ->iconButton()
+                            ->tooltip(__('invoices::messages.fields.tax'))
+                            ->modalHeading(__('invoices::messages.fields.tax'))
+                            ->modalSubmitActionLabel(__('invoices::messages.actions.apply_tax'))
+                            ->fillForm(fn (Get $get): array => [
+                                'tax_rates' => $get('invoiceTaxRates') ?? [],
+                            ])
+                            ->schema([
+                                Repeater::make('tax_rates')
+                                    ->label(__('invoices::messages.fields.tax_rates'))
+                                    ->defaultItems(0)
+                                    ->columns([
+                                        'default' => 1,
+                                        'md' => 2,
+                                    ])
+                                    ->addActionLabel(__('invoices::messages.actions.add_tax'))
+                                    ->schema(self::invoiceTaxRateFields()),
+                            ])
+                            ->action(fn (array $data, Set $set) => $set(
+                                'invoiceTaxRates',
+                                $data['tax_rates'] ?? [],
+                                shouldCallUpdatedHooks: true,
+                            )),
+                    ])->columnSpanFull(),
+                    Section::make(__('invoices::messages.summary.grand_total'))
+                        ->columns(2)
+                        ->schema([
+                            Placeholder::make('subtotal_preview')
+                                ->label(__('invoices::messages.summary.subtotal'))
+                                ->content(fn (Get $get): string => self::formatAmount(self::calculateTotals($get)['subtotal'])),
+                            Placeholder::make('tax_total_preview')
+                                ->label(__('invoices::messages.summary.tax_total'))
+                                ->content(fn (Get $get): string => self::formatAmount(
+                                    self::calculateTotals($get)['itemTax'] + self::calculateTotals($get)['quoteTax'],
                                 )),
+                            Placeholder::make('grand_total_preview')
+                                ->label(__('invoices::messages.summary.grand_total'))
+                                ->content(fn (Get $get): string => self::formatAmount(self::calculateTotals($get)['total']))
+                                ->columnSpanFull(),
                         ])
-                        ->summaryRows(function (Get $get): array {
-                            $totals = self::calculateTotals($get);
-                            $taxRows = collect($totals['taxBreakdown'])
-                                ->mapWithKeys(fn (float $amount, int|string $taxRate): array => [
-                                    __('invoices::messages.summary.tax', ['rate' => self::formatTaxRate((float) $taxRate)]) => self::formatAmount($amount),
-                                ])
-                                ->all();
-
-                            return [
-                                __('invoices::messages.summary.subtotal') => self::formatAmount($totals['subtotal']),
-                                ...$taxRows,
-                                __('invoices::messages.summary.tax_total') => self::formatAmount($totals['itemTax'] + $totals['quoteTax']),
-                                __('invoices::messages.summary.grand_total') => self::formatAmount($totals['total']),
-                            ];
-                        })
                         ->columnSpanFull(),
                 ]),
         ]);
@@ -415,6 +493,13 @@ class InvoiceForm
         );
     }
 
+    private static function isDraft(?Invoice $invoice): bool
+    {
+        return $invoice !== null
+            && ! $invoice->is_archived
+            && $invoice->invoice_status_id === InvoiceStatus::Draft;
+    }
+
     /** @return array{tax: float, total: float} */
     private static function calculateItem(Get $get): array
     {
@@ -433,11 +518,6 @@ class InvoiceForm
     private static function formatAmount(float $amount): string
     {
         return number_format($amount, 2, ',', '.').' €';
-    }
-
-    private static function formatTaxRate(float $taxRate): string
-    {
-        return rtrim(rtrim(number_format($taxRate, 2, ',', ''), '0'), ',');
     }
 
     private static function deleteItem(Component $component): void

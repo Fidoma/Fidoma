@@ -24,9 +24,11 @@ final class QuoteAmountCalculator
             $quantity = max(0, $sign < 0 ? abs((float) ($item['quantity'] ?? 0)) : (float) ($item['quantity'] ?? 0));
             $price = max(0, (float) ($item['price'] ?? 0));
             $taxPercent = max(0, (float) ($item['tax_percent'] ?? 0));
-            $subtotal = $quantity * $price;
+            $gross = round($quantity * $price, 2);
+            $subtotal = $gross;
+            $taxIncluded = ! empty($item['tax_included']);
 
-            if (! empty($item['tax_included']) && $taxPercent > 0) {
+            if ($taxIncluded && $taxPercent > 0) {
                 $subtotal /= 1 + ($taxPercent / 100);
             }
 
@@ -34,7 +36,9 @@ final class QuoteAmountCalculator
             $originalSubtotal += $subtotal;
             $preparedItems[$key] = [
                 'subtotal' => $subtotal,
+                'gross' => $gross,
                 'tax_percent' => $taxPercent,
+                'tax_included' => $taxIncluded,
                 'item_discount' => round($quantity * max(0, (float) ($item['discount_amount'] ?? 0)), 2),
             ];
         }
@@ -56,8 +60,15 @@ final class QuoteAmountCalculator
 
             $discount = min($item['subtotal'], $item['item_discount'] + $globalDiscount);
             $net = max(0, $item['subtotal'] - $discount);
-            $tax = round($net * $item['tax_percent'] / 100, 2);
-            $total = round($net + $tax, 2);
+
+            if ($item['tax_included']) {
+                $grossDiscount = round($discount * (1 + ($item['tax_percent'] / 100)), 2);
+                $total = max(0, round($item['gross'] - $grossDiscount, 2));
+                $tax = round($total - $net, 2);
+            } else {
+                $tax = round($net * $item['tax_percent'] / 100, 2);
+                $total = round($net + $tax, 2);
+            }
 
             $calculatedItems[$key] = [
                 'subtotal' => $item['subtotal'],

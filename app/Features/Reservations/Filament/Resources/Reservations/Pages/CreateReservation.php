@@ -6,6 +6,7 @@ use App\Features\Reservations\Actions\CreateReservation as CreateReservationActi
 use App\Features\Reservations\Actions\RecalculateReservation;
 use App\Features\Reservations\Filament\Resources\Reservations\ReservationResource;
 use App\Filament\Resources\Pages\CreateRecord;
+use Filament\Actions\Action;
 use Filament\Support\Enums\Width;
 use Illuminate\Database\Eloquent\Model;
 
@@ -14,6 +15,12 @@ class CreateReservation extends CreateRecord
     protected static string $resource = ReservationResource::class;
 
     protected Width|string|null $maxContentWidth = Width::Full;
+
+    /** @return array<Action> */
+    protected function getFormActions(): array
+    {
+        return [];
+    }
 
     protected function handleRecordCreation(array $data): Model
     {

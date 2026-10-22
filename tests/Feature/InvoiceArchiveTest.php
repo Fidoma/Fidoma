@@ -14,6 +14,7 @@ use App\Features\Invoices\Models\Invoice;
 use App\Features\Invoices\Models\InvoiceItem;
 use App\Features\TaxRates\Models\TaxRate;
 use App\Models\User;
+use Filament\Actions\Testing\TestAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
@@ -94,14 +95,16 @@ class InvoiceArchiveTest extends TestCase
         Livewire::actingAs($user)
             ->test(EditInvoice::class, ['record' => $invoice->getRouteKey()])
             ->assertFormFieldEnabled('invoice_number')
-            ->assertSee('Ausgestellt')
+            ->assertSee('Rechnung ausstellen')
             ->assertSee('Zeile hinzufügen')
-            ->assertSee('fi-fo-summary-table-actions')
-            ->set('data.invoice_terms', 'Zahlbar innerhalb von 14 Tagen.')
-            ->set('data.issue_invoice', true)
+            ->assertSee('fi-fo-table-repeater')
+            ->callAction(
+                TestAction::make('editPaymentTerms')->schemaComponent(),
+                ['invoice_terms' => 'Zahlbar innerhalb von 14 Tagen.'],
+            )
+            ->assertSet('data.invoice_terms', 'Zahlbar innerhalb von 14 Tagen.')
+            ->callAction(TestAction::make('issueInvoice')->schemaComponent())
             ->assertHasNoErrors()
-            ->assertSet('data.issue_invoice', true)
-            ->assertFormFieldDisabled('issue_invoice')
             ->assertFormFieldDisabled('invoice_number')
             ->assertFormFieldDisabled('client_id')
             ->assertFormFieldDisabled('invoice_date_created')
@@ -129,12 +132,11 @@ class InvoiceArchiveTest extends TestCase
         $invoice = app(IssueInvoice::class)->handle($invoice);
         Livewire::actingAs($user)
             ->test(EditInvoice::class, ['record' => $invoice->getRouteKey()])
-            ->assertSet('data.issue_invoice', true)
-            ->assertFormFieldDisabled('issue_invoice')
             ->assertFormFieldDisabled('invoice_number')
             ->assertFormFieldDisabled('client_id')
             ->assertFormFieldDisabled('invoice_date_due')
-            ->assertSee('Ausgestellt');
+            ->assertSee('Rechnung ausstellen')
+            ->assertSee('Archivieren');
     }
 
     public function test_invoice_lifecycle_statuses_are_available_as_tabs(): void

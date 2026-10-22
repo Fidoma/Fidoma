@@ -7,6 +7,7 @@ use App\Features\Invoices\Actions\RecalculateInvoice;
 use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
 use App\Filament\Concerns\WithoutPageHeading;
 use App\Filament\Resources\Pages\CreateRecord;
+use Filament\Actions\Action;
 use Filament\Support\Enums\Width;
 use Illuminate\Database\Eloquent\Model;
 
@@ -17,6 +18,12 @@ class CreateInvoice extends CreateRecord
     protected static string $resource = InvoiceResource::class;
 
     protected Width|string|null $maxContentWidth = Width::Full;
+
+    /** @return array<Action> */
+    protected function getFormActions(): array
+    {
+        return [];
+    }
 
     protected function handleRecordCreation(array $data): Model
     {

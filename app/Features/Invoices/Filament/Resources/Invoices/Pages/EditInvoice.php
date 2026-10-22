@@ -5,7 +5,6 @@ namespace App\Features\Invoices\Filament\Resources\Invoices\Pages;
 use App\Features\Invoices\Actions\IssueInvoice;
 use App\Features\Invoices\Actions\RecalculateInvoice;
 use App\Features\Invoices\Enums\InvoiceStatus;
-use App\Features\Invoices\Filament\Actions\InvoiceEmailAction;
 use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
 use App\Filament\Concerns\WithoutPageHeading;
 use Filament\Actions\Action;
@@ -13,7 +12,6 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
-use Filament\Support\Icons\Heroicon;
 
 class EditInvoice extends EditRecord
 {
@@ -58,24 +56,7 @@ class EditInvoice extends EditRecord
     /** @return array<Action> */
     protected function getFormActions(): array
     {
-        return [
-            ...($this->isDraft() ? parent::getFormActions() : []),
-            InvoiceEmailAction::make()->outlined(),
-            Action::make('createPdf')
-                ->label(__('invoices::messages.actions.create_pdf'))
-                ->icon(Heroicon::OutlinedDocumentArrowDown)
-                ->color('gray')
-                ->outlined()
-                ->url(fn (): string => route('invoices.pdf', ['invoice' => $this->record]))
-                ->openUrlInNewTab(),
-            Action::make('createXRechnung')
-                ->label(__('invoices::messages.actions.download_xrechnung'))
-                ->icon(Heroicon::OutlinedCodeBracketSquare)
-                ->color('gray')
-                ->outlined()
-                ->url(fn (): string => route('invoices.xrechnung', ['invoice' => $this->record]))
-                ->openUrlInNewTab(),
-        ];
+        return [];
     }
 
     private function isDraft(): bool

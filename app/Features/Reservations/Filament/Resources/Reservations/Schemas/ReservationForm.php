@@ -3,10 +3,13 @@
 namespace App\Features\Reservations\Filament\Resources\Reservations\Schemas;
 
 use App\Features\Clients\Actions\CreateClient;
+use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
 use App\Features\Products\Models\Product;
 use App\Features\Quotes\Services\QuoteAmountCalculator;
+use App\Features\Reservations\Actions\ConvertReservationToInvoice;
 use App\Features\Reservations\Enums\ReservationStatus;
-use App\Features\Reservations\Filament\Resources\Reservations\Schemas\Components\ReservationItemsRepeater;
+use App\Features\Reservations\Filament\Resources\Reservations\Pages\CreateReservation as CreateReservationPage;
+use App\Features\Reservations\Filament\Resources\Reservations\Pages\EditReservation;
 use App\Features\Reservations\Models\Reservation;
 use App\Features\Reservations\Models\Room;
 use App\Features\TaxRates\Models\TaxRate;
@@ -22,13 +25,13 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
-use Filament\Support\Enums\Size;
 use Filament\Support\Icons\Heroicon;
 
 class ReservationForm
@@ -51,6 +54,51 @@ class ReservationForm
                 Section::make(fn (?Reservation $record): string => filled($record?->reservation_number)
                     ? 'Reservierung - '.$record->reservation_number
                     : 'Reservierung')
+                    ->afterHeader([
+                        Actions::make([
+                            ActionGroup::make([
+                                Action::make('createReservation')
+                                    ->label(__('filament-panels::resources/pages/create-record.form.actions.create.label'))
+                                    ->icon(Heroicon::OutlinedCheck)
+                                    ->action(function (CreateReservationPage $livewire): void {
+                                        $livewire->create();
+                                    })
+                                    ->visible(fn ($livewire): bool => $livewire instanceof CreateReservationPage),
+                                Action::make('createAnotherReservation')
+                                    ->label(__('filament-panels::resources/pages/create-record.form.actions.create_another.label'))
+                                    ->icon(Heroicon::OutlinedPlus)
+                                    ->action(function (CreateReservationPage $livewire): void {
+                                        $livewire->createAnother();
+                                    })
+                                    ->visible(fn ($livewire): bool => $livewire instanceof CreateReservationPage),
+                                Action::make('convertReservationToInvoice')
+                                    ->label(fn (?Reservation $record): string => $record?->invoice_id
+                                        ? 'Rechnung öffnen'
+                                        : 'In Rechnung umwandeln')
+                                    ->icon(Heroicon::OutlinedDocumentText)
+                                    ->visible(fn ($livewire): bool => $livewire instanceof EditReservation)
+                                    ->requiresConfirmation(fn (?Reservation $record): bool => ! (bool) $record?->invoice_id)
+                                    ->action(function (Action $action, Reservation $record): void {
+                                        $invoice = app(ConvertReservationToInvoice::class)->handle($record);
+                                        Notification::make()->success()->title('Rechnungsentwurf ist verfügbar.')->send();
+                                        $action->redirect(InvoiceResource::getUrl('edit', ['record' => $invoice]));
+                                    }),
+                            ])
+                                ->label('Aktionen')
+                                ->icon(Heroicon::OutlinedEllipsisVertical)
+                                ->iconButton()
+                                ->tooltip('Aktionen'),
+                            Action::make('saveReservation')
+                                ->label(__('filament-panels::resources/pages/edit-record.form.actions.save.label'))
+                                ->icon(Heroicon::OutlinedCheck)
+                                ->iconButton()
+                                ->tooltip(__('filament-panels::resources/pages/edit-record.form.actions.save.label'))
+                                ->action(function (EditReservation $livewire): void {
+                                    $livewire->save();
+                                })
+                                ->visible(fn ($livewire): bool => $livewire instanceof EditReservation),
+                        ]),
+                    ])
                     ->columns(['default' => 1, 'md' => 2, 'xl' => 12])
                     ->columnSpan(12)
                     ->schema([
@@ -87,7 +135,7 @@ class ReservationForm
                 Section::make('Positionen')
                     ->columnSpan(12)
                     ->schema([
-                        ReservationItemsRepeater::make('items')
+                        Repeater::make('items')
                             ->hiddenLabel()
                             ->columnSpanFull()
                             ->relationship()
@@ -200,89 +248,98 @@ class ReservationForm
                                         ->iconButton(),
                                 ])->alignCenter(),
                             ])
-                            ->summaryLayout(tableColumnCount: 10, leadingColumnSpan: 5)
-                            ->summaryActionsInTable()
-                            ->summaryLeadingComponent(
-                                Textarea::make('notes')
-                                    ->label('Reservierungsbedingungen')
-                                    ->hiddenLabel()
-                                    ->placeholder('Zahlungsbedingungen ...')
-                                    ->extraAttributes([
-                                        'class' => 'ring-1! ring-gray-950/10! shadow-sm! dark:ring-white/20!',
-                                    ])
-                                    ->rows(4),
-                            )
-                            ->summaryActions([
-                                Action::make('editDiscount')
-                                    ->label('Rabatt')
-                                    ->icon(Heroicon::OutlinedReceiptPercent)
-                                    ->color('gray')
-                                    ->button()
-                                    ->size(Size::Small)
-                                    ->modalHeading('Rabatt')
-                                    ->modalSubmitActionLabel('Rabatt übernehmen')
-                                    ->fillForm(fn (Get $get): array => [
-                                        'discount_percent' => $get('reservation_discount_percent') ?? 0,
-                                        'discount_amount' => $get('reservation_discount_amount') ?? 0,
-                                    ])
-                                    ->schema([
-                                        TextInput::make('discount_percent')
-                                            ->label('Gesamtrabatt in Prozent')
-                                            ->numeric()
-                                            ->minValue(0)
-                                            ->maxValue(100)
-                                            ->suffix('%'),
-                                        TextInput::make('discount_amount')
-                                            ->label('Gesamtrabatt als Betrag')
-                                            ->helperText('Ein prozentualer Rabatt hat Vorrang.')
-                                            ->numeric()
-                                            ->minValue(0)
-                                            ->suffix('€'),
-                                    ])
-                                    ->action(function (array $data, Set $set): void {
-                                        $set('reservation_discount_percent', $data['discount_percent'] ?? 0);
-                                        $set('reservation_discount_amount', $data['discount_amount'] ?? 0);
-                                    }),
-                                Action::make('editTaxes')
-                                    ->label('Steuer')
-                                    ->icon(Heroicon::OutlinedCalculator)
-                                    ->color('gray')
-                                    ->button()
-                                    ->size(Size::Small)
-                                    ->modalHeading('Reservierungssteuer')
-                                    ->modalSubmitActionLabel('Steuer übernehmen')
-                                    ->fillForm(fn (Get $get): array => [
-                                        'tax_rates' => $get('reservationTaxRates') ?? [],
-                                    ])
-                                    ->schema([
-                                        Repeater::make('tax_rates')
-                                            ->label('Steuersätze')
-                                            ->defaultItems(0)
-                                            ->columns(2)
-                                            ->addActionLabel('Steuer hinzufügen')
-                                            ->schema(self::reservationTaxRateFields()),
-                                    ])
-                                    ->action(fn (array $data, Set $set) => $set(
-                                        'reservationTaxRates',
-                                        $data['tax_rates'] ?? [],
-                                        shouldCallUpdatedHooks: true,
-                                    )),
+                            ->columnSpanFull(),
+                        Actions::make([
+                            Action::make('editTerms')
+                                ->label('Reservierungsbedingungen')
+                                ->icon(Heroicon::OutlinedDocumentText)
+                                ->color('gray')
+                                ->iconButton()
+                                ->tooltip('Reservierungsbedingungen')
+                                ->modalHeading('Reservierungsbedingungen')
+                                ->fillForm(fn (Get $get): array => ['notes' => $get('notes') ?? ''])
+                                ->schema([
+                                    Textarea::make('notes')
+                                        ->label('Reservierungsbedingungen')
+                                        ->placeholder('Zahlungsbedingungen ...')
+                                        ->rows(6),
+                                ])
+                                ->action(fn (array $data, Set $set) => $set('notes', $data['notes'] ?? '')),
+                            Action::make('editDiscount')
+                                ->label('Rabatt')
+                                ->icon(Heroicon::OutlinedReceiptPercent)
+                                ->color('gray')
+                                ->iconButton()
+                                ->tooltip('Rabatt')
+                                ->modalHeading('Rabatt')
+                                ->modalSubmitActionLabel('Rabatt übernehmen')
+                                ->fillForm(fn (Get $get): array => [
+                                    'discount_percent' => $get('reservation_discount_percent') ?? 0,
+                                    'discount_amount' => $get('reservation_discount_amount') ?? 0,
+                                ])
+                                ->schema([
+                                    TextInput::make('discount_percent')
+                                        ->label('Gesamtrabatt in Prozent')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->maxValue(100)
+                                        ->suffix('%'),
+                                    TextInput::make('discount_amount')
+                                        ->label('Gesamtrabatt als Betrag')
+                                        ->helperText('Ein prozentualer Rabatt hat Vorrang.')
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->suffix('€'),
+                                ])
+                                ->action(function (array $data, Set $set): void {
+                                    $set('reservation_discount_percent', $data['discount_percent'] ?? 0);
+                                    $set('reservation_discount_amount', $data['discount_amount'] ?? 0);
+                                }),
+                            Action::make('editTaxes')
+                                ->label('Steuer')
+                                ->icon(Heroicon::OutlinedCalculator)
+                                ->color('gray')
+                                ->iconButton()
+                                ->tooltip('Steuer')
+                                ->modalHeading('Reservierungssteuer')
+                                ->modalSubmitActionLabel('Steuer übernehmen')
+                                ->fillForm(fn (Get $get): array => [
+                                    'tax_rates' => $get('reservationTaxRates') ?? [],
+                                ])
+                                ->schema([
+                                    Repeater::make('tax_rates')
+                                        ->label('Steuersätze')
+                                        ->defaultItems(0)
+                                        ->columns(2)
+                                        ->addActionLabel('Steuer hinzufügen')
+                                        ->schema(self::reservationTaxRateFields()),
+                                ])
+                                ->action(fn (array $data, Set $set) => $set(
+                                    'reservationTaxRates',
+                                    $data['tax_rates'] ?? [],
+                                    shouldCallUpdatedHooks: true,
+                                )),
+                        ])->columnSpanFull(),
+                        Section::make('Gesamtsumme')
+                            ->columns([
+                                'default' => 1,
+                                'md' => 2,
                             ])
-                            ->summaryRows(function (Get $get): array {
-                                $totals = self::calculateTotals($get);
-                                $taxRows = collect($totals['taxBreakdown'])
-                                    ->mapWithKeys(fn (float $amount, int|string $taxRate): array => [
-                                        'Steuer '.self::formatTaxRate((float) $taxRate).' %' => self::formatAmount($amount),
-                                    ])
-                                    ->all();
-
-                                return [
-                                    'Zwischensumme' => self::formatAmount($totals['subtotal']),
-                                    ...$taxRows,
-                                    'Steuer gesamt' => self::formatAmount($totals['itemTax'] + $totals['quoteTax']),
-                                    'Gesamtsumme' => self::formatAmount($totals['total']),
-                                ];
-                            }),
+                            ->schema([
+                                Placeholder::make('subtotal_preview')
+                                    ->label('Zwischensumme')
+                                    ->content(fn (Get $get): string => self::formatAmount(self::calculateTotals($get)['subtotal'])),
+                                Placeholder::make('tax_total_preview')
+                                    ->label('Steuer gesamt')
+                                    ->content(fn (Get $get): string => self::formatAmount(
+                                        self::calculateTotals($get)['itemTax'] + self::calculateTotals($get)['quoteTax'],
+                                    )),
+                                Placeholder::make('grand_total_preview')
+                                    ->label('Gesamtsumme')
+                                    ->content(fn (Get $get): string => self::formatAmount(self::calculateTotals($get)['total']))
+                                    ->columnSpanFull(),
+                            ])
+                            ->columnSpanFull(),
                     ]),
             ]);
     }
@@ -357,11 +414,6 @@ class ReservationForm
     private static function formatAmount(float $amount): string
     {
         return number_format($amount, 2, ',', '.').' €';
-    }
-
-    private static function formatTaxRate(float $taxRate): string
-    {
-        return rtrim(rtrim(number_format($taxRate, 2, ',', ''), '0'), ',');
     }
 
     private static function deleteItem(Component $component): void

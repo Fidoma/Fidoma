@@ -3,14 +3,19 @@
 namespace App\Features\Quotes\Filament\Resources\Quotes\Schemas;
 
 use App\Features\Clients\Actions\CreateClient;
+use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
 use App\Features\Products\Models\Product;
+use App\Features\Quotes\Actions\ArchiveQuote;
+use App\Features\Quotes\Actions\ConvertQuoteToInvoice;
 use App\Features\Quotes\Enums\QuoteStatus;
+use App\Features\Quotes\Filament\Actions\QuoteEmailAction;
+use App\Features\Quotes\Filament\Resources\Quotes\Pages\CreateQuote as CreateQuotePage;
+use App\Features\Quotes\Filament\Resources\Quotes\Pages\EditQuote;
 use App\Features\Quotes\Models\Quote;
 use App\Features\Quotes\Services\QuoteAmountCalculator;
 use App\Features\Quotes\Services\QuoteDefaults;
 use App\Features\TaxRates\Models\TaxRate;
 use App\Features\Units\Models\Unit;
-use App\Filament\Forms\Components\SummaryTableRepeater;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Forms\Components\DatePicker;
@@ -22,13 +27,13 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
-use Filament\Support\Enums\Size;
 use Filament\Support\Icons\Heroicon;
 
 class QuoteForm
@@ -53,6 +58,67 @@ class QuoteForm
                 Section::make(fn (?Quote $record): string => filled($record?->quote_number)
                     ? __('quotes::messages.singular').' - '.$record->quote_number
                     : __('quotes::messages.singular'))
+                    ->afterHeader([
+                        Actions::make([
+                            ActionGroup::make([
+                                Action::make('createQuote')
+                                    ->label(__('filament-panels::resources/pages/create-record.form.actions.create.label'))
+                                    ->icon(Heroicon::OutlinedCheck)
+                                    ->action(function (CreateQuotePage $livewire): void {
+                                        $livewire->create();
+                                    })
+                                    ->visible(fn ($livewire): bool => $livewire instanceof CreateQuotePage),
+                                Action::make('createAnotherQuote')
+                                    ->label(__('filament-panels::resources/pages/create-record.form.actions.create_another.label'))
+                                    ->icon(Heroicon::OutlinedPlus)
+                                    ->action(function (CreateQuotePage $livewire): void {
+                                        $livewire->createAnother();
+                                    })
+                                    ->visible(fn ($livewire): bool => $livewire instanceof CreateQuotePage),
+                                Action::make('convertQuoteToInvoice')
+                                    ->label(fn (?Quote $record): string => $record?->invoice_id
+                                        ? __('quotes::messages.actions.open_invoice')
+                                        : __('quotes::messages.actions.convert_invoice'))
+                                    ->icon(Heroicon::OutlinedDocumentText)
+                                    ->visible(fn ($livewire): bool => $livewire instanceof EditQuote)
+                                    ->disabled(fn (?Quote $record): bool => $record === null || $record->is_archived)
+                                    ->requiresConfirmation(fn (?Quote $record): bool => ! (bool) $record?->invoice_id)
+                                    ->action(function (Action $action, Quote $record): void {
+                                        $invoice = app(ConvertQuoteToInvoice::class)->handle($record);
+
+                                        Notification::make()->success()->title(__('quotes::messages.conversion.success'))->send();
+                                        $action->redirect(InvoiceResource::getUrl('edit', ['record' => $invoice]));
+                                    }),
+                                QuoteEmailAction::make()->visible(fn (?Quote $record): bool => $record !== null),
+                                Action::make('archiveQuote')
+                                    ->label(__('quotes::messages.actions.archive'))
+                                    ->icon(Heroicon::OutlinedArchiveBox)
+                                    ->color('danger')
+                                    ->requiresConfirmation()
+                                    ->visible(fn ($livewire): bool => $livewire instanceof EditQuote)
+                                    ->disabled(fn (?Quote $record): bool => $record === null || $record->is_archived)
+                                    ->action(function (Quote $record): void {
+                                        app(ArchiveQuote::class)->handle($record);
+                                        $record->refresh();
+                                        Notification::make()->success()->title(__('quotes::messages.archive.success'))->send();
+                                    }),
+                            ])
+                                ->label(__('quotes::messages.actions.options'))
+                                ->icon(Heroicon::OutlinedEllipsisVertical)
+                                ->iconButton()
+                                ->tooltip(__('quotes::messages.actions.options')),
+                            Action::make('saveQuote')
+                                ->label(__('filament-panels::resources/pages/edit-record.form.actions.save.label'))
+                                ->icon(Heroicon::OutlinedCheck)
+                                ->iconButton()
+                                ->tooltip(__('filament-panels::resources/pages/edit-record.form.actions.save.label'))
+                                ->action(function (EditQuote $livewire): void {
+                                    $livewire->save();
+                                })
+                                ->visible(fn ($livewire, ?Quote $record): bool => $livewire instanceof EditQuote
+                                    && ! (bool) $record?->is_archived),
+                        ]),
+                    ])
                     ->columns([
                         'default' => 1,
                         'md' => 2,
@@ -111,7 +177,7 @@ class QuoteForm
                 Section::make(__('quotes::messages.sections.items'))
                     ->columnSpan(['default' => 12])
                     ->schema([
-                        SummaryTableRepeater::make('items')
+                        Repeater::make('items')
                             ->hiddenLabel()
                             ->relationship()
                             ->orderColumn('item_order')
@@ -230,89 +296,97 @@ class QuoteForm
                                         ->iconButton(),
                                 ])->alignCenter(),
                             ])
-                            ->summaryLayout(tableColumnCount: 9, leadingColumnSpan: 5)
-                            ->summaryActionsInTable()
-                            ->summaryLeadingComponent(
-                                Textarea::make('notes')
-                                    ->label(__('quotes::messages.fields.terms'))
-                                    ->hiddenLabel()
-                                    ->placeholder(__('quotes::messages.placeholders.terms'))
-                                    ->extraAttributes([
-                                        'class' => 'ring-1! ring-gray-950/10! shadow-sm! dark:ring-white/20!',
-                                    ])
-                                    ->rows(4),
-                            )
-                            ->summaryActions([
-                                Action::make('editDiscount')
-                                    ->label(__('quotes::messages.fields.discount'))
-                                    ->icon(Heroicon::OutlinedReceiptPercent)
-                                    ->color('gray')
-                                    ->button()
-                                    ->size(Size::Small)
-                                    ->modalHeading(__('quotes::messages.fields.discount'))
-                                    ->modalSubmitActionLabel(__('quotes::messages.actions.apply_discount'))
-                                    ->fillForm(fn (Get $get): array => [
-                                        'discount_percent' => $get('quote_discount_percent') ?? 0,
-                                        'discount_amount' => $get('quote_discount_amount') ?? 0,
-                                    ])
-                                    ->schema([
-                                        TextInput::make('discount_percent')
-                                            ->label(__('quotes::messages.fields.discount_percent'))
-                                            ->numeric()
-                                            ->minValue(0)
-                                            ->maxValue(100)
-                                            ->suffix('%'),
-                                        TextInput::make('discount_amount')
-                                            ->label(__('quotes::messages.fields.discount_amount'))
-                                            ->helperText(__('quotes::messages.hints.percentage_discount_priority'))
-                                            ->numeric()
-                                            ->minValue(0)
-                                            ->suffix('€'),
-                                    ])
-                                    ->action(function (array $data, Set $set): void {
-                                        $set('quote_discount_percent', $data['discount_percent'] ?? 0);
-                                        $set('quote_discount_amount', $data['discount_amount'] ?? 0);
-                                    }),
-                                Action::make('editTaxes')
-                                    ->label(__('quotes::messages.fields.tax'))
-                                    ->icon(Heroicon::OutlinedCalculator)
-                                    ->color('gray')
-                                    ->button()
-                                    ->size(Size::Small)
-                                    ->modalHeading(__('quotes::messages.fields.tax'))
-                                    ->modalSubmitActionLabel(__('quotes::messages.actions.apply_tax'))
-                                    ->fillForm(fn (Get $get): array => [
-                                        'tax_rates' => $get('quoteTaxRates') ?? [],
-                                    ])
-                                    ->schema([
-                                        Repeater::make('tax_rates')
-                                            ->label(__('quotes::messages.fields.tax_rates'))
-                                            ->defaultItems(0)
-                                            ->columns(2)
-                                            ->addActionLabel(__('quotes::messages.actions.add_tax'))
-                                            ->schema(self::quoteTaxRateFields()),
-                                    ])
-                                    ->action(fn (array $data, Set $set) => $set(
-                                        'quoteTaxRates',
-                                        $data['tax_rates'] ?? [],
-                                        shouldCallUpdatedHooks: true,
-                                    )),
+                            ->columnSpanFull(),
+                        Actions::make([
+                            Action::make('editTerms')
+                                ->label(__('quotes::messages.fields.terms'))
+                                ->icon(Heroicon::OutlinedDocumentText)
+                                ->color('gray')
+                                ->iconButton()
+                                ->tooltip(__('quotes::messages.fields.terms'))
+                                ->modalHeading(__('quotes::messages.fields.terms'))
+                                ->fillForm(fn (Get $get): array => ['notes' => $get('notes') ?? ''])
+                                ->schema([
+                                    Textarea::make('notes')
+                                        ->label(__('quotes::messages.fields.terms'))
+                                        ->placeholder(__('quotes::messages.placeholders.terms'))
+                                        ->rows(6),
+                                ])
+                                ->action(fn (array $data, Set $set) => $set('notes', $data['notes'] ?? '')),
+                            Action::make('editDiscount')
+                                ->label(__('quotes::messages.fields.discount'))
+                                ->icon(Heroicon::OutlinedReceiptPercent)
+                                ->color('gray')
+                                ->iconButton()
+                                ->tooltip(__('quotes::messages.fields.discount'))
+                                ->modalHeading(__('quotes::messages.fields.discount'))
+                                ->modalSubmitActionLabel(__('quotes::messages.actions.apply_discount'))
+                                ->fillForm(fn (Get $get): array => [
+                                    'discount_percent' => $get('quote_discount_percent') ?? 0,
+                                    'discount_amount' => $get('quote_discount_amount') ?? 0,
+                                ])
+                                ->schema([
+                                    TextInput::make('discount_percent')
+                                        ->label(__('quotes::messages.fields.discount_percent'))
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->maxValue(100)
+                                        ->suffix('%'),
+                                    TextInput::make('discount_amount')
+                                        ->label(__('quotes::messages.fields.discount_amount'))
+                                        ->helperText(__('quotes::messages.hints.percentage_discount_priority'))
+                                        ->numeric()
+                                        ->minValue(0)
+                                        ->suffix('€'),
+                                ])
+                                ->action(function (array $data, Set $set): void {
+                                    $set('quote_discount_percent', $data['discount_percent'] ?? 0);
+                                    $set('quote_discount_amount', $data['discount_amount'] ?? 0);
+                                }),
+                            Action::make('editTaxes')
+                                ->label(__('quotes::messages.fields.tax'))
+                                ->icon(Heroicon::OutlinedCalculator)
+                                ->color('gray')
+                                ->iconButton()
+                                ->tooltip(__('quotes::messages.fields.tax'))
+                                ->modalHeading(__('quotes::messages.fields.tax'))
+                                ->modalSubmitActionLabel(__('quotes::messages.actions.apply_tax'))
+                                ->fillForm(fn (Get $get): array => [
+                                    'tax_rates' => $get('quoteTaxRates') ?? [],
+                                ])
+                                ->schema([
+                                    Repeater::make('tax_rates')
+                                        ->label(__('quotes::messages.fields.tax_rates'))
+                                        ->defaultItems(0)
+                                        ->columns(2)
+                                        ->addActionLabel(__('quotes::messages.actions.add_tax'))
+                                        ->schema(self::quoteTaxRateFields()),
+                                ])
+                                ->action(fn (array $data, Set $set) => $set(
+                                    'quoteTaxRates',
+                                    $data['tax_rates'] ?? [],
+                                    shouldCallUpdatedHooks: true,
+                                )),
+                        ])->columnSpanFull(),
+                        Section::make(__('quotes::messages.summary.grand_total'))
+                            ->columns([
+                                'default' => 1,
+                                'md' => 2,
                             ])
-                            ->summaryRows(function (Get $get): array {
-                                $totals = self::calculateTotals($get);
-                                $taxRows = collect($totals['taxBreakdown'])
-                                    ->mapWithKeys(fn (float $amount, int|string $taxRate): array => [
-                                        __('quotes::messages.summary.tax', ['rate' => self::formatTaxRate((float) $taxRate)]) => self::formatAmount($amount),
-                                    ])
-                                    ->all();
-
-                                return [
-                                    __('quotes::messages.summary.subtotal') => self::formatAmount($totals['subtotal']),
-                                    ...$taxRows,
-                                    __('quotes::messages.summary.tax_total') => self::formatAmount($totals['itemTax'] + $totals['quoteTax']),
-                                    __('quotes::messages.summary.grand_total') => self::formatAmount($totals['total']),
-                                ];
-                            })
+                            ->schema([
+                                Placeholder::make('subtotal_preview')
+                                    ->label(__('quotes::messages.summary.subtotal'))
+                                    ->content(fn (Get $get): string => self::formatAmount(self::calculateTotals($get)['subtotal'])),
+                                Placeholder::make('tax_total_preview')
+                                    ->label(__('quotes::messages.summary.tax_total'))
+                                    ->content(fn (Get $get): string => self::formatAmount(
+                                        self::calculateTotals($get)['itemTax'] + self::calculateTotals($get)['quoteTax'],
+                                    )),
+                                Placeholder::make('grand_total_preview')
+                                    ->label(__('quotes::messages.summary.grand_total'))
+                                    ->content(fn (Get $get): string => self::formatAmount(self::calculateTotals($get)['total']))
+                                    ->columnSpanFull(),
+                            ])
                             ->columnSpanFull(),
                     ]),
             ]);
@@ -396,11 +470,6 @@ class QuoteForm
     private static function formatAmount(float $amount): string
     {
         return number_format($amount, 2, ',', '.').' €';
-    }
-
-    private static function formatTaxRate(float $taxRate): string
-    {
-        return rtrim(rtrim(number_format($taxRate, 2, ',', ''), '0'), ',');
     }
 
     private static function deleteItem(Component $component): void

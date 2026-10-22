@@ -29,7 +29,7 @@ class EditQuote extends EditRecord
     /** @return array<Action> */
     protected function getFormActions(): array
     {
-        return $this->record->is_archived ? [] : parent::getFormActions();
+        return [];
     }
 
     protected function afterSave(): void

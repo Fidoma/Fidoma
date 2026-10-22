@@ -62,6 +62,8 @@ return [
     'actions' => [
         'view_pdf' => 'View PDF',
         'create_pdf' => 'Create PDF',
+        'create_xrechnung' => 'Create XRechnung',
+        'issue_invoice' => 'Issue invoice',
         'download_xrechnung' => 'Download XRechnung',
         'delete_draft' => 'Delete draft',
         'archive' => 'Archive',
@@ -75,6 +77,7 @@ return [
         'tax_included' => 'Price includes tax',
         'delete_item' => 'Delete item',
         'apply_discount' => 'Apply discount',
+        'apply_payment_terms' => 'Apply payment terms',
         'apply_tax' => 'Apply tax',
         'add_tax' => 'Add tax',
         'open_original' => 'Open original invoice :number',

@@ -66,15 +66,6 @@ class ProjectInvoiceTest extends TestCase
             ->assertHasFormErrors(['project_id' => 'required']);
     }
 
-    public function test_invoice_items_keep_the_table_layout_on_mobile(): void
-    {
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-
-        Livewire::actingAs(User::factory()->create())
-            ->test(CreateInvoicePage::class)
-            ->assertSee('invoice-items-table');
-    }
-
     private function createProject(Client $client): Project
     {
         return Project::query()->create([
