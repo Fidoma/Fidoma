@@ -5,6 +5,7 @@ namespace App\Features\Reservations\Filament\Resources\Reservations\Pages;
 use App\Features\Reservations\Actions\CreateReservation as CreateReservationAction;
 use App\Features\Reservations\Actions\RecalculateReservation;
 use App\Features\Reservations\Filament\Resources\Reservations\ReservationResource;
+use App\Filament\Concerns\WithoutPageHeading;
 use App\Filament\Resources\Pages\CreateRecord;
 use Filament\Actions\Action;
 use Filament\Support\Enums\Width;
@@ -12,6 +13,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class CreateReservation extends CreateRecord
 {
+    use WithoutPageHeading;
+
     protected static string $resource = ReservationResource::class;
 
     protected Width|string|null $maxContentWidth = Width::Full;

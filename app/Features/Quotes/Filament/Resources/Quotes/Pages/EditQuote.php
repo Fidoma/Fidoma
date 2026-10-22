@@ -4,6 +4,7 @@ namespace App\Features\Quotes\Filament\Resources\Quotes\Pages;
 
 use App\Features\Quotes\Actions\RecalculateQuote;
 use App\Features\Quotes\Filament\Resources\Quotes\QuoteResource;
+use App\Filament\Concerns\WithoutPageHeading;
 use Filament\Actions\Action;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Schemas\Schema;
@@ -11,6 +12,8 @@ use Filament\Support\Enums\Width;
 
 class EditQuote extends EditRecord
 {
+    use WithoutPageHeading;
+
     protected static string $resource = QuoteResource::class;
 
     protected Width|string|null $maxContentWidth = Width::Full;

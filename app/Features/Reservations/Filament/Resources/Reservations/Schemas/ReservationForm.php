@@ -133,7 +133,7 @@ class ReservationForm
                             ->columnSpan(['default' => 1, 'xl' => 3]),
                     ]),
                 Section::make('Positionen')
-                    ->columnSpan(12)
+                    ->columnSpan(['default' => 12])
                     ->schema([
                         Repeater::make('items')
                             ->hiddenLabel()
@@ -310,7 +310,10 @@ class ReservationForm
                                     Repeater::make('tax_rates')
                                         ->label('Steuersätze')
                                         ->defaultItems(0)
-                                        ->columns(2)
+                                        ->columns([
+                                            'default' => 1,
+                                            'md' => 2,
+                                        ])
                                         ->addActionLabel('Steuer hinzufügen')
                                         ->schema(self::reservationTaxRateFields()),
                                 ])
@@ -321,10 +324,7 @@ class ReservationForm
                                 )),
                         ])->columnSpanFull(),
                         Section::make('Gesamtsumme')
-                            ->columns([
-                                'default' => 1,
-                                'md' => 2,
-                            ])
+                            ->columns(2)
                             ->schema([
                                 Placeholder::make('subtotal_preview')
                                     ->label('Zwischensumme')

@@ -358,7 +358,10 @@ class QuoteForm
                                     Repeater::make('tax_rates')
                                         ->label(__('quotes::messages.fields.tax_rates'))
                                         ->defaultItems(0)
-                                        ->columns(2)
+                                        ->columns([
+                                            'default' => 1,
+                                            'md' => 2,
+                                        ])
                                         ->addActionLabel(__('quotes::messages.actions.add_tax'))
                                         ->schema(self::quoteTaxRateFields()),
                                 ])
@@ -369,10 +372,7 @@ class QuoteForm
                                 )),
                         ])->columnSpanFull(),
                         Section::make(__('quotes::messages.summary.grand_total'))
-                            ->columns([
-                                'default' => 1,
-                                'md' => 2,
-                            ])
+                            ->columns(2)
                             ->schema([
                                 Placeholder::make('subtotal_preview')
                                     ->label(__('quotes::messages.summary.subtotal'))
