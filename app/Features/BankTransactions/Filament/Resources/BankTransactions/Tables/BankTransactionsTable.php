@@ -3,9 +3,15 @@
 namespace App\Features\BankTransactions\Filament\Resources\BankTransactions\Tables;
 
 use App\Features\BankTransactions\Filament\Resources\BankTransactions\BankTransactionResource;
+use App\Features\BankTransactions\Filament\Resources\BankTransactions\Schemas\BankTransactionInfolist;
 use App\Features\BankTransactions\Models\BankTransaction;
+use App\Features\Documents\Filament\Pages\Documents;
+use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Schema;
+use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
@@ -18,8 +24,11 @@ class BankTransactionsTable
     {
         return $table
             ->defaultSort('booking_date', 'desc')
-            ->modifyQueryUsing(fn (Builder $query): Builder => $query->withCount('mappings'))
-            ->recordUrl(fn (BankTransaction $record): string => BankTransactionResource::getUrl('edit', ['record' => $record]))
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query
+                ->withCount('mappings')
+                ->with(['mappings.payment.invoice.client', 'mappings.payment.invoice.amount', 'mappings.payment.paymentMethod']))
+            ->recordUrl(null)
+            ->recordAction('view')
             ->columns([
                 TextColumn::make('booking_date')
                     ->label('Buchungsdatum')
@@ -65,6 +74,23 @@ class BankTransactionsTable
                     ->label('Banktransaktion')
                     ->icon(Heroicon::Plus)
                     ->url(BankTransactionResource::getUrl('create')),
+            ])
+            ->recordActions([
+                ViewAction::make()
+                    ->label(__('bank-transactions::messages.actions.view'))
+                    ->extraAttributes(['style' => 'display: none'])
+                    ->modalHeading(__('bank-transactions::messages.detail.heading'))
+                    ->schema(fn (Schema $schema): Schema => BankTransactionInfolist::configure($schema))
+                    ->slideOver()
+                    ->modalWidth(Width::FourExtraLarge)
+                    ->extraModalFooterActions([
+                        Action::make('openAssignment')
+                            ->label(__('bank-transactions::messages.actions.open_assignment'))
+                            ->icon(Heroicon::OutlinedLink)
+                            ->url(fn (BankTransaction $record): string => Documents::getUrl([
+                                'activeTab' => (float) $record->amount >= 0 ? 'income' : 'expenses',
+                            ])),
+                    ]),
             ]);
     }
 }

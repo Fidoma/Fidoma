@@ -6,6 +6,7 @@ use App\Features\BankTransactions\Filament\Resources\BankTransactions\Pages\Crea
 use App\Features\BankTransactions\Filament\Resources\BankTransactions\Pages\EditBankTransaction;
 use App\Features\BankTransactions\Filament\Resources\BankTransactions\Pages\ListBankTransactions;
 use App\Features\BankTransactions\Filament\Resources\BankTransactions\Schemas\BankTransactionForm;
+use App\Features\BankTransactions\Filament\Resources\BankTransactions\Schemas\BankTransactionInfolist;
 use App\Features\BankTransactions\Filament\Resources\BankTransactions\Tables\BankTransactionsTable;
 use App\Features\BankTransactions\Models\BankTransaction;
 use App\Filament\Concerns\HasConfigurableNavigation;
@@ -62,6 +63,11 @@ class BankTransactionResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return BankTransactionForm::configure($schema);
+    }
+
+    public static function infolist(Schema $schema): Schema
+    {
+        return BankTransactionInfolist::configure($schema);
     }
 
     public static function table(Table $table): Table

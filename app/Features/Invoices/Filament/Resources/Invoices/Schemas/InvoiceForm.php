@@ -184,6 +184,7 @@ class InvoiceForm
                 ->schema([
                     SummaryTableRepeater::make('items')
                         ->hiddenLabel()
+                        ->extraAttributes(['class' => 'invoice-items-table'])
                         ->relationship()
                         ->orderColumn('item_order')
                         ->defaultItems(1)

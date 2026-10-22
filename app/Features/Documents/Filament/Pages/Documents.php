@@ -27,6 +27,7 @@ use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Js;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Url;
 use Throwable;
 use UnitEnum;
 
@@ -53,6 +54,7 @@ class Documents extends Page implements HasTable
 
     public ?string $paperlessError = null;
 
+    #[Url]
     public string $activeTab = 'expenses';
 
     public static function getNavigationLabel(): string
@@ -75,6 +77,10 @@ class Documents extends Page implements HasTable
 
     public function mount(): void
     {
+        if (! in_array($this->activeTab, ['income', 'expenses'], true)) {
+            $this->activeTab = 'expenses';
+        }
+
         $this->loadCachedPaperlessDocuments();
     }
 
