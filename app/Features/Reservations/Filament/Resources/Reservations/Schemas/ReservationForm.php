@@ -114,7 +114,7 @@ class ReservationForm
                                 TextInput::make('client_phone')->label('Telefon')->tel()->maxLength(30),
                             ])
                             ->createOptionUsing(fn (array $data): int => app(CreateClient::class)->handle($data)->getKey())
-                            ->columnSpan(['default' => 1, 'xl' => 4]),
+                            ->columnSpan(['default' => 'full', 'xl' => 4]),
                         TextInput::make('reservation_number')
                             ->label('Reservierungsnummer')
                             ->placeholder('Wird automatisch vergeben')

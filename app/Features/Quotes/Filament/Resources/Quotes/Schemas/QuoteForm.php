@@ -148,7 +148,7 @@ class QuoteForm
                                     ->maxLength(20),
                             ])
                             ->createOptionUsing(fn (array $data): int => app(CreateClient::class)->handle($data)->getKey())
-                            ->columnSpan(['default' => 1, 'xl' => 4]),
+                            ->columnSpan(['default' => 'full', 'xl' => 4]),
                         TextInput::make('quote_number')
                             ->label(__('quotes::messages.fields.quote_number'))
                             ->placeholder(__('quotes::messages.placeholders.automatic_number'))
