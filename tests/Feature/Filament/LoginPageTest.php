@@ -4,6 +4,7 @@ namespace Tests\Feature\Filament;
 
 use App\Features\Authentication\Filament\Pages\Login;
 use Filament\Facades\Filament;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class LoginPageTest extends TestCase
@@ -24,5 +25,15 @@ class LoginPageTest extends TestCase
             ->assertSee('Bank & Zahlungen', escape: false)
             ->assertSee('Belege & Dokumente', escape: false)
             ->assertSee('Mit automatisiertem Zuordnungsprozess und entsprechender Trefferquote.');
+    }
+
+    public function test_demo_credentials_are_prefilled_when_configured(): void
+    {
+        config()->set('auth.demo.email', 'demo@fidoma.de');
+        config()->set('auth.demo.password', 'demo');
+
+        Livewire::test(Login::class)
+            ->assertSet('data.email', 'demo@fidoma.de')
+            ->assertSet('data.password', 'demo');
     }
 }
