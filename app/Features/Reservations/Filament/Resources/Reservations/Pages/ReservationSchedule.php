@@ -157,7 +157,10 @@ class ReservationSchedule extends Page
             $end = $start->addDays(90);
         }
 
-        $resources = Room::query()->orderBy('room_number')->get()
+        $resources = Room::query()
+            ->orderByRaw('CAST(room_number AS UNSIGNED)')
+            ->orderBy('room_number')
+            ->get()
             ->map(fn (Room $room): array => ['id' => 'room-'.$room->getKey(), 'name' => $room->room_number])
             ->values()->all();
 

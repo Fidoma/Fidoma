@@ -12,9 +12,13 @@ Vertragsvorlagen definieren eigene Felder. Verträge übernehmen diese Felder un
 
 Räume und Reservierungen werden in Listen und einem Zeitplan verwaltet. Reservierungen besitzen Positionen, Beträge und Status (offen, bestätigt, storniert) und können in Rechnungen überführt werden.
 
+![Belegungsplan mit Räumen und Reservierungen](../screenshots/reservations.png)
+
 ## Berichte
 
 Die Berichtsseite bietet Rechnungs-, Zahlungs-, Umsatz-, Steuer- und UStVA-Auswertungen. Ein Export-Service erstellt herunterladbare Ergebnisse.
+
+![Berichte und UStVA-Auswertung](../screenshots/reports.png)
 
 ## Messen
 

@@ -2,6 +2,8 @@
 
 Fidoma spricht ein Zahlungsterminal nicht direkt an. Es sendet Zahlungsaufträge an einen separat betriebenen **ZVTAPI-Gateway**. Terminal-IP, Port, Händlerpasswort und ein möglicher Simulationsmodus werden dort konfiguriert.
 
+![Terminalzahlung mit Rechnungsauswahl und Zahlungshistorie](../screenshots/terminals.png)
+
 ## Fidoma konfigurieren
 
 ```dotenv

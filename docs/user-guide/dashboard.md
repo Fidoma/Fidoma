@@ -13,4 +13,4 @@ Das Dashboard fasst operative und finanzielle Werte für einen gewählten Zeitra
 Rechnungsumsatz entsteht durch Rechnungen; Cashflow basiert auf Zahlungen beziehungsweise Bankbewegungen. Die Werte sind deshalb nicht zwangsläufig identisch.
 :::
 
-![Fidoma-Dashboard mit Kennzahlen und Diagrammen](../screenshots/dashboard.jpg)
+![Fidoma-Dashboard mit Kennzahlen und Diagrammen](../screenshots/dashboard.png)

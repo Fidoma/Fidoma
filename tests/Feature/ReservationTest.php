@@ -55,6 +55,22 @@ class ReservationTest extends TestCase
         $this->assertSame('987', $resource['name']);
     }
 
+    public function test_schedule_orders_room_numbers_numerically(): void
+    {
+        $this->actingAs(User::factory()->create());
+        foreach (['1', '10', '11', '2'] as $roomNumber) {
+            Room::query()->create([
+                'room_number' => $roomNumber,
+                'room_capacity' => 1,
+                'room_active' => true,
+            ]);
+        }
+
+        $resources = Livewire::test(ReservationSchedule::class)->instance()->schedule()['resources'];
+
+        $this->assertSame(['1', '2', '10', '11'], array_column($resources, 'name'));
+    }
+
     public function test_room_create_another_action_saves_the_room_and_refreshes_the_table(): void
     {
         $user = User::factory()->create();

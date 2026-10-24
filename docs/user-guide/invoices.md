@@ -4,9 +4,13 @@
 
 Angebote verwenden Kunden, Produkte, Einheiten, Steuersätze, Rabatte und frei bearbeitbare Positionen. Die Statusfolge umfasst Entwurf, versendet, angenommen, abgelehnt und storniert. Ein angenommenes Angebot kann in eine Rechnung umgewandelt werden.
 
+![Angebot mit Positionen erstellen](../screenshots/quotes_create.png)
+
 ## Rechnungen
 
 Fidoma unterstützt Rechnungen, Gutschriften und Stornorechnungen sowie Standard-, Abschlags- und Schlussabrechnung. Rechnungsstatus sind Entwurf, offen und bezahlt. Erst das Ausstellen macht aus einem Entwurf einen offenen Beleg.
+
+![Rechnung mit Positionen erstellen](../screenshots/invoices_create.png)
 
 Zur Verfügung stehen:
 
@@ -26,4 +30,4 @@ Zur Verfügung stehen:
 5. PDF/XRechnung versenden oder herunterladen.
 6. Zahlung manuell, per Bankzuordnung oder Terminal verbuchen.
 
-![Rechnungsübersicht mit Statusfiltern](../screenshots/invoices.jpg)
+![Rechnungsübersicht mit Statusfiltern](../screenshots/invoices.png)
