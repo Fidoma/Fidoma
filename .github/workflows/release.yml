@@ -89,7 +89,8 @@ jobs:
         env:
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
-          archive_name="fidoma-${RELEASE_TAG}"
+          release_version="${RELEASE_TAG#v}"
+          archive_name="fidoma-installer-${release_version}"
           mkdir -p "dist/${archive_name}"
           cp install.sh setup.sh compose.production.yaml .env.production.example README.md "dist/${archive_name}/"
           (
@@ -102,7 +103,8 @@ jobs:
         env:
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
-          archive_name="fidoma-webhosting-${RELEASE_TAG}"
+          release_version="${RELEASE_TAG#v}"
+          archive_name="fidoma-${release_version}"
           staging_dir="dist/${archive_name}"
           mkdir -p "${staging_dir}"
           rsync -a ./ "${staging_dir}/" \
@@ -149,19 +151,20 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
+          release_version="${RELEASE_TAG#v}"
           if gh release view "${RELEASE_TAG}" >/dev/null 2>&1; then
             gh release upload "${RELEASE_TAG}" \
-              "dist/fidoma-${RELEASE_TAG}.zip" \
-              "dist/fidoma-${RELEASE_TAG}.zip.sha256" \
-              "dist/fidoma-webhosting-${RELEASE_TAG}.zip" \
-              "dist/fidoma-webhosting-${RELEASE_TAG}.zip.sha256" \
+              "dist/fidoma-installer-${release_version}.zip" \
+              "dist/fidoma-installer-${release_version}.zip.sha256" \
+              "dist/fidoma-${release_version}.zip" \
+              "dist/fidoma-${release_version}.zip.sha256" \
               --clobber
           else
             gh release create "${RELEASE_TAG}" \
-              "dist/fidoma-${RELEASE_TAG}.zip" \
-              "dist/fidoma-${RELEASE_TAG}.zip.sha256" \
-              "dist/fidoma-webhosting-${RELEASE_TAG}.zip" \
-              "dist/fidoma-webhosting-${RELEASE_TAG}.zip.sha256" \
+              "dist/fidoma-installer-${release_version}.zip" \
+              "dist/fidoma-installer-${release_version}.zip.sha256" \
+              "dist/fidoma-${release_version}.zip" \
+              "dist/fidoma-${release_version}.zip.sha256" \
               --generate-notes \
               --title "Fidoma ${RELEASE_TAG}" \
               --verify-tag
