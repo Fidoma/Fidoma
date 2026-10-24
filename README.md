@@ -22,6 +22,8 @@
 
 Fidoma ist ein modulares Open-Source-ERP zur Verwaltung und Automatisierung von Geschäftsprozessen – von der Rechnungsstellung über Zahlungsabwicklung bis hin zu branchenspezifischen Workflows.
 
+Weitere Informationen gibt es auf [fidoma.de](https://fidoma.de/). Dort kann Fidoma auch als Demo-Version getestet werden.
+
 ## Features
 
 | Modul | Beschreibung |
