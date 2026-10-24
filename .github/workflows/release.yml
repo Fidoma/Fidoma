@@ -85,20 +85,6 @@ jobs:
           npm ci
           npm run build
 
-      - name: Create installation archive
-        env:
-          RELEASE_TAG: ${{ github.ref_name }}
-        run: |
-          release_version="${RELEASE_TAG#v}"
-          archive_name="fidoma-installer-${release_version}"
-          mkdir -p "dist/${archive_name}"
-          cp install.sh setup.sh compose.production.yaml .env.production.example README.md "dist/${archive_name}/"
-          (
-            cd dist
-            zip -r "${archive_name}.zip" "${archive_name}"
-            sha256sum "${archive_name}.zip" > "${archive_name}.zip.sha256"
-          )
-
       - name: Create webhosting archive
         env:
           RELEASE_TAG: ${{ github.ref_name }}
@@ -154,15 +140,11 @@ jobs:
           release_version="${RELEASE_TAG#v}"
           if gh release view "${RELEASE_TAG}" >/dev/null 2>&1; then
             gh release upload "${RELEASE_TAG}" \
-              "dist/fidoma-installer-${release_version}.zip" \
-              "dist/fidoma-installer-${release_version}.zip.sha256" \
               "dist/fidoma-${release_version}.zip" \
               "dist/fidoma-${release_version}.zip.sha256" \
               --clobber
           else
             gh release create "${RELEASE_TAG}" \
-              "dist/fidoma-installer-${release_version}.zip" \
-              "dist/fidoma-installer-${release_version}.zip.sha256" \
               "dist/fidoma-${release_version}.zip" \
               "dist/fidoma-${release_version}.zip.sha256" \
               --generate-notes \
