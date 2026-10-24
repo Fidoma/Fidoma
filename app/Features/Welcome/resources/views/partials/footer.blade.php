@@ -17,14 +17,12 @@
             <a href="{{ $links['repository'] }}">GitHub</a>
             <a href="{{ route('pricing') }}#unterstuetzen">Projekt unterstützen</a>
         </nav>
-        @if($links['contact'] || $links['imprint'] || $links['privacy'])
-            <nav aria-label="Rechtliches und Kontakt">
-                <b>Kontakt & Rechtliches</b>
-                @if($links['contact'])<a href="{{ $links['contact'] }}">Kontakt</a>@endif
-                @if($links['imprint'])<a href="{{ $links['imprint'] }}">Impressum</a>@endif
-                @if($links['privacy'])<a href="{{ $links['privacy'] }}">Datenschutz</a>@endif
-            </nav>
-        @endif
+        <nav aria-label="Rechtliches und Kontakt">
+            <b>Kontakt & Rechtliches</b>
+            <a href="{{ route('pricing') }}#kontakt">Kontakt</a>
+            @if($links['imprint'])<a href="{{ $links['imprint'] }}">Impressum</a>@endif
+            @if($links['privacy'])<a href="{{ $links['privacy'] }}">Datenschutz</a>@endif
+        </nav>
     </div>
     <div class="site-container footer-bottom"><span>Open-Source-ERP für den Unternehmensalltag.</span><a href="{{ url('/admin/login') }}">Anmelden →</a></div>
 </footer>

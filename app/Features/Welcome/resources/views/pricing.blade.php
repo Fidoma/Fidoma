@@ -38,16 +38,16 @@
                 <div><span class="plan-kicker">Gehostet</span><h2>{{ $plans['cloud']['name'] }}</h2><p>Fidoma nutzen, ohne sich selbst um Server, Installation und Wartung kümmern zu müssen.</p></div>
                 <div class="price"><span>{{ $plans['cloud']['suffix'] }}</span></div>
                 <ul><li>Gehostete Fidoma-Instanz</li><li>Serverbetrieb und Wartung</li><li>Regelmäßige Backups und Software-Updates</li><li>HTTPS-Verschlüsselung</li><li>Terminal-Zahlungen</li><li>Automatisierter Banktransaktionsabruf über FinTS</li><li>ERP-Kernfunktionen</li><li>Kein eigener Server erforderlich</li></ul>
-                <a class="button button-primary button-wide" href="{{ $links['cloud'] ?: '#kontakt' }}">Cloud anfragen <span aria-hidden="true">→</span></a>
+                <a class="button button-primary button-wide" href="#kontakt">Cloud anfragen <span aria-hidden="true">→</span></a>
             </article>
             <article class="pricing-card">
                 <div><span class="plan-kicker">Persönlich</span><h2>{{ $plans['support']['name'] }}</h2><p>Persönliche Unterstützung für Unternehmen, die Fidoma produktiv einsetzen.</p></div>
                 <div class="price"><span>{{ $plans['support']['suffix'] }}</span></div>
                 <ul><li>Technische Unterstützung</li><li>Hilfe bei Einrichtung und Konfiguration</li><li>Unterstützung bei Fragen und Problemen</li><li>Hilfe bei Integrationen</li><li>Für Self-Hosting und Cloud geeignet</li><li>Individuelle Vereinbarungen möglich</li></ul>
-                <a class="button button-secondary button-wide" href="{{ $links['support'] ?: '#kontakt' }}">Support anfragen <span aria-hidden="true">→</span></a>
+                <a class="button button-secondary button-wide" href="#kontakt">Support anfragen <span aria-hidden="true">→</span></a>
             </article>
         </div>
-        <p class="pricing-note">Cloud und Support werden individuell angeboten. Leistungsumfang, Verfügbarkeit und Preis erhalten Sie auf Anfrage unter info@fidoma.de.</p>
+        <p class="pricing-note">Cloud und Support werden individuell angeboten. Leistungsumfang, Verfügbarkeit und Preis erhalten Sie auf Anfrage.</p>
     </div></section>
 
     <section class="support-project-section" id="unterstuetzen"><div class="site-container support-project-card"><span class="heart-icon" aria-hidden="true">♡</span><div><span class="section-kicker">Freiwillige Projektunterstützung</span><h2>Fidoma gefällt Ihnen? Unterstützen Sie das Projekt.</h2><p>Fidoma wird unabhängig entwickelt und bleibt kostenlos als Open-Source-Software verfügbar. Mit einer freiwilligen Unterstützung helfen Sie dabei, neue Funktionen zu entwickeln, bestehende Funktionen zu verbessern und das Projekt langfristig weiterzuführen.</p></div><a class="button button-primary" href="{{ $paypal['donation'] }}">Spenden <span aria-hidden="true">→</span></a></div></section>
@@ -60,7 +60,11 @@
         <details><summary>Kann ich später von Self-Hosting zur Cloud wechseln?</summary><p>Ein standardisierter Migrationsprozess ist derzeit nicht veröffentlicht. Sprechen Sie uns an, damit wir die vorhandene Installation und einen möglichen Wechsel individuell prüfen können.</p></details>
     </div></div></section>
 
-    <section class="contact-section" id="kontakt"><div class="site-container cta-card"><div><span class="section-kicker">Cloud & Support</span><h2>Welches Modell passt zu Ihrem Betrieb?</h2><p>Cloud- und Supportleistungen werden anfragebasiert vereinbart. Leistungsumfang, Supportzeiten, Reaktionszeiten und mögliche Kontingente werden nicht pauschal vorausgesetzt.</p></div>@if($links['contact'])<a class="button button-primary" href="{{ $links['contact'] }}">Kontakt aufnehmen <span aria-hidden="true">→</span></a>@else<div class="configuration-note">Der direkte Kontaktweg ist noch nicht veröffentlicht und muss vor dem öffentlichen Angebot zentral hinterlegt werden.</div>@endif</div></section>
+    <section class="contact-section" id="kontakt"><div class="site-container cta-card contact-card"><div><span class="section-kicker">Kontakt aufnehmen</span><h2>Welches Modell passt zu Ihrem Betrieb?</h2><p>Cloud- und Supportleistungen werden anfragebasiert vereinbart. Leistungsumfang, Supportzeiten, Reaktionszeiten und mögliche Kontingente werden nicht pauschal vorausgesetzt.</p></div><form class="contact-form" method="POST" action="{{ route('welcome.contact.send') }}">@csrf
+        <div><label for="contact-email">E-Mail</label><input id="contact-email" name="email" type="email" value="{{ old('email') }}" autocomplete="email" maxlength="254" required>@error('email')<p class="contact-error">{{ $message }}</p>@enderror</div>
+        <div><label for="contact-message">Nachricht</label><textarea id="contact-message" name="message" rows="5" maxlength="5000" required>{{ old('message') }}</textarea>@error('message')<p class="contact-error">{{ $message }}</p>@enderror</div>
+        <div class="contact-form-footer">@if(session('contact_sent'))<p class="contact-success" role="status">Vielen Dank. Ihre Nachricht wurde gesendet.</p>@endif<button class="button button-primary" type="submit">Senden <span aria-hidden="true">→</span></button></div>
+    </form></div></section>
 </main>
 
 @include('welcome::partials.footer')
