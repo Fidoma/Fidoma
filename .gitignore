@@ -19,6 +19,7 @@
 /node_modules
 /docs/.vitepress/cache
 /docs/.vitepress/dist
+/dist/
 /fidoma/
 /public/build
 /public/css/filament
