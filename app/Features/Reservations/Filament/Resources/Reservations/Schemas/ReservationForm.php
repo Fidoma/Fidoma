@@ -137,6 +137,7 @@ class ReservationForm
                     ->schema([
                         Repeater::make('items')
                             ->hiddenLabel()
+                            ->extraAttributes(['class' => 'document-items-table fi-fixed-positioning-context'])
                             ->columnSpanFull()
                             ->relationship()
                             ->orderColumn('item_order')
@@ -245,6 +246,8 @@ class ReservationForm
                                         ->label('Optionen')
                                         ->icon(Heroicon::OutlinedEllipsisVertical)
                                         ->tooltip('Optionen')
+                                        ->dropdownPlacement('bottom-end')
+                                        ->dropdownTeleport()
                                         ->iconButton(),
                                 ])->alignCenter(),
                             ])

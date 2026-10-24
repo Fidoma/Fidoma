@@ -251,7 +251,7 @@ class InvoiceForm
                 ->schema([
                     Repeater::make('items')
                         ->hiddenLabel()
-                        ->extraAttributes(['class' => 'invoice-items-table'])
+                        ->extraAttributes(['class' => 'document-items-table fi-fixed-positioning-context'])
                         ->relationship()
                         ->orderColumn('item_order')
                         ->defaultItems(1)
@@ -346,6 +346,8 @@ class InvoiceForm
                                     ->label(__('invoices::messages.actions.options'))
                                     ->icon(Heroicon::OutlinedEllipsisVertical)
                                     ->tooltip(__('invoices::messages.actions.options'))
+                                    ->dropdownPlacement('bottom-end')
+                                    ->dropdownTeleport()
                                     ->iconButton(),
                             ])->alignCenter(),
                         ])

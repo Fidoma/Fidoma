@@ -26,6 +26,8 @@ class DocumentItemActionsTest extends TestCase
 
             $response
                 ->assertSee('fi-fo-table-repeater', escape: false)
+                ->assertSee('fi-fixed-positioning-context', escape: false)
+                ->assertSee('x-float.placement.bottom-end.flip.teleport.offset=', escape: false)
                 ->assertDontSee('fi-fo-summary-actions-in-table', escape: false);
         }
     }

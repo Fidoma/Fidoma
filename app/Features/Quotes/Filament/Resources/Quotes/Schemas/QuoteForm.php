@@ -179,6 +179,7 @@ class QuoteForm
                     ->schema([
                         Repeater::make('items')
                             ->hiddenLabel()
+                            ->extraAttributes(['class' => 'document-items-table fi-fixed-positioning-context'])
                             ->relationship()
                             ->orderColumn('item_order')
                             ->defaultItems(1)
@@ -293,6 +294,8 @@ class QuoteForm
                                         ->label(__('quotes::messages.actions.options'))
                                         ->icon(Heroicon::OutlinedEllipsisVertical)
                                         ->tooltip(__('quotes::messages.actions.options'))
+                                        ->dropdownPlacement('bottom-end')
+                                        ->dropdownTeleport()
                                         ->iconButton(),
                                 ])->alignCenter(),
                             ])

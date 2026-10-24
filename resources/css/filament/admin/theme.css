@@ -588,13 +588,16 @@
     @apply flex min-w-0 items-start;
 }
 
-/* Keep invoice positions in their desktop table layout on narrow screens. */
-.fi-grid-col:has(.fi-fo-table-repeater.invoice-items-table) {
+/* Keep document positions in their desktop table layout on narrow screens. */
+.fi-grid-col:has(.fi-fo-table-repeater.document-items-table) {
     min-width: 0;
     max-width: 100%;
 }
 
-.fi-fo-table-repeater.invoice-items-table {
+/* The desktop table layout below replaces container queries. Disable containment so
+   Filament fixed dropdowns can escape horizontal scrolling without being clipped. */
+.fi-fo-table-repeater.document-items-table {
+    container-type: normal;
     position: relative;
     display: block;
     width: 100%;
@@ -604,56 +607,56 @@
     overscroll-behavior-inline: contain;
 }
 
-.fi-fo-table-repeater.invoice-items-table > table {
+.fi-fo-table-repeater.document-items-table > table {
     display: table;
     width: 100%;
     table-layout: auto;
 }
 
-.fi-fo-table-repeater.invoice-items-table > table > thead {
+.fi-fo-table-repeater.document-items-table > table > thead {
     display: table-header-group;
 }
 
-.fi-fo-table-repeater.invoice-items-table > table > tbody {
+.fi-fo-table-repeater.document-items-table > table > tbody {
     display: table-row-group;
 }
 
-.fi-fo-table-repeater.invoice-items-table > table > tbody > tr {
+.fi-fo-table-repeater.document-items-table > table > tbody > tr {
     display: table-row;
     padding: 0;
 }
 
-.fi-fo-table-repeater.invoice-items-table > table > tbody > tr > td {
+.fi-fo-table-repeater.document-items-table > table > tbody > tr > td {
     display: table-cell;
     padding-block: 0.25rem;
     vertical-align: middle;
 }
 
-.fi-fo-table-repeater.invoice-items-table > table > tbody > tr > td:not(:last-of-type) {
+.fi-fo-table-repeater.document-items-table > table > tbody > tr > td:not(:last-of-type) {
     border-inline-end: 1px solid rgb(229 231 235);
 }
 
-.dark .fi-fo-table-repeater.invoice-items-table > table > tbody > tr > td:not(:last-of-type) {
+.dark .fi-fo-table-repeater.document-items-table > table > tbody > tr > td:not(:last-of-type) {
     border-inline-end-color: rgb(255 255 255 / 0.05);
 }
 
-.fi-fo-table-repeater.invoice-items-table .fi-fo-field,
-.fi-fo-table-repeater.invoice-items-table .fi-in-entry {
+.fi-fo-table-repeater.document-items-table .fi-fo-field,
+.fi-fo-table-repeater.document-items-table .fi-in-entry {
     row-gap: 0;
 }
 
-.fi-fo-table-repeater.invoice-items-table .fi-fo-field-label-content,
-.fi-fo-table-repeater.invoice-items-table .fi-in-entry-label {
+.fi-fo-table-repeater.document-items-table .fi-fo-field-label-content,
+.fi-fo-table-repeater.document-items-table .fi-in-entry-label {
     display: none;
 }
 
-.fi-fo-table-repeater.invoice-items-table.fi-compact .fi-input-wrp {
+.fi-fo-table-repeater.document-items-table.fi-compact .fi-input-wrp {
     background-color: transparent !important;
     box-shadow: none !important;
     --tw-ring-shadow: 0 0 #0000 !important;
 }
 
-.fi-fo-table-repeater.invoice-items-table .fi-fo-table-repeater-actions {
+.fi-fo-table-repeater.document-items-table .fi-fo-table-repeater-actions {
     padding: 0.5rem 0.75rem;
 }
 
