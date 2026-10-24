@@ -63,6 +63,28 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: bcmath, gd, intl, pdo_mysql, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install production PHP dependencies
+        run: composer install --no-dev --no-interaction --prefer-dist --no-progress --optimize-autoloader
+
+      - name: Build production frontend assets
+        run: |
+          npm ci
+          npm run build
+
       - name: Create installation archive
         env:
           RELEASE_TAG: ${{ github.ref_name }}
@@ -76,6 +98,52 @@ jobs:
             sha256sum "${archive_name}.zip" > "${archive_name}.zip.sha256"
           )
 
+      - name: Create webhosting archive
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          archive_name="fidoma-webhosting-${RELEASE_TAG}"
+          staging_dir="dist/${archive_name}"
+          mkdir -p "${staging_dir}"
+          rsync -a ./ "${staging_dir}/" \
+            --exclude '/.git/' \
+            --exclude '/.github/' \
+            --exclude '/.claude/' \
+            --exclude '/.codex/' \
+            --exclude '/.codex-attachments/' \
+            --exclude '/.dockerignore' \
+            --exclude '/.editorconfig' \
+            --exclude '/.env' \
+            --exclude '/.env.backup' \
+            --exclude '/.env.production' \
+            --exclude '/.gitattributes' \
+            --exclude '/.gitignore' \
+            --exclude '/.mcp.json' \
+            --exclude '/.npmrc' \
+            --exclude '/AGENTS.md' \
+            --exclude '/CLAUDE.md' \
+            --exclude '/Dockerfile' \
+            --exclude '/boost.json' \
+            --exclude '/compose.production.yaml' \
+            --exclude '/compose.yaml' \
+            --exclude '/dist/' \
+            --exclude '/docker/' \
+            --exclude '/docs/' \
+            --exclude '/node_modules/' \
+            --exclude '/package-lock.json' \
+            --exclude '/package.json' \
+            --exclude '/phpunit.xml' \
+            --exclude '/tests/' \
+            --exclude '/vite.config.js'
+          (
+            cd "${staging_dir}"
+            zip -qr "../${archive_name}.zip" .
+          )
+          (
+            cd dist
+            sha256sum "${archive_name}.zip" > "${archive_name}.zip.sha256"
+          )
+
       - name: Create or update GitHub release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -85,11 +153,15 @@ jobs:
             gh release upload "${RELEASE_TAG}" \
               "dist/fidoma-${RELEASE_TAG}.zip" \
               "dist/fidoma-${RELEASE_TAG}.zip.sha256" \
+              "dist/fidoma-webhosting-${RELEASE_TAG}.zip" \
+              "dist/fidoma-webhosting-${RELEASE_TAG}.zip.sha256" \
               --clobber
           else
             gh release create "${RELEASE_TAG}" \
               "dist/fidoma-${RELEASE_TAG}.zip" \
               "dist/fidoma-${RELEASE_TAG}.zip.sha256" \
+              "dist/fidoma-webhosting-${RELEASE_TAG}.zip" \
+              "dist/fidoma-webhosting-${RELEASE_TAG}.zip.sha256" \
               --generate-notes \
               --title "Fidoma ${RELEASE_TAG}" \
               --verify-tag
