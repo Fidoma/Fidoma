@@ -127,10 +127,6 @@ jobs:
             cd "${staging_dir}"
             zip -qr "../${archive_name}.zip" .
           )
-          (
-            cd dist
-            sha256sum "${archive_name}.zip" > "${archive_name}.zip.sha256"
-          )
 
       - name: Create or update GitHub release
         env:
@@ -141,12 +137,10 @@ jobs:
           if gh release view "${RELEASE_TAG}" >/dev/null 2>&1; then
             gh release upload "${RELEASE_TAG}" \
               "dist/fidoma-${release_version}.zip" \
-              "dist/fidoma-${release_version}.zip.sha256" \
               --clobber
           else
             gh release create "${RELEASE_TAG}" \
               "dist/fidoma-${release_version}.zip" \
-              "dist/fidoma-${release_version}.zip.sha256" \
               --generate-notes \
               --title "Fidoma ${RELEASE_TAG}" \
               --verify-tag
