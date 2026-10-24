@@ -37,7 +37,7 @@ Fidoma ist ein modulares Open-Source-ERP zur Verwaltung und Automatisierung von 
 
 Die vollständige Anleitung zu Installation, Konfiguration, Aktualisierung und Modulen steht in der [Fidoma-Dokumentation](https://fidoma.github.io/Fidoma/).
 
-### Schnellinstallation
+### Docker-Produktionsinstallation
 
 Fidoma mit einem einzigen Befehl installieren:
 
@@ -52,16 +52,24 @@ verwendet und kein zusätzlicher `fidoma/`-Unterordner angelegt.
 
 > **Hinweis:** Den Skriptpfad vor Verwendung prüfen. Der Befehl setzt voraus, dass `install.sh` im Branch `main` existiert.
 
-### Lokale Installation
+### Native Installation
 
-Repository klonen:
+Das vorkompilierte [Release-Archiv](https://github.com/Fidoma/Fidoma/releases/latest) herunterladen und entpacken. Composer-Abhängigkeiten und Frontend-Assets sind bereits enthalten.
+
+1. `.env.example` in `.env` umbenennen.
+2. `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL`, `DB_*`, `SESSION_ENCRYPT=true` und `LOG_LEVEL=warning` konfigurieren.
+3. Optional `MAIL_*` und `PAPERLESS_*` konfigurieren.
+4. Folgende Befehle ausführen:
 
 ```bash
-git clone https://github.com/Fidoma/Fidoma.git
-cd Fidoma
+php artisan key:generate
+php artisan migrate --force
+php artisan storage:link
+php artisan make:filament-user
+php artisan optimize
 ```
 
-Anschließend die erforderlichen Abhängigkeiten installieren und die Umgebung konfigurieren.
+Der Webserver muss auf `public/` zeigen. `storage/` und `bootstrap/cache/` müssen für den Webserver beschreibbar sein.
 
 ## Technologie & Architektur
 
