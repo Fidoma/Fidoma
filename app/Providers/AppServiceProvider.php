@@ -47,7 +47,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         CreateAction::configureUsing(fn (CreateAction $action): CreateAction => $action
-            ->createAnotherAction(fn (Action $createAnotherAction): Action => $createAnotherAction
+            ->createAnotherAction(fn (Action $action): Action => $action
                 ->label(__('filament-actions::create.single.modal.actions.create.label'))
                 ->icon(Heroicon::ArrowPath)));
 

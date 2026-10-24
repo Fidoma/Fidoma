@@ -31,6 +31,9 @@ class CreateAnotherActionTest extends TestCase
     {
         $action = CreateAction::make()->getCreateAnotherAction();
 
+        $this->assertSame('createAnother', $action->getName());
+        $this->assertSame(['another' => true], $action->getArguments());
+        $this->assertSame('callMountedAction', $action->getParentActionCallLivewireClickHandler());
         $this->assertSame('Erstellen', $action->getLabel());
         $this->assertSame(Heroicon::ArrowPath, $action->getIcon());
     }
