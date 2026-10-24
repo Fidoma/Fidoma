@@ -100,7 +100,7 @@ class ReservationForm
                         ]),
                     ])
                     ->columns(['default' => 1, 'md' => 2, 'xl' => 12])
-                    ->columnSpan(12)
+                    ->columnSpan(['default' => 12])
                     ->schema([
                         Select::make('client_id')
                             ->label('Kunde')
