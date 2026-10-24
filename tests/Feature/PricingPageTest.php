@@ -37,6 +37,7 @@ class PricingPageTest extends TestCase
         Mail::assertSent(ContactRequestMail::class, function (ContactRequestMail $mail): bool {
             return $mail->hasTo('contact@example.test')
                 && $mail->hasReplyTo('customer@example.test')
+                && $mail->usesMailer('contact')
                 && $mail->contactMessage === 'Ich interessiere mich für Fidoma Cloud.';
         });
     }

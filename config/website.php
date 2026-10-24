@@ -10,6 +10,7 @@ return [
     ],
 
     'contact_email' => env('FIDOMA_CONTACT_EMAIL', 'info@fidoma.de'),
+    'contact_from_email' => env('FIDOMA_CONTACT_FROM_EMAIL', 'info@fidoma.de'),
 
     'paypal' => [
         'donation' => env('FIDOMA_PAYPAL_DONATION_URL', 'https://www.paypal.com/ncp/payment/4J8LA2Z8TNGNQ'),

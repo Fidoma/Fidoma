@@ -70,6 +70,11 @@ return [
             'path' => env('MAIL_SENDMAIL_PATH', '/usr/sbin/sendmail -bs -i'),
         ],
 
+        'contact' => [
+            'transport' => 'sendmail',
+            'path' => env('CONTACT_SENDMAIL_PATH', '/usr/sbin/sendmail -bs -i'),
+        ],
+
         'log' => [
             'transport' => 'log',
             'channel' => env('MAIL_LOG_CHANNEL'),

@@ -9,7 +9,8 @@ class SendContactRequest
 {
     public function execute(string $email, string $content): void
     {
-        Mail::to((string) config('website.contact_email'))
+        Mail::mailer('contact')
+            ->to((string) config('website.contact_email'))
             ->send(new ContactRequestMail($email, $content));
     }
 }

@@ -21,6 +21,7 @@ class ContactRequestMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
+            from: new Address((string) config('website.contact_from_email'), 'Fidoma Website'),
             replyTo: [new Address($this->contactEmail)],
             subject: 'Kontaktanfrage über Fidoma',
         );
