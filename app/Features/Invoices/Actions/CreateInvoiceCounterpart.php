@@ -5,6 +5,7 @@ namespace App\Features\Invoices\Actions;
 use App\Features\Invoices\Enums\InvoiceStatus;
 use App\Features\Invoices\Enums\InvoiceType;
 use App\Features\Invoices\Models\Invoice;
+use App\Features\Invoices\Services\InvoiceAuditLogger;
 use App\Features\Invoices\Services\InvoiceDefaults;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +17,7 @@ final class CreateInvoiceCounterpart
     public function __construct(
         private readonly InvoiceDefaults $defaults,
         private readonly RecalculateInvoice $recalculate,
+        private readonly InvoiceAuditLogger $auditLogger,
     ) {}
 
     public function handle(Invoice $source, InvoiceType $type): Invoice
@@ -99,7 +101,15 @@ final class CreateInvoiceCounterpart
 
             $source->updateQuietly(['is_read_only' => true]);
 
-            return $this->recalculate->handle($target);
+            $target = $this->recalculate->handle($target);
+
+            $this->auditLogger->log(
+                $source,
+                $type === InvoiceType::Credit ? 'invoice_credit_created' : 'invoice_cancellation_created',
+                $type->label().' für Rechnung '.$source->invoice_number.' wurde als Entwurf erstellt.',
+            );
+
+            return $target;
         });
     }
 }

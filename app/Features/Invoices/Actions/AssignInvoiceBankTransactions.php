@@ -7,6 +7,7 @@ use App\Features\BankTransactions\Models\BankTransactionMapping;
 use App\Features\Invoices\Enums\InvoiceStatus;
 use App\Features\Invoices\Enums\InvoiceType;
 use App\Features\Invoices\Models\Invoice;
+use App\Features\Invoices\Services\InvoiceAuditLogger;
 use App\Features\Invoices\Services\InvoiceDefaults;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Collection;
@@ -19,6 +20,7 @@ final class AssignInvoiceBankTransactions
     public function __construct(
         private readonly RecalculateInvoice $recalculate,
         private readonly InvoiceDefaults $defaults,
+        private readonly InvoiceAuditLogger $auditLogger,
     ) {}
 
     /**
@@ -142,6 +144,12 @@ final class AssignInvoiceBankTransactions
             }
 
             $this->recalculate->handle($invoice);
+
+            $this->auditLogger->log(
+                $invoice,
+                'invoice_bank_transactions_assigned',
+                $mappings->count().' Banktransaktion(en) wurden Rechnung '.$invoice->invoice_number.' als Zahlung zugeordnet.',
+            );
 
             return $mappings;
         }, attempts: 3);

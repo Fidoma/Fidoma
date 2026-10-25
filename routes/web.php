@@ -24,6 +24,8 @@ Route::middleware('auth')->prefix('admin/invoices/{invoice}')->group(function ()
         ->name('invoices.preview');
     Route::get('pdf', [InvoiceDocumentController::class, 'pdf'])
         ->name('invoices.pdf');
+    Route::get('pdf/download', [InvoiceDocumentController::class, 'downloadPdf'])
+        ->name('invoices.pdf.download');
     Route::get('xrechnung', [InvoiceDocumentController::class, 'xrechnung'])
         ->name('invoices.xrechnung');
 });

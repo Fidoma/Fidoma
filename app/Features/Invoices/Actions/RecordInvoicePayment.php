@@ -5,6 +5,7 @@ namespace App\Features\Invoices\Actions;
 use App\Features\Invoices\Enums\InvoiceStatus;
 use App\Features\Invoices\Enums\InvoiceType;
 use App\Features\Invoices\Models\Invoice;
+use App\Features\Invoices\Services\InvoiceAuditLogger;
 use App\Features\Payments\Models\Payment;
 use Illuminate\Support\Facades\DB;
 use LogicException;
@@ -14,6 +15,7 @@ final class RecordInvoicePayment
     public function __construct(
         private readonly RecalculateInvoice $recalculate,
         private readonly IssueInvoice $issueInvoice,
+        private readonly InvoiceAuditLogger $auditLogger,
     ) {}
 
     /** @param array<string, mixed> $attributes */
@@ -45,6 +47,12 @@ final class RecordInvoicePayment
             ]);
 
             $this->recalculate->handle($invoice);
+
+            $this->auditLogger->log(
+                $invoice,
+                'invoice_payment_recorded',
+                'Zahlung über '.number_format($amount, 2, ',', '.').' € für Rechnung '.$invoice->invoice_number.' wurde erfasst.',
+            );
 
             return $payment;
         });

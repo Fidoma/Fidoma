@@ -24,6 +24,7 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
@@ -42,7 +43,6 @@ class InvoicesTable
                     ->label(__('invoices::messages.fields.invoice'))
                     ->badge()
                     ->color(fn (Invoice $record): string => $record->invoice_type->color())
-                    ->url(fn (Invoice $record): string => InvoiceResource::getUrl('edit', ['record' => $record]))
                     ->searchable()
                     ->sortable()
                     ->toggleable(),
@@ -116,6 +116,7 @@ class InvoicesTable
                 self::amountRangeFilter('invoice_balance', __('invoices::messages.fields.outstanding'), 'invoice_balance'),
             ])
             ->recordUrl(null)
+            ->recordAction('viewDetails')
             ->toolbarActions([
                 CreateAction::make()
                     ->label(__('invoices::messages.singular'))
@@ -123,6 +124,17 @@ class InvoicesTable
                     ->url(InvoiceResource::getUrl('create')),
             ])
             ->recordActions([
+                Action::make('viewDetails')
+                    ->label(__('invoices::messages.details.open'))
+                    ->icon(Heroicon::OutlinedEye)
+                    ->slideOver()
+                    ->modalWidth(Width::FiveExtraLarge)
+                    ->modalHeading(fn (Invoice $record): string => $record->invoice_number ?: __('invoices::messages.statuses.draft'))
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel(__('invoices::messages.details.close'))
+                    ->modalContent(fn (Invoice $record) => view('invoices::invoice-details-modal', [
+                        'invoiceId' => $record->getKey(),
+                    ])),
                 ActionGroup::make([
                     Action::make('viewPdf')
                         ->label(__('invoices::messages.actions.view_pdf'))

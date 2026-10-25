@@ -8,10 +8,12 @@ use App\Features\InvoiceGroups\Models\InvoiceGroup;
 use App\Features\Invoices\Enums\InvoiceBillingType;
 use App\Features\Invoices\Enums\InvoiceStatus;
 use App\Features\Invoices\Enums\InvoiceType;
+use App\Features\Invoices\Policies\InvoicePolicy;
 use App\Features\PaymentMethods\Models\PaymentMethod;
 use App\Features\Payments\Models\Payment;
 use App\Features\Projects\Models\Project;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Attributes\UsePolicy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -19,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use LogicException;
 
+#[UsePolicy(InvoicePolicy::class)]
 class Invoice extends Model
 {
     protected $table = 'ip_invoices';

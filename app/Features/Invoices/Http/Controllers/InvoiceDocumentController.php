@@ -47,6 +47,13 @@ final class InvoiceDocumentController
             ]);
     }
 
+    public function downloadPdf(Invoice $invoice, GenerateInvoicePdf $generateInvoicePdf): Response
+    {
+        return $generateInvoicePdf
+            ->handle($invoice)
+            ->download($generateInvoicePdf->filename($invoice));
+    }
+
     public function xrechnung(Invoice $invoice, GenerateInvoiceXRechnung $generator): Response
     {
         try {
