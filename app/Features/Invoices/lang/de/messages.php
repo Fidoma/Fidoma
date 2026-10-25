@@ -125,6 +125,7 @@ return [
     'issue' => [
         'edit_forbidden' => 'Nur Rechnungen im Status Entwurf können bearbeitet werden.',
         'issue_forbidden' => 'Nur Rechnungen im Status Entwurf können ausgestellt werden.',
+        'confirmation' => 'Nach dem Ausstellen wird die Rechnungsnummer verbindlich vergeben und die Rechnung kann nicht mehr bearbeitet werden.',
         'success' => 'Rechnung wurde ausgestellt.',
         'success_body' => 'Die Rechnungsnummer wurde vergeben und die Rechnung ist jetzt offen.',
     ],

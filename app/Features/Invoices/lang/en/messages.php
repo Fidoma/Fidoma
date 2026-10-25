@@ -125,6 +125,7 @@ return [
     'issue' => [
         'edit_forbidden' => 'Only draft invoices can be edited.',
         'issue_forbidden' => 'Only draft invoices can be issued.',
+        'confirmation' => 'Issuing assigns the final invoice number and the invoice can no longer be edited.',
         'success' => 'Invoice issued successfully.',
         'success_body' => 'The invoice number has been assigned and the invoice is now open.',
     ],

@@ -133,6 +133,7 @@
     <x-filament::section :heading="__('invoices::messages.details.more_actions')" :contained="false" compact>
         <div class="flex flex-wrap gap-3">
             @if (! $invoice->is_archived && $invoice->invoice_status_id === \App\Features\Invoices\Enums\InvoiceStatus::Draft && \App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource::canEdit($invoice))
+                {{ $this->issueInvoiceAction }}
                 <x-filament::button tag="a" :href="\App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource::getUrl('edit', ['record' => $invoice])" color="gray" icon="heroicon-o-pencil-square">
                     {{ __('invoices::messages.details.edit_invoice') }}
                 </x-filament::button>

@@ -111,6 +111,25 @@ class InvoiceDetailsSlideOverTest extends TestCase
         $this->assertSame('75.00', $invoice->amount->invoice_balance);
     }
 
+    public function test_draft_details_offer_issue_action_before_editing(): void
+    {
+        $user = User::factory()->create();
+        $invoice = $this->createOpenInvoice($user);
+        $invoice->update([
+            'invoice_number' => null,
+            'invoice_status_id' => InvoiceStatus::Draft,
+            'is_read_only' => false,
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(InvoiceDetails::class, ['invoiceId' => $invoice->getKey()])
+            ->assertActionVisible('issueInvoice')
+            ->assertSeeInOrder([
+                'Rechnung ausstellen',
+                'Rechnung bearbeiten',
+            ]);
+    }
+
     private function createOpenInvoice(User $user): Invoice
     {
         $client = Client::query()->create([

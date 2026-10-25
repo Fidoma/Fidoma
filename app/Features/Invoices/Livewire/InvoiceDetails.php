@@ -5,6 +5,7 @@ namespace App\Features\Invoices\Livewire;
 use App\Features\BankTransactions\Models\BankTransaction;
 use App\Features\Invoices\Actions\ArchiveInvoice;
 use App\Features\Invoices\Actions\CreateInvoiceCounterpart;
+use App\Features\Invoices\Actions\IssueInvoice;
 use App\Features\Invoices\Actions\RecordInvoicePayment;
 use App\Features\Invoices\Enums\InvoiceStatus;
 use App\Features\Invoices\Enums\InvoiceType;
@@ -165,6 +166,31 @@ class InvoiceDetails extends Component implements HasActions, HasSchemas
                 $this->refreshInvoice();
 
                 Notification::make()->success()->title(__('invoices::messages.archive.success'))->send();
+            });
+    }
+
+    public function issueInvoiceAction(): Action
+    {
+        return Action::make('issueInvoice')
+            ->label(__('invoices::messages.actions.issue_invoice'))
+            ->icon(Heroicon::OutlinedCheckBadge)
+            ->color('primary')
+            ->visible(fn (): bool => ! $this->invoice->is_archived
+                && $this->invoice->invoice_status_id === InvoiceStatus::Draft
+                && InvoiceResource::canEdit($this->invoice))
+            ->requiresConfirmation()
+            ->modalHeading(__('invoices::messages.actions.issue_invoice'))
+            ->modalDescription(__('invoices::messages.issue.confirmation'))
+            ->modalSubmitActionLabel(__('invoices::messages.actions.issue_invoice'))
+            ->action(function (): void {
+                app(IssueInvoice::class)->handle($this->invoice);
+                $this->refreshInvoice();
+
+                Notification::make()
+                    ->success()
+                    ->title(__('invoices::messages.issue.success'))
+                    ->body(__('invoices::messages.issue.success_body'))
+                    ->send();
             });
     }
 
