@@ -14,6 +14,7 @@ use App\Features\Reservations\Enums\ReservationStatus;
 use App\Features\Reservations\Filament\Resources\Reservations\Pages\CreateReservation as CreateReservationPage;
 use App\Features\Reservations\Filament\Resources\Reservations\Pages\ListReservations;
 use App\Features\Reservations\Filament\Resources\Reservations\Pages\ReservationSchedule;
+use App\Features\Reservations\Filament\Resources\Reservations\Pages\ReservationStatistics;
 use App\Features\Reservations\Filament\Resources\Reservations\ReservationResource;
 use App\Features\Reservations\Filament\Resources\Rooms\Pages\ListRooms;
 use App\Features\Reservations\Livewire\ReservationDetails;
@@ -289,6 +290,10 @@ class ReservationTest extends TestCase
             ->assertDontSee('reservation-scheduler-info-button', false)
             ->assertDontSeeText('Die Reservierung wurde noch nicht bestätigt.')
             ->assertDontSeeText('Die zugehörige Rechnung ist vollständig bezahlt.');
+        $this->get('/admin/reservations/statistik')
+            ->assertOk()
+            ->assertSeeText('Statistik & Auswertung')
+            ->assertSeeText('Belegung aus Reservierungen abgeleitet');
         $this->get(TradeFairs::getUrl())
             ->assertOk()
             ->assertSeeText('Messen')
@@ -321,7 +326,7 @@ class ReservationTest extends TestCase
         Filament::setCurrentPanel(Filament::getPanel('admin'));
         $navigationItems = ReservationResource::getNavigationItems();
 
-        $this->assertSame(['Reservierungen', 'Belegungsplan', 'Messen'], array_map(
+        $this->assertSame(['Reservierungen', 'Belegungsplan', 'Statistik & Auswertung', 'Messen'], array_map(
             fn ($item): string => $item->getLabel(),
             $navigationItems,
         ));
@@ -329,6 +334,7 @@ class ReservationTest extends TestCase
             ReservationResource::getUrl('schedule'),
             $navigationItems[1]->getUrl(),
         );
-        $this->assertSame(TradeFairs::getUrl(), $navigationItems[2]->getUrl());
+        $this->assertSame(ReservationStatistics::getUrl(), $navigationItems[2]->getUrl());
+        $this->assertSame(TradeFairs::getUrl(), $navigationItems[3]->getUrl());
     }
 }

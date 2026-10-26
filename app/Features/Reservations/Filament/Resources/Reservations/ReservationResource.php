@@ -6,6 +6,7 @@ use App\Features\Reservations\Filament\Resources\Reservations\Pages\CreateReserv
 use App\Features\Reservations\Filament\Resources\Reservations\Pages\EditReservation;
 use App\Features\Reservations\Filament\Resources\Reservations\Pages\ListReservations;
 use App\Features\Reservations\Filament\Resources\Reservations\Pages\ReservationSchedule;
+use App\Features\Reservations\Filament\Resources\Reservations\Pages\ReservationStatistics;
 use App\Features\Reservations\Filament\Resources\Reservations\Schemas\ReservationForm;
 use App\Features\Reservations\Filament\Resources\Reservations\Tables\ReservationsTable;
 use App\Features\Reservations\Models\Reservation;
@@ -91,11 +92,18 @@ class ReservationResource extends Resource
                 ->sort(2)
                 ->url(static::getUrl('schedule'))
                 ->isActiveWhen(fn (): bool => request()->routeIs($routeBaseName.'.schedule')),
+            NavigationItem::make(__('reservations::messages.statistics.title'))
+                ->key(static::class.'::statistics')
+                ->group(static::getNavigationGroup())
+                ->icon(Heroicon::OutlinedChartBarSquare)
+                ->sort(3)
+                ->url(static::getUrl('statistics'))
+                ->isActiveWhen(fn (): bool => request()->routeIs($routeBaseName.'.statistics')),
             NavigationItem::make(fn (): string => __('trade-fairs::messages.upcoming'))
                 ->key(TradeFairs::class)
                 ->group(static::getNavigationGroup())
                 ->icon(Heroicon::OutlinedBuildingOffice2)
-                ->sort(3)
+                ->sort(4)
                 ->url(fn (): string => TradeFairs::getUrl())
                 ->isActiveWhen(fn (): bool => request()->routeIs(TradeFairs::getRouteName())),
         ];
@@ -106,6 +114,7 @@ class ReservationResource extends Resource
         return [
             'index' => ListReservations::route('/'),
             'schedule' => ReservationSchedule::route('/belegungsplan'),
+            'statistics' => ReservationStatistics::route('/statistik'),
             'create' => CreateReservation::route('/create'),
             'edit' => EditReservation::route('/{record}/edit'),
         ];
