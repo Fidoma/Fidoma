@@ -6,12 +6,15 @@ use App\Features\Clients\Models\Client;
 use App\Features\InvoiceGroups\Models\InvoiceGroup;
 use App\Features\Invoices\Models\Invoice;
 use App\Features\Reservations\Enums\ReservationStatus;
+use App\Features\Reservations\Policies\ReservationPolicy;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Attributes\UsePolicy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
+#[UsePolicy(ReservationPolicy::class)]
 class Reservation extends Model
 {
     protected $table = 'ip_reservations';

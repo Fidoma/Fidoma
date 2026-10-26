@@ -23,6 +23,7 @@ class ModuleSettings
         'payments',
         'terminals',
         'reports',
+        'tourism_statistics',
         'data_import',
         'webmail',
         'paperless',

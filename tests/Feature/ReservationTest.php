@@ -16,6 +16,7 @@ use App\Features\Reservations\Filament\Resources\Reservations\Pages\ListReservat
 use App\Features\Reservations\Filament\Resources\Reservations\Pages\ReservationSchedule;
 use App\Features\Reservations\Filament\Resources\Reservations\ReservationResource;
 use App\Features\Reservations\Filament\Resources\Rooms\Pages\ListRooms;
+use App\Features\Reservations\Livewire\ReservationDetails;
 use App\Features\Reservations\Models\Reservation;
 use App\Features\Reservations\Models\Room;
 use App\Features\TaxRates\Models\TaxRate;
@@ -23,6 +24,7 @@ use App\Features\TradeFairs\Filament\Pages\TradeFairs;
 use App\Features\Units\Models\Unit;
 use App\Models\User;
 use Carbon\CarbonImmutable;
+use Filament\Actions\Action;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -178,6 +180,15 @@ class ReservationTest extends TestCase
         $this->assertSame('321.00', $reservation->amount->reservation_total);
         $this->assertSame('2026-11-13', $reservation->reservation_date_expires->toDateString());
 
+        Livewire::test(ReservationDetails::class, ['reservationId' => $reservation->getKey()])
+            ->assertActionVisible('createInvoice')
+            ->assertSee('Für diese Reservierung wurde noch keine Rechnung erstellt.')
+            ->assertSet('reservationStatus', ReservationStatus::Confirmed->value)
+            ->set('reservationStatus', ReservationStatus::Open->value)
+            ->assertSet('reservationStatus', ReservationStatus::Open->value);
+
+        $this->assertSame(ReservationStatus::Open, $reservation->refresh()->reservation_status_id);
+
         $invoiceCountBeforeConversion = Invoice::query()->count();
         $firstInvoice = app(ConvertReservationToInvoice::class)->handle($reservation);
         $secondInvoice = app(ConvertReservationToInvoice::class)->handle($reservation->refresh());
@@ -196,7 +207,7 @@ class ReservationTest extends TestCase
             ->assertCanSeeTableRecords([$reservation])
             ->assertTableColumnExists(
                 'reservation_number',
-                fn ($column): bool => $column->getUrl() === ReservationResource::getUrl('edit', ['record' => $reservation]),
+                fn ($column): bool => $column->getUrl() === null,
                 $reservation,
             )
             ->assertTableColumnExists(
@@ -217,6 +228,7 @@ class ReservationTest extends TestCase
             ->assertTableColumnFormattedStateSet('arrival_date', '01.11.2026', $reservation)
             ->assertTableColumnFormattedStateSet('departure_date', '04.11.2026', $reservation)
             ->assertTableColumnStateSet('arrival_in_days', 17, $reservation)
+            ->assertTableActionExists('viewDetails', fn (Action $action): bool => $action->isModalSlideOver())
             ->assertTableColumnExists(
                 'arrival_in_days',
                 fn ($column): bool => $column->getLabel() === 'Ankunft in'
@@ -232,6 +244,7 @@ class ReservationTest extends TestCase
             );
 
         $this->assertNull($component->instance()->getTable()->getRecordUrl($reservation));
+        $this->assertSame('viewDetails', $component->instance()->getTable()->getRecordAction($reservation));
         $this->assertSame(
             ['reservation_number', 'invoice.invoice_number', 'client.client_name'],
             array_slice(array_keys($component->instance()->getTable()->getColumns()), 0, 3),
@@ -243,6 +256,18 @@ class ReservationTest extends TestCase
         );
         $this->assertFalse(collect($component->instance()->getTable()->getToolbarActions())
             ->contains(fn ($action): bool => $action->getName() === 'schedule'));
+
+        Livewire::test(ReservationDetails::class, ['reservationId' => $reservation->getKey()])
+            ->assertSee('Hotelgast')
+            ->assertSee('Aufenthalt')
+            ->assertSee('01.11.2026')
+            ->assertSee('04.11.2026')
+            ->assertSee('3 Nächte')
+            ->assertSee('101 – Gartenblick')
+            ->assertSee('Gebuchte Leistungen')
+            ->assertSee('Rechnungsentwurf')
+            ->assertSee('Rechnung öffnen')
+            ->assertActionVisible('deleteReservation');
     }
 
     public function test_authenticated_user_can_open_reservation_pages(): void

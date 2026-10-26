@@ -1,0 +1,63 @@
+<?php
+
+return [
+    'feature' => 'Tourismusstatistik',
+    'singular' => 'Monatsmeldung',
+    'sections' => [
+        'reporting_period' => 'Berichtsmonat',
+        'capacity' => 'Kapazität und Gästezimmertage',
+        'closure' => 'Schließungsangaben',
+        'closure_hint' => 'Nur ausfüllen, wenn die Angaben für den Berichtsmonat zutreffen.',
+        'countries' => 'Ankünfte und Übernachtungen nach Wohnsitzland',
+        'countries_hint' => 'Nicht vorhandene Angaben bleiben leer. Deutschland (Code 13) darf sechsstellig, alle übrigen Positionen dürfen fünfstellig sein.',
+        'remarks' => 'Bemerkungen',
+    ],
+    'fields' => [
+        'month' => 'Monat',
+        'year' => 'Jahr',
+        'reporting_period' => 'Berichtsmonat',
+        'beds_offered' => 'Anzahl angebotener Gästebetten',
+        'available_guest_room_days' => 'Angebotene Gästezimmertage',
+        'occupied_guest_room_days' => 'Belegte Gästezimmertage',
+        'closure_day' => 'Schließung (Tag im Monat)',
+        'reopening_date' => 'Wiedereröffnung',
+        'deregistration_day' => 'Abmeldung (Tag im Monat)',
+        'country_values' => 'Wohnsitzländer',
+        'code' => 'Code',
+        'residence_country' => 'Wohnsitzland',
+        'arrivals' => 'Ankünfte',
+        'overnight_stays' => 'Übernachtungen',
+        'total' => 'Summe',
+        'arrivals_total' => 'Ankünfte gesamt',
+        'overnight_stays_total' => 'Übernachtungen gesamt',
+        'remarks' => 'Bemerkungen',
+        'updated_at' => 'Geändert',
+    ],
+    'actions' => [
+        'create' => 'Monatsmeldung',
+        'export' => 'IDEV-CSV exportieren',
+        'download' => 'CSV herunterladen',
+        'populate' => 'Aus Reservierungen füllen',
+    ],
+    'populate' => [
+        'success' => 'Meldung wurde automatisch ausgefüllt',
+        'summary' => ':count Reservierungsposition(en) wurden für den Berichtsmonat berücksichtigt.',
+    ],
+    'export' => [
+        'heading' => 'IDEV-CSV exportieren',
+        'include_header' => 'Kopfzeile einschließen',
+        'header_hint' => 'Bei einer Kopfzeile muss der IDEV-Import ab Zeile 2 beginnen.',
+    ],
+    'validation' => [
+        'period_unique' => 'Für diesen Berichtsmonat besteht bereits eine Monatsmeldung.',
+        'occupied_exceeds_available' => 'Belegte Gästezimmertage dürfen die angebotenen Gästezimmertage nicht überschreiten.',
+        'overnights_below_arrivals' => 'Übernachtungen dürfen nicht kleiner als die Ankünfte sein.',
+        'country_maximum' => ':country darf höchstens :maximum betragen.',
+        'missing_country' => 'Die Wohnsitzposition :country fehlt.',
+        'windows_1252' => 'Der Text enthält Zeichen, die nicht im Windows-1252-Export dargestellt werden können.',
+    ],
+    'months' => [
+        1 => 'Januar', 2 => 'Februar', 3 => 'März', 4 => 'April', 5 => 'Mai', 6 => 'Juni',
+        7 => 'Juli', 8 => 'August', 9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Dezember',
+    ],
+];

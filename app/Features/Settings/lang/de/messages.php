@@ -21,6 +21,7 @@ return [
             'payments' => 'Zahlungen',
             'terminals' => 'Terminals',
             'reports' => 'Berichte',
+            'tourism_statistics' => 'Tourismusstatistik',
             'data_import' => 'Datenimport',
             'webmail' => 'Webmail',
             'paperless' => 'Paperless-ngx',

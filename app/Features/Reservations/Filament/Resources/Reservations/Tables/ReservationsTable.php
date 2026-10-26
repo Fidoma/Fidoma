@@ -6,7 +6,6 @@ use App\Features\Clients\Filament\Resources\Clients\ClientResource;
 use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
 use App\Features\Reservations\Actions\ConvertReservationToInvoice;
 use App\Features\Reservations\Enums\ReservationStatus;
-use App\Features\Reservations\Filament\Resources\Reservations\ReservationResource;
 use App\Features\Reservations\Models\Reservation;
 use Carbon\CarbonImmutable;
 use Filament\Actions\Action;
@@ -15,6 +14,7 @@ use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Notifications\Notification;
+use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -29,7 +29,6 @@ class ReservationsTable
             ->columns([
                 TextColumn::make('reservation_number')
                     ->label('Reservierungsnummer')
-                    ->url(fn (Reservation $record): string => ReservationResource::getUrl('edit', ['record' => $record]))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('invoice.invoice_number')
@@ -89,10 +88,22 @@ class ReservationsTable
                     ->options(ReservationStatus::options()),
             ])
             ->recordUrl(null)
+            ->recordAction('viewDetails')
             ->toolbarActions([
                 CreateAction::make()->label('Reservierung')->icon(Heroicon::Plus),
             ])
             ->recordActions([
+                Action::make('viewDetails')
+                    ->label(__('reservations::messages.details.open'))
+                    ->icon(Heroicon::OutlinedEye)
+                    ->slideOver()
+                    ->modalWidth(Width::FiveExtraLarge)
+                    ->modalHeading(fn (Reservation $record): string => $record->reservation_number)
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel(__('reservations::messages.details.close'))
+                    ->modalContent(fn (Reservation $record) => view('reservations::reservation-details-modal', [
+                        'reservationId' => $record->getKey(),
+                    ])),
                 ActionGroup::make([
                     EditAction::make(),
                     Action::make('invoice')

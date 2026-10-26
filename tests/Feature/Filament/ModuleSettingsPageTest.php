@@ -47,6 +47,7 @@ class ModuleSettingsPageTest extends TestCase
                 'Zuordnungen',
                 'Zahlungen',
                 'Berichte',
+                'Tourismusstatistik',
                 'Datenimport',
                 'Webmail',
                 'Paperless-ngx',

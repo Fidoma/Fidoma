@@ -1,0 +1,63 @@
+<?php
+
+return [
+    'feature' => 'Tourism statistics',
+    'singular' => 'Monthly report',
+    'sections' => [
+        'reporting_period' => 'Reporting month',
+        'capacity' => 'Capacity and guest room days',
+        'closure' => 'Closure information',
+        'closure_hint' => 'Complete only when applicable to the reporting month.',
+        'countries' => 'Arrivals and overnight stays by country of residence',
+        'countries_hint' => 'Leave unavailable values blank. Germany (code 13) allows six digits; every other position allows five digits.',
+        'remarks' => 'Remarks',
+    ],
+    'fields' => [
+        'month' => 'Month',
+        'year' => 'Year',
+        'reporting_period' => 'Reporting month',
+        'beds_offered' => 'Guest beds offered',
+        'available_guest_room_days' => 'Guest room days offered',
+        'occupied_guest_room_days' => 'Occupied guest room days',
+        'closure_day' => 'Closure (day of month)',
+        'reopening_date' => 'Reopening',
+        'deregistration_day' => 'Deregistration (day of month)',
+        'country_values' => 'Countries of residence',
+        'code' => 'Code',
+        'residence_country' => 'Country of residence',
+        'arrivals' => 'Arrivals',
+        'overnight_stays' => 'Overnight stays',
+        'total' => 'Total',
+        'arrivals_total' => 'Total arrivals',
+        'overnight_stays_total' => 'Total overnight stays',
+        'remarks' => 'Remarks',
+        'updated_at' => 'Updated',
+    ],
+    'actions' => [
+        'create' => 'Monthly report',
+        'export' => 'Export IDEV CSV',
+        'download' => 'Download CSV',
+        'populate' => 'Fill from reservations',
+    ],
+    'populate' => [
+        'success' => 'The report was filled automatically',
+        'summary' => ':count reservation item(s) were included for the reporting month.',
+    ],
+    'export' => [
+        'heading' => 'Export IDEV CSV',
+        'include_header' => 'Include header row',
+        'header_hint' => 'When a header is included, start the IDEV import at row 2.',
+    ],
+    'validation' => [
+        'period_unique' => 'A monthly report already exists for this reporting month.',
+        'occupied_exceeds_available' => 'Occupied guest room days may not exceed offered guest room days.',
+        'overnights_below_arrivals' => 'Overnight stays may not be lower than arrivals.',
+        'country_maximum' => ':country may not exceed :maximum.',
+        'missing_country' => 'The country position :country is missing.',
+        'windows_1252' => 'The text contains characters that cannot be represented in the Windows-1252 export.',
+    ],
+    'months' => [
+        1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April', 5 => 'May', 6 => 'June',
+        7 => 'July', 8 => 'August', 9 => 'September', 10 => 'October', 11 => 'November', 12 => 'December',
+    ],
+];
