@@ -29,9 +29,11 @@ class InvoiceDetailsSlideOverTest extends TestCase
 
         $component = Livewire::actingAs($user)
             ->test(ListInvoices::class)
-            ->assertTableActionExists('viewDetails', fn (Action $action): bool => $action->isModalSlideOver())
-            ->assertTableActionHidden('viewDetails', $invoice)
+            ->assertTableActionExists('viewDetails', fn (Action $action): bool => $action->isModalSlideOver()
+                && $action->getView() === 'filament.actions.record-slide-over-trigger')
+            ->assertDontSeeText(__('invoices::messages.details.open'))
             ->mountTableAction('viewDetails', $invoice)
+            ->assertSet('mountedActions.0.name', 'viewDetails')
             ->assertSee($invoice->invoice_number);
 
         $this->assertSame('viewDetails', $component->instance()->getTable()->getRecordAction($invoice));

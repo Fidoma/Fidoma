@@ -229,8 +229,9 @@ class ReservationTest extends TestCase
             ->assertTableColumnFormattedStateSet('arrival_date', '01.11.2026', $reservation)
             ->assertTableColumnFormattedStateSet('departure_date', '04.11.2026', $reservation)
             ->assertTableColumnStateSet('arrival_in_days', 17, $reservation)
-            ->assertTableActionExists('viewDetails', fn (Action $action): bool => $action->isModalSlideOver())
-            ->assertTableActionHidden('viewDetails', $reservation)
+            ->assertTableActionExists('viewDetails', fn (Action $action): bool => $action->isModalSlideOver()
+                && $action->getView() === 'filament.actions.record-slide-over-trigger')
+            ->assertDontSeeText(__('reservations::messages.details.open'))
             ->assertTableColumnExists(
                 'arrival_in_days',
                 fn ($column): bool => $column->getLabel() === 'Ankunft in'
@@ -243,7 +244,9 @@ class ReservationTest extends TestCase
                     && $column->getColor(-1) === 'danger'
                     && $column->getColor(0) === 'gray',
                 $reservation,
-            );
+            )
+            ->mountTableAction('viewDetails', $reservation)
+            ->assertSet('mountedActions.0.name', 'viewDetails');
 
         $this->assertNull($component->instance()->getTable()->getRecordUrl($reservation));
         $this->assertSame('viewDetails', $component->instance()->getTable()->getRecordAction($reservation));
