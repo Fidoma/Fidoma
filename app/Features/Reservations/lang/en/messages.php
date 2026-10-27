@@ -124,15 +124,17 @@ return [
         ],
         'rooms' => [
             'heading' => 'Room analytics',
-            'description' => 'Sorted by occupied room nights in descending order. Inactive rooms currently have no available capacity.',
+            'description' => 'Each active room bar shows used occupancy and free capacity up to 100 percent. Exact values are available in the tooltip; red indicates overlap conflicts.',
             'room' => 'Room',
             'occupied' => 'Occupied',
             'available' => 'Available',
             'unused' => 'Unused',
             'rate' => 'Occupancy',
+            'free_capacity' => 'Free capacity',
             'conflicts' => 'Conflicts',
             'inactive' => 'Inactive',
             'empty' => 'No rooms exist for the selected filter.',
+            'assistive' => 'Room :room: :occupied of :available room nights occupied, :unused unused, :rate percent occupancy, :conflicts conflicts.',
         ],
         'list' => [
             'active' => 'Active reservations',

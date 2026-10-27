@@ -3,10 +3,12 @@
 namespace App\Features\Clients\Filament\Resources\Clients\Pages;
 
 use App\Features\Clients\Filament\Resources\Clients\ClientResource;
+use App\Features\Clients\Filament\Widgets\ClientDashboard;
 use App\Features\Clients\Models\Client;
 use App\Filament\Concerns\WithoutPageHeading;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Widgets\Widget;
 use Illuminate\Database\Eloquent\Builder;
 
 class ListClients extends ListRecords
@@ -14,6 +16,12 @@ class ListClients extends ListRecords
     use WithoutPageHeading;
 
     protected static string $resource = ClientResource::class;
+
+    /** @return array<class-string<Widget>> */
+    protected function getHeaderWidgets(): array
+    {
+        return [ClientDashboard::class];
+    }
 
     /** @return array<string, Tab> */
     public function getTabs(): array

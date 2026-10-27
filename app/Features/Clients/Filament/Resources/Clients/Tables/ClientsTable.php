@@ -11,6 +11,7 @@ use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
@@ -68,6 +69,16 @@ class ClientsTable
                         filled($data['value'] ?? null),
                         fn (Builder $query): Builder => $query->where('client_name', 'like', '%'.trim((string) $data['value']).'%'),
                     )),
+                Filter::make('client_date_created')
+                    ->label(__('clients::messages.fields.created'))
+                    ->schema([
+                        DatePicker::make('from')->label(__('clients::messages.dashboard.from'))->native(false),
+                        DatePicker::make('until')->label(__('clients::messages.dashboard.until'))->native(false),
+                    ])
+                    ->columns(2)
+                    ->query(fn (Builder $query, array $data): Builder => $query
+                        ->when($data['from'] ?? null, fn (Builder $query, string $date): Builder => $query->whereDate('client_date_created', '>=', $date))
+                        ->when($data['until'] ?? null, fn (Builder $query, string $date): Builder => $query->whereDate('client_date_created', '<=', $date))),
             ])
             ->toolbarActions([
                 CreateAction::make()

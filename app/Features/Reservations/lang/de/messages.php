@@ -124,15 +124,17 @@ return [
         ],
         'rooms' => [
             'heading' => 'Zimmerauswertung',
-            'description' => 'Nach belegten Zimmernächten absteigend sortiert. Inaktive Zimmer besitzen aktuell keine verfügbare Kapazität.',
+            'description' => 'Jeder aktive Zimmerbalken zeigt die genutzte Auslastung und die freie Kapazität bis 100 Prozent. Die exakten Werte stehen im Tooltip; Rot kennzeichnet Überschneidungskonflikte.',
             'room' => 'Zimmer',
             'occupied' => 'Belegt',
             'available' => 'Verfügbar',
             'unused' => 'Ungenutzt',
             'rate' => 'Auslastung',
+            'free_capacity' => 'Freie Kapazität',
             'conflicts' => 'Konflikte',
             'inactive' => 'Inaktiv',
             'empty' => 'Für den gewählten Filter sind keine Zimmer vorhanden.',
+            'assistive' => 'Zimmer :room: :occupied von :available Zimmernächten belegt, :unused ungenutzt, :rate Prozent Auslastung, :conflicts Konflikte.',
         ],
         'list' => [
             'active' => 'Aktive Reservierungen',

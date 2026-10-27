@@ -101,6 +101,28 @@ class ReservationStatisticsTest extends TestCase
         $this->assertSame(3, $roomMetrics->firstWhere('room_id', $roomTwo->getKey())['occupied']);
         $this->assertSame(1, $roomMetrics->firstWhere('room_id', $roomOne->getKey())['conflicts']);
 
+        $roomChart = Livewire::test(RoomStatistics::class, ['pageFilters' => [
+            'start_date' => '2026-11-01',
+            'end_date' => '2026-11-30',
+            'room_id' => null,
+            'status' => null,
+        ]]);
+        $chartData = (new \ReflectionMethod(RoomStatistics::class, 'getData'))
+            ->invoke($roomChart->instance());
+        $chartOptions = (new \ReflectionMethod(RoomStatistics::class, 'getOptions'))
+            ->invoke($roomChart->instance())
+            ->toHtml();
+
+        $this->assertStringContainsString("axis: 'y'", $chartOptions);
+
+        foreach (array_keys($chartData['labels']) as $index) {
+            $this->assertEqualsWithDelta(
+                100,
+                $chartData['datasets'][0]['data'][$index] + $chartData['datasets'][1]['data'][$index],
+                0.1,
+            );
+        }
+
         $this->assertSame(2, $confirmed->items()->count());
     }
 
