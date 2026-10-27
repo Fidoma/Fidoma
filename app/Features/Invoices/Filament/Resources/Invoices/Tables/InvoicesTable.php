@@ -16,6 +16,7 @@ use App\Features\Invoices\Models\Invoice;
 use App\Features\Invoices\Services\InvoiceDefaults;
 use App\Features\PaymentMethods\Models\PaymentMethod;
 use App\Features\Projects\Models\Project;
+use App\Features\Settings\Services\ModuleSettings;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\CreateAction;
@@ -56,7 +57,8 @@ class InvoicesTable
                     ->label(__('invoices::messages.fields.project_short'))
                     ->searchable()
                     ->sortable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->visible(fn (): bool => app(ModuleSettings::class)->isEnabled('projects')),
                 TextColumn::make('billing_type')
                     ->label(__('invoices::messages.fields.billing_type'))
                     ->badge()
@@ -103,7 +105,8 @@ class InvoicesTable
                                 ->implode(' · '),
                         ])->all())
                     ->searchable()
-                    ->preload(),
+                    ->preload()
+                    ->visible(fn (): bool => app(ModuleSettings::class)->isEnabled('projects')),
                 SelectFilter::make('billing_type')
                     ->label(__('invoices::messages.fields.billing_type'))
                     ->options(collect(InvoiceBillingType::cases())->mapWithKeys(

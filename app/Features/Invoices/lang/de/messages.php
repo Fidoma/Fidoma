@@ -14,7 +14,7 @@ return [
     'assignment' => ['heading' => 'Abrechnung und Projekt'],
     'fields' => [
         'billing_type' => 'Abrechnungsart',
-        'project' => 'Projekt / Bauvorhaben / Auftrag',
+        'project' => 'Projekt',
         'invoice' => 'Rechnung',
         'invoice_number' => 'Rechnungsnummer',
         'client' => 'Kunde',

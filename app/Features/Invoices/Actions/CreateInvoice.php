@@ -7,6 +7,7 @@ use App\Features\Invoices\Enums\InvoiceType;
 use App\Features\Invoices\Models\Invoice;
 use App\Features\Invoices\Services\InvoiceDefaults;
 use App\Features\Projects\Models\Project;
+use App\Features\Settings\Services\ModuleSettings;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use LogicException;
@@ -33,6 +34,10 @@ final class CreateInvoice
         }
 
         $projectId = $attributes['project_id'] ?? null;
+
+        if ($projectId !== null && ! app(ModuleSettings::class)->isEnabled('projects')) {
+            throw new LogicException('The projects module is not enabled.');
+        }
 
         if ($projectId !== null && ! Project::query()
             ->whereKey($projectId)

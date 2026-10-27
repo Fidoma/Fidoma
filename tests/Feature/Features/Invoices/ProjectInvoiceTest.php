@@ -12,12 +12,21 @@ use App\Features\Projects\Models\Project;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
+use LogicException;
 use Tests\TestCase;
 
 class ProjectInvoiceTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function tearDown(): void
+    {
+        DB::table('ip_settings')->where('setting_key', 'module_enabled_projects')->delete();
+
+        parent::tearDown();
+    }
 
     public function test_progress_invoice_keeps_its_project_and_billing_type(): void
     {
@@ -66,12 +75,88 @@ class ProjectInvoiceTest extends TestCase
             ->assertHasFormErrors(['project_id' => 'required']);
     }
 
+    public function test_project_select_follows_the_projects_module_while_billing_type_remains_available(): void
+    {
+        $user = User::factory()->create();
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+
+        DB::table('ip_settings')->insert([
+            'setting_key' => 'module_enabled_projects',
+            'setting_value' => '0',
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(CreateInvoicePage::class)
+            ->assertFormFieldExists('project_id', fn ($field): bool => $field->isHidden())
+            ->assertFormFieldExists('billing_type', fn ($field): bool => ! $field->isHidden());
+    }
+
+    public function test_disabled_projects_module_rejects_new_project_assignments_without_deleting_existing_data(): void
+    {
+        $user = User::factory()->create();
+        $client = Client::query()->create([
+            'client_name' => 'Bauherr GmbH',
+            'client_active' => true,
+        ]);
+        $project = $this->createProject($client);
+        $this->actingAs($user);
+
+        $invoice = app(CreateInvoice::class)->handle([
+            'client_id' => $client->getKey(),
+            'project_id' => $project->getKey(),
+            'invoice_date_created' => '2026-10-19',
+            'invoice_date_due' => '2026-11-18',
+        ]);
+
+        DB::table('ip_settings')->insert([
+            'setting_key' => 'module_enabled_projects',
+            'setting_value' => '0',
+        ]);
+
+        $this->assertSame($project->getKey(), $invoice->refresh()->project_id);
+
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage('The projects module is not enabled');
+
+        app(CreateInvoice::class)->handle([
+            'client_id' => $client->getKey(),
+            'project_id' => $project->getKey(),
+            'invoice_date_created' => '2026-10-20',
+            'invoice_date_due' => '2026-11-19',
+        ]);
+    }
+
+    public function test_progress_and_final_invoices_remain_available_without_the_projects_module(): void
+    {
+        $user = User::factory()->create();
+        $client = Client::query()->create([
+            'client_name' => 'Bauherr GmbH',
+            'client_active' => true,
+        ]);
+        $this->actingAs($user);
+
+        DB::table('ip_settings')->insert([
+            'setting_key' => 'module_enabled_projects',
+            'setting_value' => '0',
+        ]);
+
+        $invoice = app(CreateInvoice::class)->handle([
+            'client_id' => $client->getKey(),
+            'billing_type' => InvoiceBillingType::Progress,
+            'invoice_date_created' => '2026-10-19',
+            'invoice_date_due' => '2026-11-18',
+        ]);
+
+        $this->assertSame(InvoiceBillingType::Progress, $invoice->billing_type);
+        $this->assertNull($invoice->project_id);
+    }
+
     private function createProject(Client $client): Project
     {
         return Project::query()->create([
             'client_id' => $client->getKey(),
             'invoice_group_id' => 1,
-            'project_number' => 'PR-2026-0001',
+            'project_number' => 'PR-2026-'.str_pad((string) $client->getKey(), 4, '0', STR_PAD_LEFT),
             'project_name' => 'Neubau Musterstraße 12',
             'project_status' => ProjectStatus::Active,
         ]);

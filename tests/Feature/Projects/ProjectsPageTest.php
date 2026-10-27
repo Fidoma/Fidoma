@@ -65,7 +65,7 @@ class ProjectsPageTest extends TestCase
             ->assertFormFieldDoesNotExist('invoice_group_id')
             ->fillForm([
                 'client_id' => $client->getKey(),
-                'project_name' => 'Bauvorhaben Elbchaussee 42',
+                'project_name' => 'Projekt Elbchaussee 42',
                 'project_status' => ProjectStatus::Active->value,
                 'project_start_date' => '2026-11-01',
                 'contract_amount' => 100000,
@@ -75,7 +75,7 @@ class ProjectsPageTest extends TestCase
             ->assertRedirect();
 
         $project = Project::query()
-            ->where('project_name', 'Bauvorhaben Elbchaussee 42')
+            ->where('project_name', 'Projekt Elbchaussee 42')
             ->firstOrFail();
 
         $this->assertSame('PR-2026-0042', $project->project_number);

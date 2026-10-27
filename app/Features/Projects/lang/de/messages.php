@@ -18,7 +18,7 @@ return [
         'description' => 'Beschreibung',
         'start_date' => 'Beginn',
         'end_date' => 'Ende',
-        'contract_amount' => 'Auftragswert netto',
+        'contract_amount' => 'Projektwert netto',
         'quote' => 'Angebot',
         'contract' => 'Vertrag',
         'invoices' => 'Rechnungen',

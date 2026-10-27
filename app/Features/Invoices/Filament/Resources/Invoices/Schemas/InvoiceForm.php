@@ -16,6 +16,7 @@ use App\Features\Invoices\Services\InvoiceDefaults;
 use App\Features\Products\Models\Product;
 use App\Features\Projects\Models\Project;
 use App\Features\Quotes\Services\QuoteAmountCalculator;
+use App\Features\Settings\Services\ModuleSettings;
 use App\Features\TaxRates\Models\TaxRate;
 use App\Features\Units\Models\Unit;
 use Filament\Actions\Action;
@@ -112,12 +113,14 @@ class InvoiceForm
                                 $set('client_id', $project->client_id);
                             }
                         })
-                        ->required(fn (Get $get): bool => in_array($get('billing_type'), [
-                            InvoiceBillingType::Progress->value,
-                            InvoiceBillingType::Final->value,
-                        ], true))
+                        ->required(fn (Get $get): bool => app(ModuleSettings::class)->isEnabled('projects')
+                            && in_array($get('billing_type'), [
+                                InvoiceBillingType::Progress->value,
+                                InvoiceBillingType::Final->value,
+                            ], true))
                         ->disabled(fn (?Invoice $record): bool => $record !== null
-                            && $record->invoice_status_id !== InvoiceStatus::Draft),
+                            && $record->invoice_status_id !== InvoiceStatus::Draft)
+                        ->visible(fn (): bool => app(ModuleSettings::class)->isEnabled('projects')),
                 ])
                 ->columnSpanFull(),
             Section::make(fn (?Invoice $record): string => filled($record?->invoice_number)

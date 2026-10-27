@@ -14,7 +14,7 @@ return [
     'assignment' => ['heading' => 'Billing and project'],
     'fields' => [
         'billing_type' => 'Billing type',
-        'project' => 'Project / construction project / order',
+        'project' => 'Project',
         'invoice' => 'Invoice',
         'invoice_number' => 'Invoice number',
         'client' => 'Client',
