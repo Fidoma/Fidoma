@@ -230,6 +230,7 @@ class ReservationTest extends TestCase
             ->assertTableColumnFormattedStateSet('departure_date', '04.11.2026', $reservation)
             ->assertTableColumnStateSet('arrival_in_days', 17, $reservation)
             ->assertTableActionExists('viewDetails', fn (Action $action): bool => $action->isModalSlideOver())
+            ->assertTableActionHidden('viewDetails', $reservation)
             ->assertTableColumnExists(
                 'arrival_in_days',
                 fn ($column): bool => $column->getLabel() === 'Ankunft in'

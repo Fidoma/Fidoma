@@ -185,6 +185,7 @@ class ReservationsTable
                 Action::make('viewDetails')
                     ->label(__('reservations::messages.details.open'))
                     ->icon(Heroicon::OutlinedEye)
+                    ->hidden()
                     ->slideOver()
                     ->modalWidth(Width::FiveExtraLarge)
                     ->modalHeading(fn (Reservation $record): string => $record->reservation_number)

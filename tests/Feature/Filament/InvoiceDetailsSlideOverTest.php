@@ -30,6 +30,7 @@ class InvoiceDetailsSlideOverTest extends TestCase
         $component = Livewire::actingAs($user)
             ->test(ListInvoices::class)
             ->assertTableActionExists('viewDetails', fn (Action $action): bool => $action->isModalSlideOver())
+            ->assertTableActionHidden('viewDetails', $invoice)
             ->mountTableAction('viewDetails', $invoice)
             ->assertSee($invoice->invoice_number);
 

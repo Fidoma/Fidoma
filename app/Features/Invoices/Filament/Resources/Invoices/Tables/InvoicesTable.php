@@ -130,6 +130,7 @@ class InvoicesTable
                 Action::make('viewDetails')
                     ->label(__('invoices::messages.details.open'))
                     ->icon(Heroicon::OutlinedEye)
+                    ->hidden()
                     ->slideOver()
                     ->modalWidth(Width::FiveExtraLarge)
                     ->modalHeading(fn (Invoice $record): string => $record->invoice_number ?: __('invoices::messages.statuses.draft'))
