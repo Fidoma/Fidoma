@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Features\ArtificialIntelligence\Contracts\AiClient;
+use App\Features\ArtificialIntelligence\Services\AiClientManager;
 use App\Features\Documents\Livewire\AssignBankTransaction;
 use App\Features\Terminals\Contracts\PaymentTerminalInterface;
 use App\Features\Terminals\Services\InternalApiTerminalGateway;
@@ -24,6 +26,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->singleton(AiClientManager::class);
+        $this->app->bind(AiClient::class, fn (): AiClient => $this->app->make(AiClientManager::class)->client());
         $this->app->bind(PaymentTerminalInterface::class, InternalApiTerminalGateway::class);
     }
 
