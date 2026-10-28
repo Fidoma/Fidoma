@@ -154,7 +154,7 @@
 
             var button = document.createElement('a');
             button.id = 'fidoma-ai-actions-button';
-            button.className = 'button fidoma-ai-actions-button disabled';
+            button.className = 'button toolbar-button fidoma-ai-actions-button disabled';
             button.href = '#fidoma-ai-actions-menu';
             button.dataset.popup = 'fidoma-ai-actions-menu';
             button.dataset.popupPos = 'bottom';
@@ -168,8 +168,19 @@
                 }
             });
 
+            var icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            icon.classList.add('fidoma-ai-actions-icon');
+            icon.setAttribute('viewBox', '0 0 20 20');
+            icon.setAttribute('aria-hidden', 'true');
+            icon.setAttribute('focusable', 'false');
+
+            var iconPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            iconPath.setAttribute('d', 'M10 1.5 11.4 6 16 7.5 11.4 9 10 13.5 8.6 9 4 7.5 8.6 6 10 1.5ZM4.5 11l.9 2.6L8 14.5l-2.6.9L4.5 18l-.9-2.6-2.6-.9 2.6-.9.9-2.6Zm11.5 1 .7 2.3 2.3.7-2.3.7L16 18l-.7-2.3-2.3-.7 2.3-.7L16 12Z');
+            icon.appendChild(iconPath);
+            button.appendChild(icon);
+
             var label = document.createElement('span');
-            label.className = 'fidoma-ai-actions-label';
+            label.className = 'inner fidoma-ai-actions-label';
             button.appendChild(label);
 
             var oldMenu = document.getElementById('fidoma-ai-actions-menu');

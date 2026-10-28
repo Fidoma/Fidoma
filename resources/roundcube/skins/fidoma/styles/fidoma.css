@@ -240,48 +240,26 @@ textarea:focus,
 
 .fidoma-ai-actions {
     position: relative;
-    display: inline-flex;
-    align-items: center;
-    margin-right: .25rem;
+    display: block;
 }
 
 .fidoma-ai-actions-button {
-    display: inline-flex !important;
-    min-height: 2.35rem;
-    align-items: center;
-    gap: .4rem;
-    border: 1px solid var(--fidoma-border) !important;
-    border-radius: var(--fidoma-radius-sm) !important;
-    padding: .42rem .7rem !important;
-    background: var(--fidoma-panel) !important;
-    color: inherit !important;
-    font-weight: 600;
-    text-decoration: none !important;
+    font-size: 1rem !important;
+    font-weight: normal !important;
 }
 
 .fidoma-ai-actions-button::before {
+    display: none !important;
+    content: none !important;
+}
+
+.fidoma-ai-actions-icon {
+    display: block;
+    width: 1.25rem;
+    height: 1.75rem;
+    margin: 0 auto;
     color: var(--fidoma-primary);
-    content: "✦";
-    font-size: 1rem;
-    line-height: 1;
-}
-
-.fidoma-ai-actions-button::after {
-    color: var(--fidoma-muted);
-    content: "▾";
-    font-size: .72rem;
-}
-
-.fidoma-ai-actions-button:hover,
-.fidoma-ai-actions-button[aria-expanded="true"] {
-    border-color: rgb(255 0 146 / 35%) !important;
-    background: rgb(255 0 146 / 8%) !important;
-    color: var(--fidoma-primary) !important;
-}
-
-.fidoma-ai-actions-button.disabled {
-    cursor: default;
-    opacity: .45;
+    fill: currentColor;
 }
 
 .fidoma-ai-actions-menu {
