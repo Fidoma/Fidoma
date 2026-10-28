@@ -1,6 +1,28 @@
 (function () {
     'use strict';
 
+    function preferDetailedMessageHeaders() {
+        if (!window.rcmail || typeof window.rcmail.local_storage_get_item !== 'function') {
+            return;
+        }
+
+        var preferences = window.rcmail.local_storage_get_item('prefs.elastic', {});
+
+        if (preferences['mail.show.envelope'] === true) {
+            return;
+        }
+
+        preferences['mail.show.envelope'] = true;
+
+        if (!window.rcmail.local_storage_set_item('prefs.elastic', preferences)) {
+            window.rcmail.set_cookie('mail.show.envelope', true, false);
+        }
+    }
+
+    // Elastic reads this preference during its page initialization. The skin
+    // script is deferred, so this runs before its DOM-ready handlers.
+    preferDetailedMessageHeaders();
+
     function applyTheme(dark, root) {
         var documentRoot = root || document;
         var html = documentRoot.documentElement;
@@ -43,6 +65,8 @@
 
     window.addEventListener('message', receiveTheme);
     window.addEventListener('load', function () {
+        preferDetailedMessageHeaders();
+
         var dark = document.documentElement.classList.contains('dark-mode');
 
         document.querySelectorAll('iframe').forEach(function (frame) {

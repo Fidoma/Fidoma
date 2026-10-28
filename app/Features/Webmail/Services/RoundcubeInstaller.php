@@ -13,7 +13,7 @@ class RoundcubeInstaller
 {
     public const VERSION = '1.7.4';
 
-    public const SKIN_VERSION = '5';
+    public const SKIN_VERSION = '6';
 
     public const SHA256 = '2c6c878f0093f1bf7fb6086781d2dd9269d652c016b86939c157c5f1729139a2';
 

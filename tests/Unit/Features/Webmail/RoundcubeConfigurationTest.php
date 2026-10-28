@@ -83,6 +83,10 @@ class RoundcubeConfigurationTest extends TestCase
         $this->assertSame('elastic', $metadata['extends']);
         $this->assertFileExists(resource_path('roundcube/skins/fidoma/styles/fidoma.css'));
         $this->assertFileExists(resource_path('roundcube/skins/fidoma/fidoma.js'));
+        $this->assertStringContainsString(
+            "preferences['mail.show.envelope'] = true",
+            (string) file_get_contents(resource_path('roundcube/skins/fidoma/fidoma.js')),
+        );
         $this->assertStringContainsString('#taskmenu a.compose > .inner', $styles);
         $this->assertStringContainsString('#taskmenu a.mail > .inner', $styles);
         $this->assertStringContainsString('#taskmenu a.contacts > .inner', $styles);
