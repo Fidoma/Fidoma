@@ -1,5 +1,7 @@
 <?php
 
+use App\Features\Webmail\Services\RoundcubeInstaller;
+
 if (! defined('FIDOMA_ROUNDCUBE_GATEWAY')) {
     http_response_code(403);
     exit;
@@ -36,12 +38,13 @@ class fidoma extends rcube_plugin
         // Elastic renders the menu item directly from its template, so hide
         // that rendered control as a final presentation safeguard as well.
         $this->add_hook('render_page', static function (array $args): array {
-            $logo = htmlspecialchars(asset('favicon.ico'), ENT_QUOTES, 'UTF-8');
-            $css = '<style id="fidoma-roundcube-branding">'
-                .'.logout,#rcmfd_logout,a[href*="_task=logout"],a[onclick*="logout"]{display:none!important}'
-                .'img#logo{content:url("'.$logo.'")!important;}'
-                .'</style>';
-            $args['content'] = str_replace('</head>', $css.'</head>', (string) $args['content']);
+            $assets = rtrim((string) $GLOBALS['fidoma_roundcube']['config']['assets_path'], '/');
+            $skin = htmlspecialchars($assets.'/skins/fidoma', ENT_QUOTES, 'UTF-8');
+            $head = '<link rel="stylesheet" href="'.$skin.'/styles/fidoma.css?v='.
+                rawurlencode(RoundcubeInstaller::SKIN_VERSION).'">'
+                .'<script defer src="'.$skin.'/fidoma.js?v='.
+                rawurlencode(RoundcubeInstaller::SKIN_VERSION).'"></script>';
+            $args['content'] = str_replace('</head>', $head.'</head>', (string) $args['content']);
 
             return $args;
         });

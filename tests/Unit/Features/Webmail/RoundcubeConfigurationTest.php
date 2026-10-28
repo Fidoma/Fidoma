@@ -40,6 +40,9 @@ class RoundcubeConfigurationTest extends TestCase
         $this->assertSame('imap-<>secret', $context['password']);
         $this->assertSame('smtp-secret', $context['config']['smtp_pass']);
         $this->assertTrue($context['config']['imap_conn_options']['ssl']['verify_peer']);
+        $this->assertSame('fidoma', $context['config']['skin']);
+        $this->assertSame('/images/fidoma-mark.png', $context['config']['skin_logo']['fidoma:*']);
+        $this->assertSame('/images/fidoma-mark.png', $context['config']['skin_logo']['fidoma:*[dark]']);
     }
 
     public function test_it_rejects_invalid_hosts_and_missing_credentials(): void
@@ -70,5 +73,24 @@ class RoundcubeConfigurationTest extends TestCase
         $this->assertFalse(RoundcubeInstaller::safe_archive_path('a/../../b'));
         $this->assertFalse(RoundcubeInstaller::safe_archive_path('a\\b'));
         $this->assertTrue(RoundcubeInstaller::safe_archive_path('program/js/app.min.js'));
+    }
+
+    public function test_fidoma_skin_extends_elastic_and_contains_versioned_assets(): void
+    {
+        $metadata = json_decode((string) file_get_contents(resource_path('roundcube/skins/fidoma/meta.json')), true);
+        $styles = (string) file_get_contents(resource_path('roundcube/skins/fidoma/styles/fidoma.css'));
+
+        $this->assertSame('elastic', $metadata['extends']);
+        $this->assertFileExists(resource_path('roundcube/skins/fidoma/styles/fidoma.css'));
+        $this->assertFileExists(resource_path('roundcube/skins/fidoma/fidoma.js'));
+        $this->assertStringContainsString('#taskmenu a.compose > .inner', $styles);
+        $this->assertStringContainsString('#taskmenu a.mail > .inner', $styles);
+        $this->assertStringContainsString('#taskmenu a.contacts > .inner', $styles);
+        $this->assertStringContainsString('#taskmenu a.settings > .inner', $styles);
+        $this->assertStringContainsString(
+            'images/fidoma-mark.png',
+            (string) file_get_contents(resource_path('roundcube/skins/fidoma/watermark.html')),
+        );
+        $this->assertNotSame('', RoundcubeInstaller::SKIN_VERSION);
     }
 }

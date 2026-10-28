@@ -883,14 +883,19 @@
 
 .webmail-shell {
     overflow: hidden;
-    background: white;
+    background: rgb(248 250 252);
 }
 
 .webmail-frame {
     display: block;
     min-height: calc(100dvh - var(--topbar-height, 4rem));
     border: 0;
-    background: white;
+    background: rgb(248 250 252);
+}
+
+.dark .webmail-shell,
+.dark .webmail-frame {
+    background: rgb(24 24 27);
 }
 
 @media (min-width: 64rem) {

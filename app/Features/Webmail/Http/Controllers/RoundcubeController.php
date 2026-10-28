@@ -17,6 +17,8 @@ class RoundcubeController
     ): never {
         abort_unless($installer->installed(), 503, __('webmail::messages.not_installed'));
 
+        $installer->synchronize_custom_skin();
+
         try {
             $context = $configuration->build();
         } catch (RuntimeException $exception) {

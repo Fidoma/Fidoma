@@ -13,6 +13,8 @@ class RoundcubeInstaller
 {
     public const VERSION = '1.7.4';
 
+    public const SKIN_VERSION = '5';
+
     public const SHA256 = '2c6c878f0093f1bf7fb6086781d2dd9269d652c016b86939c157c5f1729139a2';
 
     private const MAX_DOWNLOAD = 16777216;
@@ -88,6 +90,7 @@ class RoundcubeInstaller
             $this->mkdir($package, 0700);
             $this->extract($archive, $package);
             $this->configure($package, $private.'/release');
+            $this->copy_custom_skin($package.'/skins/fidoma', 0700, 0600);
             if (! $reuse_public) {
                 $this->publish_assets($package, $assets);
             }
@@ -108,6 +111,24 @@ class RoundcubeInstaller
             $this->remove_tree($stage);
             fclose($lock);
         }
+    }
+
+    /** Publishes the project-owned skin independently from the Roundcube release. */
+    public function synchronize_custom_skin(): void
+    {
+        if (! $this->installed()) {
+            throw new RuntimeException('webmail_directory_failed');
+        }
+
+        $privateSkin = $this->private_path().'/release/skins/fidoma';
+        $publicSkin = public_path().'/roundcube/skins/fidoma';
+
+        if ($this->custom_skin_is_current($privateSkin) && $this->custom_skin_is_current($publicSkin)) {
+            return;
+        }
+
+        $this->replace_custom_skin($privateSkin, 0700, 0600);
+        $this->replace_custom_skin($publicSkin, 0755, 0644);
     }
 
     private function prepare_private_directory(string $path): void
@@ -325,6 +346,73 @@ class RoundcubeInstaller
                 $this->write($target, file_get_contents($file->getPathname()), 0644);
             }
         }
+    }
+
+    private function custom_skin_is_current(string $path): bool
+    {
+        return is_file($path.'/.fidoma-skin-version')
+            && trim((string) file_get_contents($path.'/.fidoma-skin-version')) === self::SKIN_VERSION;
+    }
+
+    private function replace_custom_skin(string $destination, int $directoryMode, int $fileMode): void
+    {
+        $temporary = dirname($destination).'/.fidoma-skin-'.bin2hex(random_bytes(8));
+        $backup = dirname($destination).'/.fidoma-skin-backup-'.bin2hex(random_bytes(8));
+
+        try {
+            $this->copy_custom_skin($temporary, $directoryMode, $fileMode);
+
+            if (file_exists($destination) && ! rename($destination, $backup)) {
+                throw new RuntimeException('webmail_directory_failed');
+            }
+            if (! rename($temporary, $destination)) {
+                if (is_dir($backup)) {
+                    rename($backup, $destination);
+                }
+
+                throw new RuntimeException('webmail_directory_failed');
+            }
+
+            $this->remove_tree($backup);
+        } finally {
+            $this->remove_tree($temporary);
+        }
+    }
+
+    private function copy_custom_skin(string $destination, int $directoryMode, int $fileMode): void
+    {
+        $source = resource_path('roundcube/skins/fidoma');
+
+        $brandMark = public_path('images/brand/fidoma-mark.png');
+
+        if (! is_file($source.'/meta.json') || ! is_file($source.'/styles/fidoma.css')
+            || ! is_file($source.'/watermark.html') || ! is_file($brandMark)) {
+            throw new RuntimeException('webmail_directory_failed');
+        }
+
+        $this->mkdir($destination, $directoryMode);
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($source, FilesystemIterator::SKIP_DOTS),
+        );
+
+        foreach ($iterator as $file) {
+            if (! $file->isFile() || $file->isLink()) {
+                throw new RuntimeException('webmail_directory_failed');
+            }
+
+            $relative = substr($file->getPathname(), strlen($source) + 1);
+            $target = $destination.'/'.$relative;
+            $this->mkdir(dirname($target), $directoryMode);
+            $this->write($target, (string) file_get_contents($file->getPathname()), $fileMode);
+        }
+
+        $this->mkdir($destination.'/images', $directoryMode);
+        $this->write(
+            $destination.'/images/fidoma-mark.png',
+            (string) file_get_contents($brandMark),
+            $fileMode,
+        );
+        $this->write($destination.'/.fidoma-skin-version', self::SKIN_VERSION."\n", $fileMode);
     }
 
     private function mkdir(string $path, int $mode): void

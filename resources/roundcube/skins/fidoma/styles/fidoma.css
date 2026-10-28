@@ -1,0 +1,370 @@
+/* Fidoma skin: deliberately layered on top of Roundcube Elastic. */
+:root {
+    --fidoma-primary: #ff0092;
+    --fidoma-primary-hover: #e60083;
+    --fidoma-navy: #172033;
+    --fidoma-canvas: #f8fafc;
+    --fidoma-panel: #ffffff;
+    --fidoma-muted: #64748b;
+    --fidoma-border: #e2e8f0;
+    --fidoma-hover: #f1f5f9;
+    --fidoma-radius-sm: .7rem;
+    --fidoma-radius: 1rem;
+    --fidoma-shadow: 0 1px 2px rgb(15 23 42 / 3%), 0 10px 28px rgb(15 23 42 / 4.5%);
+    color-scheme: light;
+}
+
+html.dark-mode {
+    --fidoma-canvas: #18181b;
+    --fidoma-panel: #202023;
+    --fidoma-muted: #a1a1aa;
+    --fidoma-border: rgb(255 255 255 / 9%);
+    --fidoma-hover: rgb(255 255 255 / 6%);
+    --fidoma-shadow: 0 12px 32px rgb(0 0 0 / 18%);
+    color-scheme: dark;
+}
+
+html,
+body,
+#layout {
+    background: var(--fidoma-canvas) !important;
+    color: var(--fidoma-navy);
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+}
+
+html.dark-mode,
+html.dark-mode body,
+html.dark-mode #layout {
+    color: #f4f4f5;
+}
+
+body {
+    letter-spacing: -.005em;
+}
+
+/* The Filament topbar already supplies product identity and session controls. */
+#layout-menu .popover-header,
+#taskmenu .about,
+#taskmenu .logout,
+#taskmenu .theme,
+#rcmfd_logout,
+a[href*="_task=logout"],
+a[onclick*="logout"] {
+    display: none !important;
+}
+
+#layout-menu {
+    background: var(--fidoma-panel) !important;
+    border-right: 1px solid var(--fidoma-border) !important;
+    box-shadow: none !important;
+}
+
+#taskmenu a,
+#taskmenu .action-buttons a {
+    border-radius: var(--fidoma-radius-sm) !important;
+    color: var(--fidoma-muted) !important;
+    transition: background-color 150ms ease, color 150ms ease, transform 150ms ease !important;
+}
+
+#taskmenu a:hover,
+#taskmenu a:focus-visible {
+    background: var(--fidoma-hover) !important;
+    color: var(--fidoma-primary) !important;
+}
+
+#taskmenu a.selected {
+    background: transparent !important;
+    box-shadow: none !important;
+    color: var(--fidoma-primary) !important;
+}
+
+/* Keep the task labels accessible while showing only their icons in the sidebar. */
+#taskmenu a.compose > .inner,
+#taskmenu a.mail > .inner,
+#taskmenu a.contacts > .inner,
+#taskmenu a.settings > .inner {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+.btn-primary,
+button.btn-primary,
+input.btn-primary {
+    border-color: var(--fidoma-primary) !important;
+    border-radius: var(--fidoma-radius-sm) !important;
+    background: var(--fidoma-primary) !important;
+    box-shadow: 0 5px 14px rgb(255 0 146 / 20%) !important;
+    color: white !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    border-color: var(--fidoma-primary-hover) !important;
+    background: var(--fidoma-primary-hover) !important;
+    transform: translateY(-1px);
+}
+
+#layout-sidebar,
+#layout-list,
+#layout-content {
+    border-color: var(--fidoma-border) !important;
+    background: var(--fidoma-panel) !important;
+    box-shadow: none !important;
+}
+
+#layout-sidebar > .header,
+#layout-list > .header,
+#layout-content > .header,
+.iframe-wrapper > .header,
+.header {
+    min-height: 3.6rem;
+    border-color: var(--fidoma-border) !important;
+    background: var(--fidoma-panel) !important;
+    box-shadow: none !important;
+}
+
+.header-title,
+.header .username {
+    color: inherit !important;
+    font-weight: 650 !important;
+    letter-spacing: -.02em;
+}
+
+.listing li,
+.listing tbody tr,
+.messagelist tr,
+.folderlist li a {
+    border-color: var(--fidoma-border) !important;
+    transition: background-color 140ms ease, color 140ms ease !important;
+}
+
+.listing li:hover,
+.listing tbody tr:hover,
+.messagelist tr:hover,
+.folderlist li a:hover {
+    background: var(--fidoma-hover) !important;
+}
+
+.listing li.selected,
+.listing tr.selected,
+.folderlist li.selected > a {
+    background: rgb(255 0 146 / 9%) !important;
+    color: var(--fidoma-primary) !important;
+}
+
+.folderlist li.selected > a {
+    box-shadow: inset 3px 0 0 var(--fidoma-primary);
+}
+
+.folderlist li a {
+    margin: .12rem .45rem;
+    border-radius: .55rem;
+}
+
+.messagelist td {
+    padding-top: .72rem !important;
+    padding-bottom: .72rem !important;
+}
+
+.messagelist tr.unread td,
+.messagelist tr.unread span {
+    font-weight: 700 !important;
+}
+
+.messagelist tr.unread td.subject span.subject {
+    color: var(--fidoma-navy);
+}
+
+html.dark-mode .messagelist tr.unread td.subject span.subject {
+    color: #fafafa;
+}
+
+.messagelist .flagged,
+.messagelist tr.flagged .subject span,
+.listing .unreadcount {
+    color: var(--fidoma-primary) !important;
+}
+
+.listing .unreadcount {
+    border-radius: 9999px !important;
+    background: rgb(255 0 146 / 12%) !important;
+    padding-inline: .42rem !important;
+}
+
+.searchbar,
+.searchbar form,
+.searchbar input,
+input,
+select,
+textarea,
+.custom-select,
+.form-control,
+.tox-tinymce {
+    border-color: var(--fidoma-border) !important;
+    border-radius: var(--fidoma-radius-sm) !important;
+    background-color: var(--fidoma-panel) !important;
+    color: inherit !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+.custom-select:focus,
+.form-control:focus {
+    border-color: rgb(255 0 146 / 55%) !important;
+    box-shadow: 0 0 0 3px rgb(255 0 146 / 13%) !important;
+}
+
+.toolbar a,
+.toolbar button,
+.button.icon,
+.btn-secondary {
+    border-radius: var(--fidoma-radius-sm) !important;
+    transition: background-color 150ms ease, color 150ms ease, transform 150ms ease !important;
+}
+
+.toolbar a:hover,
+.toolbar button:hover,
+.button.icon:hover,
+.btn-secondary:hover {
+    background-color: var(--fidoma-hover) !important;
+    color: var(--fidoma-primary) !important;
+}
+
+.popupmenu,
+.popover,
+.ui-dialog,
+.modal-content,
+.menu.pagenav {
+    border: 1px solid var(--fidoma-border) !important;
+    border-radius: var(--fidoma-radius) !important;
+    background: var(--fidoma-panel) !important;
+    box-shadow: var(--fidoma-shadow) !important;
+}
+
+.message-part,
+#message-header,
+.message-headers,
+.attachmentslist,
+.compose-headers,
+.formcontent {
+    border-color: var(--fidoma-border) !important;
+    background: var(--fidoma-panel) !important;
+}
+
+#message-header,
+.message-headers,
+.compose-headers {
+    padding: 1rem 1.15rem !important;
+}
+
+#message-subject,
+.message-title {
+    font-weight: 700 !important;
+    letter-spacing: -.025em;
+}
+
+.iframe-wrapper,
+#messagecontframe,
+#composebodycontainer {
+    background: var(--fidoma-panel) !important;
+}
+
+.tox .tox-toolbar,
+.tox .tox-toolbar__primary,
+.tox .tox-editor-header,
+.mce-toolbar-grp {
+    border-color: var(--fidoma-border) !important;
+    background: var(--fidoma-canvas) !important;
+}
+
+.tox .tox-tbtn:hover,
+.tox .tox-tbtn--enabled {
+    background: rgb(255 0 146 / 10%) !important;
+    color: var(--fidoma-primary) !important;
+}
+
+::-webkit-scrollbar {
+    width: .7rem;
+    height: .7rem;
+}
+
+::-webkit-scrollbar-thumb {
+    border: .2rem solid transparent;
+    border-radius: 9999px;
+    background: #cbd5e1;
+    background-clip: padding-box;
+}
+
+html.dark-mode ::-webkit-scrollbar-thumb {
+    background: #52525b;
+    background-clip: padding-box;
+}
+
+@media screen and (min-width: 1201px) {
+    #layout-menu {
+        width: 4.65rem !important;
+    }
+
+    #layout-sidebar {
+        width: clamp(13.5rem, 17vw, 17rem) !important;
+    }
+
+    #layout-list {
+        width: clamp(22rem, 30vw, 31rem) !important;
+    }
+}
+
+@media screen and (max-width: 1200px) {
+    #layout-sidebar,
+    #layout-list,
+    #layout-content {
+        border-radius: 0 !important;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    #layout-menu {
+        box-shadow: 0 12px 32px rgb(15 23 42 / 15%) !important;
+    }
+
+    .header {
+        min-height: 3.35rem;
+    }
+
+    .messagelist td {
+        padding-top: .62rem !important;
+        padding-bottom: .62rem !important;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    #taskmenu a,
+    .toolbar a,
+    .toolbar button {
+        min-height: 2.75rem;
+        min-width: 2.75rem;
+    }
+
+    #message-header,
+    .message-headers,
+    .compose-headers {
+        padding: .75rem !important;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+    }
+}
