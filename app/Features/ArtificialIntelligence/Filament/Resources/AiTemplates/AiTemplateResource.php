@@ -19,7 +19,7 @@ class AiTemplateResource extends Resource
 {
     protected static ?string $model = AiTemplate::class;
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 3;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedSparkles;
 
@@ -37,7 +37,7 @@ class AiTemplateResource extends Resource
 
     public static function getNavigationLabel(): string
     {
-        return __('artificial-intelligence::messages.templates');
+        return __('artificial-intelligence::messages.navigation_label');
     }
 
     public static function getNavigationGroup(): string|UnitEnum|null

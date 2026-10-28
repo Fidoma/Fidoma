@@ -1,7 +1,8 @@
 <?php
 
 return [
-    'navigation_group' => 'KI',
+    'navigation_group' => 'Externe Dienste',
+    'navigation_label' => 'KI-Vorlagen',
     'template' => 'Vorlage',
     'templates' => 'Vorlagen',
     'create_template' => 'Vorlage',

@@ -1,7 +1,8 @@
 <?php
 
 return [
-    'navigation_group' => 'AI',
+    'navigation_group' => 'External services',
+    'navigation_label' => 'AI templates',
     'template' => 'Template',
     'templates' => 'Templates',
     'create_template' => 'Template',

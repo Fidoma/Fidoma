@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Filament;
 
+use App\Features\ArtificialIntelligence\Filament\Resources\AiTemplates\AiTemplateResource;
 use App\Features\Clients\Filament\Resources\Clients\ClientResource;
 use App\Features\Contracts\Filament\Resources\ContractTemplates\ContractTemplateResource;
 use App\Features\Documents\Services\PaperlessClient;
@@ -50,6 +51,8 @@ class AdminNavigationTest extends TestCase
     {
         $this->assertSame('Externe Dienste', DataImport::getNavigationGroup());
         $this->assertSame('Externe Dienste', Terminal::getNavigationGroup());
+        $this->assertSame('Externe Dienste', AiTemplateResource::getNavigationGroup());
+        $this->assertSame('KI-Vorlagen', AiTemplateResource::getNavigationLabel());
 
         $this->actingAs(User::factory()->create());
         $panel = Filament::getPanel('admin');
@@ -62,6 +65,7 @@ class AdminNavigationTest extends TestCase
 
         $this->assertContains('Datenimport', $externalServiceLabels);
         $this->assertContains('Terminals', $externalServiceLabels);
+        $this->assertContains('KI-Vorlagen', $externalServiceLabels);
         $this->assertNotContains('Zahlungshistorie', $externalServiceLabels);
         $this->assertSame('Datenimport', array_last($externalServiceLabels));
 

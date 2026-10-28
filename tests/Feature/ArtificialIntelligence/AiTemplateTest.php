@@ -21,12 +21,13 @@ class AiTemplateTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_template_resource_is_available_in_the_ai_navigation_group(): void
+    public function test_template_resource_is_available_as_ai_templates_in_the_external_services_group(): void
     {
         $user = User::factory()->create();
         Filament::setCurrentPanel(Filament::getPanel('admin'));
 
-        $this->assertSame('KI', AiTemplateResource::getNavigationGroup());
+        $this->assertSame('Externe Dienste', AiTemplateResource::getNavigationGroup());
+        $this->assertSame('KI-Vorlagen', AiTemplateResource::getNavigationLabel());
 
         $this->actingAs($user)
             ->get(AiTemplateResource::getUrl())
