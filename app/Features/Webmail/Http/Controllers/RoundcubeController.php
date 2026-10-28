@@ -2,8 +2,11 @@
 
 namespace App\Features\Webmail\Http\Controllers;
 
+use App\Features\ArtificialIntelligence\Enums\AiTemplateArea;
+use App\Features\ArtificialIntelligence\Queries\AvailableAiTemplates;
 use App\Features\Webmail\Services\RoundcubeConfiguration;
 use App\Features\Webmail\Services\RoundcubeInstaller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use RuntimeException;
 use SessionHandler;
@@ -14,6 +17,7 @@ class RoundcubeController
         Request $request,
         RoundcubeInstaller $installer,
         RoundcubeConfiguration $configuration,
+        AvailableAiTemplates $templates,
     ): never {
         abort_unless($installer->installed(), 503, __('webmail::messages.not_installed'));
 
@@ -24,6 +28,12 @@ class RoundcubeController
         } catch (RuntimeException $exception) {
             abort(503, __('webmail::messages.'.$exception->getMessage()));
         }
+
+        $user = $request->user();
+        abort_unless($user instanceof User, 403);
+
+        $context['ai_templates'] = $templates->summariesForUserAndArea($user, AiTemplateArea::EmailMessage);
+        $context['ai_actions_label'] = __('artificial-intelligence::messages.roundcube.actions');
 
         $binding = $request->session()->get('webmail_binding');
 

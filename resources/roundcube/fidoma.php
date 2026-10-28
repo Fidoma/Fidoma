@@ -58,6 +58,9 @@ class fidoma extends rcube_plugin
     {
         $context = $GLOBALS['fidoma_roundcube'];
         $rcmail = rcmail::get_instance();
+        $rcmail->output->set_env('fidoma_ai_templates', $context['ai_templates'] ?? []);
+        $rcmail->output->set_env('fidoma_ai_actions_label', $context['ai_actions_label'] ?? 'KI-Aktionen');
+
         if (! empty($_SESSION['user_id'])
             && hash_equals($context['binding'], (string) ($_SESSION['fidoma_binding'] ?? ''))) {
             return $args;

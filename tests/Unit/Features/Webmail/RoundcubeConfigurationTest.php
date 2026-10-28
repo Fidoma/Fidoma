@@ -87,6 +87,19 @@ class RoundcubeConfigurationTest extends TestCase
             "preferences['mail.show.envelope'] = true",
             (string) file_get_contents(resource_path('roundcube/skins/fidoma/fidoma.js')),
         );
+        $this->assertStringContainsString(
+            "type: 'fidoma:ai-template-selected'",
+            (string) file_get_contents(resource_path('roundcube/skins/fidoma/fidoma.js')),
+        );
+        $this->assertStringContainsString(
+            'window.UI.popup_init(button)',
+            (string) file_get_contents(resource_path('roundcube/skins/fidoma/fidoma.js')),
+        );
+        $this->assertStringContainsString(
+            "set_env('fidoma_ai_templates'",
+            (string) file_get_contents(resource_path('roundcube/fidoma.php')),
+        );
+        $this->assertStringContainsString('.fidoma-ai-actions-button', $styles);
         $this->assertStringContainsString('#taskmenu a.compose > .inner', $styles);
         $this->assertStringContainsString('#taskmenu a.mail > .inner', $styles);
         $this->assertStringContainsString('#taskmenu a.contacts > .inner', $styles);

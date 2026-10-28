@@ -2,8 +2,12 @@
 
 namespace App\Features\Webmail\Filament\Pages;
 
+use App\Features\ArtificialIntelligence\Actions\PrepareAiTemplateExecution;
+use App\Features\ArtificialIntelligence\Enums\AiTemplateArea;
+use App\Features\ArtificialIntelligence\Queries\AvailableAiTemplates;
 use App\Features\Webmail\Services\RoundcubeInstaller;
 use App\Filament\Concerns\HasConfigurableNavigation;
+use App\Models\User;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
@@ -51,6 +55,37 @@ class Webmail extends Page
     public function mount(RoundcubeInstaller $installer): void
     {
         $this->installed = $installer->installed();
+    }
+
+    /** @return array<int, array{id: int, title: string}> */
+    public function emailMessageAiTemplates(AvailableAiTemplates $templates): array
+    {
+        $user = auth()->user();
+
+        abort_unless($user instanceof User, 403);
+
+        return $templates->summariesForUserAndArea($user, AiTemplateArea::EmailMessage);
+    }
+
+    /** @param array<string, mixed> $messageContext */
+    public function prepareAiTemplate(
+        int $templateId,
+        array $messageContext,
+        PrepareAiTemplateExecution $prepareExecution,
+    ): void {
+        $user = auth()->user();
+
+        abort_unless($user instanceof User, 403);
+
+        $selection = $prepareExecution->execute($user, $templateId, $messageContext);
+
+        Notification::make()
+            ->title(__('artificial-intelligence::messages.roundcube.selection_prepared'))
+            ->body(__('artificial-intelligence::messages.roundcube.selection_prepared_body', [
+                'template' => $selection['template']->title,
+            ]))
+            ->success()
+            ->send();
     }
 
     /** @return array<string> */
