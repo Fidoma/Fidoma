@@ -22,6 +22,7 @@ final class AiClientManager
         }
 
         return $this->clients[$engine] ??= match ($engine) {
+            'fake' => $this->container->make(FakeAiClient::class),
             'openai' => $this->container->make(OpenAiResponsesClient::class),
             default => throw new AiConfigurationException("Die KI-Engine '{$engine}' wird nicht unterstützt."),
         };

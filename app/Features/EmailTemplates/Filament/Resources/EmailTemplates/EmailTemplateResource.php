@@ -27,6 +27,8 @@ class EmailTemplateResource extends Resource
 
     protected static ?string $cluster = SettingsCluster::class;
 
+    protected static bool $shouldRegisterNavigation = false;
+
     protected static ?int $navigationSort = 1;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedEnvelope;

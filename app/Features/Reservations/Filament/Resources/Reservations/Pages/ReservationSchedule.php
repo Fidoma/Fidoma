@@ -4,11 +4,8 @@ namespace App\Features\Reservations\Filament\Resources\Reservations\Pages;
 
 use App\Features\Clients\Models\Client;
 use App\Features\Products\Models\Product;
-use App\Features\Reservations\Actions\CreateReservation as CreateReservationAction;
-use App\Features\Reservations\Actions\RecalculateReservation;
-use App\Features\Reservations\Enums\ReservationStatus;
+use App\Features\Reservations\Actions\CreateReservationWithItem;
 use App\Features\Reservations\Filament\Resources\Reservations\ReservationResource;
-use App\Features\Reservations\Models\Reservation;
 use App\Features\Reservations\Models\ReservationItem;
 use App\Features\Reservations\Models\Room;
 use App\Filament\Concerns\WithoutPageHeading;
@@ -21,7 +18,6 @@ use Filament\Resources\Pages\Page;
 use Filament\Schemas\Components\View;
 use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
-use Illuminate\Support\Facades\DB;
 
 class ReservationSchedule extends Page
 {
@@ -109,36 +105,7 @@ class ReservationSchedule extends Page
                     ->required(),
             ])
             ->action(function (array $data, Action $action): void {
-                $reservation = DB::transaction(function () use ($data): Reservation {
-                    $product = Product::query()->findOrFail($data['product_id']);
-                    $arrival = CarbonImmutable::parse($data['arrival_date']);
-                    $departure = CarbonImmutable::parse($data['departure_date']);
-                    $reservation = app(CreateReservationAction::class)->handle([
-                        'client_id' => $data['client_id'],
-                        'reservation_date_created' => now()->toDateString(),
-                        'reservation_status_id' => ReservationStatus::Open,
-                        'reservation_discount_amount' => 0,
-                        'reservation_discount_percent' => 0,
-                    ]);
-
-                    $reservation->items()->create([
-                        'room_id' => $data['room_id'],
-                        'arrival_date' => $arrival->toDateString(),
-                        'departure_date' => $departure->toDateString(),
-                        'item_tax_rate_id' => $product->tax_rate_id,
-                        'item_tax_included' => $product->product_tax_included,
-                        'item_product_id' => $product->getKey(),
-                        'item_name' => $product->product_name,
-                        'item_description' => $product->product_description,
-                        'item_quantity' => max(1, $arrival->diffInDays($departure)),
-                        'item_price' => $product->product_price,
-                        'item_discount_amount' => 0,
-                        'item_order' => 1,
-                        'item_product_unit_id' => $product->unit_id,
-                    ]);
-
-                    return app(RecalculateReservation::class)->handle($reservation);
-                });
+                $reservation = app(CreateReservationWithItem::class)->handle($data);
 
                 Notification::make()->success()->title('Reservierung wurde erstellt.')->send();
                 $action->redirect(ReservationResource::getUrl('edit', ['record' => $reservation]));

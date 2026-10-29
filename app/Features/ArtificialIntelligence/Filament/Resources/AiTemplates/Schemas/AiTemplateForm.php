@@ -2,6 +2,7 @@
 
 namespace App\Features\ArtificialIntelligence\Filament\Resources\AiTemplates\Schemas;
 
+use App\Features\ArtificialIntelligence\Enums\AiTemplateAction;
 use App\Features\ArtificialIntelligence\Enums\AiTemplateArea;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -28,6 +29,10 @@ final class AiTemplateForm
                             ->label(__('artificial-intelligence::messages.fields.area'))
                             ->options(AiTemplateArea::options())
                             ->default(AiTemplateArea::EmailMessage->value)
+                            ->required(),
+                        Select::make('action')
+                            ->label(__('artificial-intelligence::messages.fields.action'))
+                            ->options(AiTemplateAction::options())
                             ->required(),
                         Textarea::make('prompt')
                             ->label(__('artificial-intelligence::messages.fields.prompt'))

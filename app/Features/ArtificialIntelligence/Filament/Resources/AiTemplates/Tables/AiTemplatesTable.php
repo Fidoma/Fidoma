@@ -2,6 +2,7 @@
 
 namespace App\Features\ArtificialIntelligence\Filament\Resources\AiTemplates\Tables;
 
+use App\Features\ArtificialIntelligence\Enums\AiTemplateAction;
 use App\Features\ArtificialIntelligence\Enums\AiTemplateArea;
 use App\Features\ArtificialIntelligence\Filament\Resources\AiTemplates\AiTemplateResource;
 use Filament\Actions\CreateAction;
@@ -29,6 +30,12 @@ final class AiTemplatesTable
                     ->badge()
                     ->formatStateUsing(fn (AiTemplateArea $state): string => $state->label())
                     ->sortable(),
+                TextColumn::make('action')
+                    ->label(__('artificial-intelligence::messages.fields.action'))
+                    ->badge()
+                    ->placeholder('—')
+                    ->formatStateUsing(fn (?AiTemplateAction $state): string => $state?->label() ?? '—')
+                    ->sortable(),
                 IconColumn::make('is_active')
                     ->label(__('artificial-intelligence::messages.fields.active'))
                     ->boolean()
@@ -42,6 +49,9 @@ final class AiTemplatesTable
                 SelectFilter::make('area')
                     ->label(__('artificial-intelligence::messages.fields.area'))
                     ->options(AiTemplateArea::options()),
+                SelectFilter::make('action')
+                    ->label(__('artificial-intelligence::messages.fields.action'))
+                    ->options(AiTemplateAction::options()),
                 TernaryFilter::make('is_active')
                     ->label(__('artificial-intelligence::messages.fields.active')),
             ])

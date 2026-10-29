@@ -23,6 +23,8 @@ class ContractTemplateResource extends Resource
 
     protected static ?string $cluster = SettingsCluster::class;
 
+    protected static bool $shouldRegisterNavigation = false;
+
     protected static ?int $navigationSort = 2;
 
     protected static ?string $slug = 'contract-templates';

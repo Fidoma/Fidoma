@@ -4,10 +4,13 @@ namespace App\Features\EmailTemplates\Filament\Resources\EmailTemplates\Pages;
 
 use App\Features\EmailTemplates\Filament\Resources\EmailTemplates\EmailTemplateResource;
 use App\Features\EmailTemplates\Services\EmailTemplateDefaults;
+use App\Features\Settings\Filament\Concerns\HasTemplateTabs;
 use App\Filament\Resources\Pages\CreateRecord;
 
 class CreateEmailTemplate extends CreateRecord
 {
+    use HasTemplateTabs;
+
     protected static string $resource = EmailTemplateResource::class;
 
     private string $defaultUsage = 'none';

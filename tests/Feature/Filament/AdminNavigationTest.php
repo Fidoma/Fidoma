@@ -16,6 +16,7 @@ use App\Features\Products\Filament\Resources\Products\ProductResource;
 use App\Features\Quotes\Filament\Resources\Quotes\QuoteResource;
 use App\Features\Settings\Filament\Clusters\SettingsCluster;
 use App\Features\Settings\Filament\Pages\Modules;
+use App\Features\Settings\Filament\Pages\Templates;
 use App\Features\TaxRates\Filament\Resources\TaxRates\TaxRateResource;
 use App\Features\Terminals\Filament\Pages\Terminal;
 use App\Features\Units\Filament\Resources\Units\UnitResource;
@@ -51,7 +52,6 @@ class AdminNavigationTest extends TestCase
     {
         $this->assertSame('Externe Dienste', DataImport::getNavigationGroup());
         $this->assertSame('Externe Dienste', Terminal::getNavigationGroup());
-        $this->assertSame('Externe Dienste', AiTemplateResource::getNavigationGroup());
         $this->assertSame('KI-Vorlagen', AiTemplateResource::getNavigationLabel());
 
         $this->actingAs(User::factory()->create());
@@ -65,7 +65,7 @@ class AdminNavigationTest extends TestCase
 
         $this->assertContains('Datenimport', $externalServiceLabels);
         $this->assertContains('Terminals', $externalServiceLabels);
-        $this->assertContains('KI-Vorlagen', $externalServiceLabels);
+        $this->assertNotContains('KI-Vorlagen', $externalServiceLabels);
         $this->assertNotContains('Zahlungshistorie', $externalServiceLabels);
         $this->assertSame('Datenimport', array_last($externalServiceLabels));
 
@@ -98,7 +98,12 @@ class AdminNavigationTest extends TestCase
         $this->assertNotContains('Familien', $navigationLabels);
         $this->assertNotContains('Einheiten', $navigationLabels);
         $this->assertNotContains('Vertragsvorlagen', $navigationLabels);
+        $this->assertNotContains('KI-Vorlagen', $navigationLabels);
         $this->assertSame(SettingsCluster::class, ContractTemplateResource::getCluster());
+        $this->assertSame(SettingsCluster::class, AiTemplateResource::getCluster());
+        $this->assertFalse(EmailTemplateResource::shouldRegisterNavigation());
+        $this->assertFalse(ContractTemplateResource::shouldRegisterNavigation());
+        $this->assertFalse(AiTemplateResource::shouldRegisterNavigation());
 
         $this->get(ProductResource::getUrl())
             ->assertOk()
@@ -126,16 +131,26 @@ class AdminNavigationTest extends TestCase
         $this->get(SettingsCluster::getUrl())
             ->assertRedirect(Modules::getUrl());
 
+        $this->get(Templates::getUrl())
+            ->assertRedirect(EmailTemplateResource::getUrl());
+
         $this->get(InvoiceLayout::getUrl())
             ->assertOk()
             ->assertSeeTextInOrder([
                 Modules::getNavigationLabel(),
                 'PDF-Layout',
-                EmailTemplateResource::getNavigationLabel(),
-                ContractTemplateResource::getNavigationLabel(),
+                Templates::getNavigationLabel(),
                 InvoiceGroupResource::getNavigationLabel(),
                 TaxRateResource::getNavigationLabel(),
                 UserResource::getNavigationLabel(),
+            ]);
+
+        $this->get(EmailTemplateResource::getUrl())
+            ->assertOk()
+            ->assertSeeTextInOrder([
+                EmailTemplateResource::getNavigationLabel(),
+                ContractTemplateResource::getNavigationLabel(),
+                AiTemplateResource::getNavigationLabel(),
             ]);
     }
 

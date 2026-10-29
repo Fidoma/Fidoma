@@ -1,6 +1,9 @@
 <?php
 
 return [
+    'navigation' => [
+        'templates' => 'Vorlagen',
+    ],
     'modules' => [
         'title' => 'Module',
         'section' => 'Navigation konfigurieren',

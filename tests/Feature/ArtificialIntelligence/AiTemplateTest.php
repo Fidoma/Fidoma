@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\ArtificialIntelligence;
 
+use App\Features\ArtificialIntelligence\Enums\AiTemplateAction;
 use App\Features\ArtificialIntelligence\Enums\AiTemplateArea;
 use App\Features\ArtificialIntelligence\Filament\Resources\AiTemplates\AiTemplateResource;
 use App\Features\ArtificialIntelligence\Filament\Resources\AiTemplates\Pages\CreateAiTemplate;
@@ -9,6 +10,7 @@ use App\Features\ArtificialIntelligence\Filament\Resources\AiTemplates\Pages\Edi
 use App\Features\ArtificialIntelligence\Filament\Resources\AiTemplates\Pages\ListAiTemplates;
 use App\Features\ArtificialIntelligence\Models\AiTemplate;
 use App\Features\ArtificialIntelligence\Queries\AvailableAiTemplates;
+use App\Features\Settings\Filament\Clusters\SettingsCluster;
 use App\Features\Webmail\Filament\Pages\Webmail;
 use App\Models\User;
 use Filament\Facades\Filament;
@@ -21,18 +23,20 @@ class AiTemplateTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_template_resource_is_available_as_ai_templates_in_the_external_services_group(): void
+    public function test_template_resource_is_available_in_settings(): void
     {
         $user = User::factory()->create();
         Filament::setCurrentPanel(Filament::getPanel('admin'));
 
-        $this->assertSame('Externe Dienste', AiTemplateResource::getNavigationGroup());
+        $this->assertSame(SettingsCluster::class, AiTemplateResource::getCluster());
         $this->assertSame('KI-Vorlagen', AiTemplateResource::getNavigationLabel());
+        $this->assertFalse(AiTemplateResource::shouldRegisterNavigation());
+        $this->assertStringEndsWith('/admin/settings/ai-templates', AiTemplateResource::getUrl());
 
         $this->actingAs($user)
             ->get(AiTemplateResource::getUrl())
             ->assertOk()
-            ->assertSeeText('Vorlagen');
+            ->assertSeeTextInOrder(['E-Mail-Vorlagen', 'Vertragsvorlagen', 'KI-Vorlagen']);
 
         Livewire::actingAs($user)
             ->test(ListAiTemplates::class)
@@ -49,6 +53,7 @@ class AiTemplateTest extends TestCase
             ->fillForm([
                 'title' => 'Reservierung erstellen',
                 'area' => AiTemplateArea::EmailMessage->value,
+                'action' => AiTemplateAction::CreateReservation->value,
                 'prompt' => 'Lies die Reservierungsdaten aus der Nachricht.',
                 'is_active' => true,
                 'sort_order' => 10,
@@ -60,6 +65,7 @@ class AiTemplateTest extends TestCase
         $template = AiTemplate::query()->where('title', 'Reservierung erstellen')->firstOrFail();
 
         $this->assertSame(AiTemplateArea::EmailMessage, $template->area);
+        $this->assertSame(AiTemplateAction::CreateReservation, $template->action);
 
         Livewire::actingAs($user)
             ->test(EditAiTemplate::class, ['record' => $template->getRouteKey()])
@@ -90,6 +96,7 @@ class AiTemplateTest extends TestCase
         $second = AiTemplate::query()->create([
             'title' => 'Zweite Aktion',
             'area' => AiTemplateArea::EmailMessage,
+            'action' => AiTemplateAction::CreateReservation,
             'prompt' => 'Geheimer Prompt 2',
             'is_active' => true,
             'sort_order' => 20,
@@ -97,6 +104,7 @@ class AiTemplateTest extends TestCase
         $first = AiTemplate::query()->create([
             'title' => 'Erste Aktion',
             'area' => AiTemplateArea::EmailMessage,
+            'action' => AiTemplateAction::CreateClient,
             'prompt' => 'Geheimer Prompt 1',
             'is_active' => true,
             'sort_order' => 10,
@@ -104,8 +112,15 @@ class AiTemplateTest extends TestCase
         AiTemplate::query()->create([
             'title' => 'Inaktive Aktion',
             'area' => AiTemplateArea::EmailMessage,
+            'action' => AiTemplateAction::CreateClient,
             'prompt' => 'Darf nicht erscheinen',
             'is_active' => false,
+        ]);
+        AiTemplate::query()->create([
+            'title' => 'Vorlage ohne Aktion',
+            'area' => AiTemplateArea::EmailMessage,
+            'prompt' => 'Noch nicht vollständig konfiguriert',
+            'is_active' => true,
         ]);
 
         $available = app(AvailableAiTemplates::class)->forUserAndArea($user, AiTemplateArea::EmailMessage);
@@ -121,12 +136,13 @@ class AiTemplateTest extends TestCase
             ]);
     }
 
-    public function test_selecting_a_template_only_prepares_the_context_without_calling_ai(): void
+    public function test_selecting_a_client_template_opens_a_prefilled_simulation_modal_without_external_ai(): void
     {
         $user = User::factory()->create();
         $template = AiTemplate::query()->create([
             'title' => 'Reservierung erstellen',
             'area' => AiTemplateArea::EmailMessage,
+            'action' => AiTemplateAction::CreateClient,
             'prompt' => 'Extrahiere Reservierungsdaten.',
             'is_active' => true,
         ]);
@@ -138,9 +154,45 @@ class AiTemplateTest extends TestCase
                 'uid' => '42',
                 'mailbox' => 'INBOX',
             ])
-            ->assertHasNoErrors();
+            ->assertHasNoErrors()
+            ->assertActionMounted('createClientFromAi')
+            ->assertActionDataSet([
+                'client_name' => 'Max',
+                'client_surname' => 'Mustermann',
+                'client_email' => 'max.mustermann@example.test',
+            ]);
 
         Http::assertNothingSent();
         $this->assertDatabaseCount('ai_templates', 1);
+    }
+
+    public function test_selecting_a_reservation_template_opens_the_reservation_simulation_modal(): void
+    {
+        $this->travelTo(now()->startOfDay());
+        $user = User::factory()->create();
+        $template = AiTemplate::query()->create([
+            'title' => 'Reservierung erstellen',
+            'area' => AiTemplateArea::EmailMessage,
+            'action' => AiTemplateAction::CreateReservation,
+            'prompt' => 'Extrahiere Reservierungsdaten.',
+            'is_active' => true,
+        ]);
+        Http::fake();
+
+        Livewire::actingAs($user)
+            ->test(Webmail::class)
+            ->call('prepareAiTemplate', $template->getKey(), [
+                'uid' => '43',
+                'mailbox' => 'INBOX',
+            ])
+            ->assertHasNoErrors()
+            ->assertActionMounted('createReservationFromAi')
+            ->assertActionDataSet([
+                'arrival_date' => now()->addWeek()->toDateString(),
+                'departure_date' => now()->addWeek()->addDays(3)->toDateString(),
+            ]);
+
+        Http::assertNothingSent();
+        $this->assertDatabaseCount('ip_reservations', 0);
     }
 }

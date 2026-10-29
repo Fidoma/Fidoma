@@ -4,11 +4,14 @@ namespace App\Features\EmailTemplates\Filament\Resources\EmailTemplates\Pages;
 
 use App\Features\EmailTemplates\Filament\Resources\EmailTemplates\EmailTemplateResource;
 use App\Features\EmailTemplates\Services\EmailTemplateDefaults;
+use App\Features\Settings\Filament\Concerns\HasTemplateTabs;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 
 class EditEmailTemplate extends EditRecord
 {
+    use HasTemplateTabs;
+
     protected static string $resource = EmailTemplateResource::class;
 
     private string $defaultUsage = 'none';

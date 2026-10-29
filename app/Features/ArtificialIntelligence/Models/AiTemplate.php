@@ -2,6 +2,7 @@
 
 namespace App\Features\ArtificialIntelligence\Models;
 
+use App\Features\ArtificialIntelligence\Enums\AiTemplateAction;
 use App\Features\ArtificialIntelligence\Enums\AiTemplateArea;
 use App\Features\ArtificialIntelligence\Policies\AiTemplatePolicy;
 use Illuminate\Database\Eloquent\Attributes\UsePolicy;
@@ -14,6 +15,7 @@ class AiTemplate extends Model
     protected $fillable = [
         'title',
         'area',
+        'action',
         'prompt',
         'is_active',
         'sort_order',
@@ -23,6 +25,7 @@ class AiTemplate extends Model
     {
         return [
             'area' => AiTemplateArea::class,
+            'action' => AiTemplateAction::class,
             'is_active' => 'boolean',
             'sort_order' => 'integer',
         ];

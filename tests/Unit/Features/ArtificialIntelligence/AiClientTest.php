@@ -7,6 +7,7 @@ use App\Features\ArtificialIntelligence\Exceptions\AiConfigurationException;
 use App\Features\ArtificialIntelligence\Exceptions\AiResponseException;
 use App\Features\ArtificialIntelligence\Services\AiClientManager;
 use App\Features\ArtificialIntelligence\Services\DisabledAiClient;
+use App\Features\ArtificialIntelligence\Services\FakeAiClient;
 use App\Features\ArtificialIntelligence\Services\OpenAiResponsesClient;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Config;
@@ -31,6 +32,15 @@ class AiClientTest extends TestCase
         $this->expectExceptionMessage("KI-Engine 'unknown'");
 
         app(AiClientManager::class)->client('unknown');
+    }
+
+    public function test_fake_engine_returns_a_structured_client_without_external_configuration(): void
+    {
+        $client = app(AiClientManager::class)->client('fake');
+
+        $this->assertInstanceOf(FakeAiClient::class, $client);
+        $this->assertTrue($client->configured());
+        $this->assertSame('Max', $client->structured('', '', 'client_create', [])['client_name']);
     }
 
     public function test_openai_client_returns_structured_output(): void

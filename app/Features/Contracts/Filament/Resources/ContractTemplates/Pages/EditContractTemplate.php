@@ -4,11 +4,13 @@ namespace App\Features\Contracts\Filament\Resources\ContractTemplates\Pages;
 
 use App\Features\Contracts\Filament\Resources\ContractTemplates\ContractTemplateResource;
 use App\Features\Contracts\Filament\Resources\ContractTemplates\Pages\Concerns\ManagesContractTemplateFields;
+use App\Features\Settings\Filament\Concerns\HasTemplateTabs;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 
 class EditContractTemplate extends EditRecord
 {
+    use HasTemplateTabs;
     use ManagesContractTemplateFields;
 
     protected static string $resource = ContractTemplateResource::class;

@@ -4,10 +4,12 @@ namespace App\Features\Contracts\Filament\Resources\ContractTemplates\Pages;
 
 use App\Features\Contracts\Filament\Resources\ContractTemplates\ContractTemplateResource;
 use App\Features\Contracts\Filament\Resources\ContractTemplates\Pages\Concerns\ManagesContractTemplateFields;
+use App\Features\Settings\Filament\Concerns\HasTemplateTabs;
 use App\Filament\Resources\Pages\CreateRecord;
 
 class CreateContractTemplate extends CreateRecord
 {
+    use HasTemplateTabs;
     use ManagesContractTemplateFields;
 
     protected static string $resource = ContractTemplateResource::class;

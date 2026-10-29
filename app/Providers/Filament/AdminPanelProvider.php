@@ -12,6 +12,7 @@ use App\Features\Invoices\Filament\Pages\InvoiceLayout;
 use App\Features\Reports\Filament\Pages\Reports;
 use App\Features\Settings\Filament\Clusters\SettingsCluster;
 use App\Features\Settings\Filament\Pages\Modules;
+use App\Features\Settings\Filament\Pages\Templates;
 use App\Features\Settings\Services\ModuleSettings;
 use App\Features\Terminals\Filament\Pages\Terminal;
 use App\Features\TradeFairs\Filament\Pages\TradeFairs;
@@ -118,6 +119,7 @@ class AdminPanelProvider extends PanelProvider
                 Documents::class,
                 DataImport::class,
                 Modules::class,
+                Templates::class,
                 InvoiceLayout::class,
                 Reports::class,
                 TradeFairs::class,

@@ -8,18 +8,24 @@ use App\Features\ArtificialIntelligence\Filament\Resources\AiTemplates\Pages\Lis
 use App\Features\ArtificialIntelligence\Filament\Resources\AiTemplates\Schemas\AiTemplateForm;
 use App\Features\ArtificialIntelligence\Filament\Resources\AiTemplates\Tables\AiTemplatesTable;
 use App\Features\ArtificialIntelligence\Models\AiTemplate;
+use App\Features\Settings\Filament\Clusters\SettingsCluster;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use UnitEnum;
 
 class AiTemplateResource extends Resource
 {
     protected static ?string $model = AiTemplate::class;
 
-    protected static ?int $navigationSort = 3;
+    protected static ?string $cluster = SettingsCluster::class;
+
+    protected static bool $shouldRegisterNavigation = false;
+
+    protected static ?int $navigationSort = 6;
+
+    protected static ?string $slug = 'ai-templates';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedSparkles;
 
@@ -38,11 +44,6 @@ class AiTemplateResource extends Resource
     public static function getNavigationLabel(): string
     {
         return __('artificial-intelligence::messages.navigation_label');
-    }
-
-    public static function getNavigationGroup(): string|UnitEnum|null
-    {
-        return __('artificial-intelligence::messages.navigation_group');
     }
 
     public static function form(Schema $schema): Schema
