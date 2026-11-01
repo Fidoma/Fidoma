@@ -25,7 +25,11 @@ Filament-Resources werden automatisch unter `app/Features` entdeckt. Eigenständ
 
 ## Datenbankänderungen
 
-Migrationen liegen zentral unter `database/migrations`. Bestehende `ip_`-Tabellen und Schlüssel nur aus zwingendem Grund umbenennen. Geldbeträge nicht mit neuer Float-Logik berechnen, sondern die vorhandenen Calculator-/Amount-Strukturen wiederverwenden.
+Der aktuelle Ausgangsstand liegt als Laravel-Schema-Baseline unter
+`database/schema/mysql-schema.sql`. Neue Schemaänderungen werden ab dieser Baseline wieder als
+Migrationen unter `database/migrations` angelegt. Bestehende Tabellen und Schlüssel nur aus
+zwingendem Grund umbenennen. Geldbeträge nicht mit neuer Float-Logik berechnen, sondern die
+vorhandenen Calculator-/Amount-Strukturen wiederverwenden.
 
 ## Übersetzungen
 

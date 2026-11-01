@@ -1,6 +1,6 @@
 # Architektur
 
-Fidoma basiert auf Laravel 13, Filament 5 und Livewire. MySQL 8.4 speichert die Daten; Tabellen mit Präfix `ip_` lehnen sich an das InvoicePlane-Datenmodell an.
+Fidoma basiert auf Laravel 13, Filament 5 und Livewire. MySQL 8.4 speichert die Daten. Teile des Datenmodells stammen ursprünglich aus InvoicePlane, verwenden in Fidoma jedoch kein technisches Tabellenpräfix.
 
 ## Feature-First-Struktur
 
