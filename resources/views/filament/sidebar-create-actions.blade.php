@@ -41,14 +41,25 @@
                         return;
                     }
 
-                    const createLink = document.createElement('a');
-                    createLink.className = 'fidoma-sidebar-create-action';
-                    createLink.href = action.createUrl;
-                    createLink.setAttribute('aria-label', action.label);
-                    createLink.setAttribute('title', action.label);
-                    createLink.setAttribute('wire:navigate', '');
-                    createLink.append(iconTemplate.content.cloneNode(true));
-                    navigationItem.append(createLink);
+                    const createControl = document.createElement(action.modalAction ? 'button' : 'a');
+                    createControl.className = 'fidoma-sidebar-create-action';
+                    createControl.setAttribute('aria-label', action.label);
+                    createControl.setAttribute('title', action.label);
+
+                    if (action.modalAction) {
+                        createControl.type = 'button';
+                        createControl.addEventListener('click', () => {
+                            Livewire.dispatch('open-sidebar-create-modal', {
+                                action: action.modalAction,
+                            });
+                        });
+                    } else {
+                        createControl.href = action.createUrl;
+                        createControl.setAttribute('wire:navigate', '');
+                    }
+
+                    createControl.append(iconTemplate.content.cloneNode(true));
+                    navigationItem.append(createControl);
                 });
             };
 

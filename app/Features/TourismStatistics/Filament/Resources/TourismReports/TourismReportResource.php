@@ -9,6 +9,7 @@ use App\Features\TourismStatistics\Filament\Resources\TourismReports\Schemas\Tou
 use App\Features\TourismStatistics\Filament\Resources\TourismReports\Tables\TourismReportsTable;
 use App\Features\TourismStatistics\Models\TourismReport;
 use App\Filament\Concerns\HasConfigurableNavigation;
+use App\Filament\Navigation\HasSidebarCreateModal;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -16,7 +17,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use UnitEnum;
 
-class TourismReportResource extends Resource
+class TourismReportResource extends Resource implements HasSidebarCreateModal
 {
     use HasConfigurableNavigation;
 
@@ -53,6 +54,11 @@ class TourismReportResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('tourism-statistics::messages.feature');
+    }
+
+    public static function getSidebarCreateModalAction(): string
+    {
+        return 'createTourismReport';
     }
 
     public static function form(Schema $schema): Schema

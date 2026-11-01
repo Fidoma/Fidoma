@@ -71,6 +71,10 @@ class AdminPanelProvider extends PanelProvider
                 PanelsRenderHook::SIDEBAR_NAV_END,
                 fn () => view('filament.sidebar-create-actions'),
             )
+            ->renderHook(
+                PanelsRenderHook::LAYOUT_END,
+                fn () => view('filament.sidebar-create-modal-host'),
+            )
             ->sidebarWidth('17rem')
             ->collapsedSidebarWidth('4.5rem')
             ->sidebarCollapsibleOnDesktop()

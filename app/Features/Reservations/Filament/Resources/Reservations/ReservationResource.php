@@ -12,6 +12,7 @@ use App\Features\Reservations\Filament\Resources\Reservations\Tables\Reservation
 use App\Features\Reservations\Models\Reservation;
 use App\Features\TradeFairs\Filament\Pages\TradeFairs;
 use App\Filament\Concerns\HasConfigurableNavigation;
+use App\Filament\Navigation\HasSidebarCreateModal;
 use BackedEnum;
 use Filament\Navigation\NavigationItem;
 use Filament\Resources\Resource;
@@ -19,7 +20,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
-class ReservationResource extends Resource
+class ReservationResource extends Resource implements HasSidebarCreateModal
 {
     use HasConfigurableNavigation;
 
@@ -53,6 +54,11 @@ class ReservationResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('reservations::messages.feature');
+    }
+
+    public static function getSidebarCreateModalAction(): string
+    {
+        return 'createReservation';
     }
 
     protected static ?string $recordTitleAttribute = 'reservation_number';

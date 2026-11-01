@@ -3,6 +3,7 @@
 namespace App\Features\Clients\Filament\Resources\Clients\Tables;
 
 use App\Features\Clients\Actions\ArchiveClient;
+use App\Features\Clients\Actions\CreateClient;
 use App\Features\Clients\Filament\Resources\Clients\ClientResource;
 use App\Features\Clients\Models\Client;
 use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
@@ -14,6 +15,7 @@ use Filament\Actions\EditAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -84,7 +86,8 @@ class ClientsTable
                 CreateAction::make()
                     ->label(__('clients::messages.actions.create_client'))
                     ->icon(Heroicon::Plus)
-                    ->url(ClientResource::getUrl('create')),
+                    ->using(fn (array $data): Client => app(CreateClient::class)->handle($data))
+                    ->modalWidth(Width::FiveExtraLarge),
             ])
             ->recordActions([
                 ActionGroup::make([

@@ -4,6 +4,7 @@ namespace Tests\Feature\Filament;
 
 use App\Features\ArtificialIntelligence\Filament\Resources\AiTemplates\AiTemplateResource;
 use App\Features\Clients\Filament\Resources\Clients\ClientResource;
+use App\Features\Contracts\Filament\Resources\Contracts\ContractResource;
 use App\Features\Contracts\Filament\Resources\ContractTemplates\ContractTemplateResource;
 use App\Features\Documents\Services\PaperlessClient;
 use App\Features\EmailTemplates\Filament\Resources\EmailTemplates\EmailTemplateResource;
@@ -12,15 +13,19 @@ use App\Features\Imports\Filament\Pages\DataImport;
 use App\Features\InvoiceGroups\Filament\Resources\InvoiceGroups\InvoiceGroupResource;
 use App\Features\Invoices\Filament\Pages\InvoiceLayout;
 use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
+use App\Features\Payments\Filament\Resources\Payments\PaymentResource;
 use App\Features\Products\Filament\Clusters\ProductsCluster;
 use App\Features\Products\Filament\Resources\Products\ProductResource;
+use App\Features\Projects\Filament\Resources\Projects\ProjectResource;
 use App\Features\Quotes\Filament\Resources\Quotes\QuoteResource;
 use App\Features\Reservations\Filament\Resources\Reservations\ReservationResource;
+use App\Features\Reservations\Filament\Resources\Rooms\RoomResource;
 use App\Features\Settings\Filament\Clusters\SettingsCluster;
 use App\Features\Settings\Filament\Pages\Modules;
 use App\Features\Settings\Filament\Pages\Templates;
 use App\Features\TaxRates\Filament\Resources\TaxRates\TaxRateResource;
 use App\Features\Terminals\Filament\Pages\Terminal;
+use App\Features\TourismStatistics\Filament\Resources\TourismReports\TourismReportResource;
 use App\Features\Units\Filament\Resources\Units\UnitResource;
 use App\Features\Users\Filament\Resources\Users\UserResource;
 use App\Filament\Navigation\SidebarCreateActions;
@@ -60,10 +65,9 @@ class AdminNavigationTest extends TestCase
 
         $actions = collect(app(SidebarCreateActions::class)->all())->keyBy('navigationUrl');
 
-        $this->assertSame(
-            ClientResource::getUrl('create'),
-            $actions->get(ClientResource::getNavigationItems()[0]->getUrl())['createUrl'] ?? null,
-        );
+        $clientAction = $actions->get(ClientResource::getNavigationItems()[0]->getUrl());
+        $this->assertNull($clientAction['createUrl']);
+        $this->assertSame('createClient', $clientAction['modalAction']);
         $this->assertSame(
             InvoiceResource::getUrl('create'),
             $actions->get(InvoiceResource::getNavigationItems()[0]->getUrl())['createUrl'] ?? null,
@@ -72,13 +76,32 @@ class AdminNavigationTest extends TestCase
             QuoteResource::getUrl('create'),
             $actions->get(QuoteResource::getNavigationItems()[0]->getUrl())['createUrl'] ?? null,
         );
-        $this->assertSame(
-            ReservationResource::getUrl('create'),
-            $actions->get(ReservationResource::getNavigationItems()[0]->getUrl())['createUrl'] ?? null,
-        );
+        $reservationAction = $actions->get(ReservationResource::getNavigationItems()[0]->getUrl());
+        $this->assertNull($reservationAction['createUrl']);
+        $this->assertSame('createReservation', $reservationAction['modalAction']);
         $this->assertSame(
             ProductResource::getUrl('create'),
             $actions->get(ProductsCluster::getNavigationUrl())['createUrl'] ?? null,
+        );
+        $this->assertSame(
+            'createPayment',
+            $actions->get(PaymentResource::getNavigationItems()[0]->getUrl())['modalAction'] ?? null,
+        );
+        $this->assertSame(
+            'createRoom',
+            $actions->get(RoomResource::getNavigationItems()[0]->getUrl())['modalAction'] ?? null,
+        );
+        $this->assertSame(
+            'createProject',
+            $actions->get(ProjectResource::getNavigationItems()[0]->getUrl())['modalAction'] ?? null,
+        );
+        $this->assertSame(
+            'createContract',
+            $actions->get(ContractResource::getNavigationItems()[0]->getUrl())['modalAction'] ?? null,
+        );
+        $this->assertSame(
+            'createTourismReport',
+            $actions->get(TourismReportResource::getNavigationItems()[0]->getUrl())['modalAction'] ?? null,
         );
 
         $this->get('/admin')

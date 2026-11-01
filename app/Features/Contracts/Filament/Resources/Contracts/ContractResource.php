@@ -11,13 +11,14 @@ use App\Features\Contracts\Filament\Resources\Contracts\Schemas\ContractInfolist
 use App\Features\Contracts\Filament\Resources\Contracts\Tables\ContractsTable;
 use App\Features\Contracts\Models\Contract;
 use App\Filament\Concerns\HasConfigurableNavigation;
+use App\Filament\Navigation\HasSidebarCreateModal;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
-class ContractResource extends Resource
+class ContractResource extends Resource implements HasSidebarCreateModal
 {
     use HasConfigurableNavigation;
 
@@ -55,6 +56,11 @@ class ContractResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('contracts::messages.feature');
+    }
+
+    public static function getSidebarCreateModalAction(): string
+    {
+        return 'createContract';
     }
 
     public static function form(Schema $schema): Schema

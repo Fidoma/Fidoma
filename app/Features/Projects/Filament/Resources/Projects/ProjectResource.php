@@ -9,13 +9,14 @@ use App\Features\Projects\Filament\Resources\Projects\Schemas\ProjectForm;
 use App\Features\Projects\Filament\Resources\Projects\Tables\ProjectsTable;
 use App\Features\Projects\Models\Project;
 use App\Filament\Concerns\HasConfigurableNavigation;
+use App\Filament\Navigation\HasSidebarCreateModal;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
-class ProjectResource extends Resource
+class ProjectResource extends Resource implements HasSidebarCreateModal
 {
     use HasConfigurableNavigation;
 
@@ -46,6 +47,11 @@ class ProjectResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('projects::messages.feature');
+    }
+
+    public static function getSidebarCreateModalAction(): string
+    {
+        return 'createProject';
     }
 
     public static function form(Schema $schema): Schema

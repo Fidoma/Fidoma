@@ -58,6 +58,33 @@ class ClientNumberTest extends TestCase
             ->assertFormFieldDoesNotExist('invoice_group_id');
     }
 
+    public function test_client_can_be_created_from_the_complete_table_modal(): void
+    {
+        Livewire::actingAs(User::factory()->create())
+            ->test(ListClients::class)
+            ->assertTableActionExists('create')
+            ->callTableAction('create', data: [
+                'client_company' => 'Modal Kunde GmbH',
+                'client_active' => true,
+                'client_address_1' => 'Musterstraße 12',
+                'client_zip' => '12345',
+                'client_city' => 'Musterstadt',
+                'client_country' => 'DE',
+                'client_email' => 'modal@example.test',
+                'client_einvoicing_active' => true,
+                'client_einvoicing_version' => 'XRechnung 3.0 (CII)',
+                'client_einvoicing_reference' => 'Leitweg-ID-123',
+            ])
+            ->assertHasNoTableActionErrors();
+
+        $this->assertDatabaseHas('clients', [
+            'client_name' => 'Modal Kunde GmbH',
+            'client_company' => 'Modal Kunde GmbH',
+            'client_address_1' => 'Musterstraße 12',
+            'client_einvoicing_reference' => 'Leitweg-ID-123',
+        ]);
+    }
+
     public function test_country_options_are_localized_and_keep_existing_free_text_values(): void
     {
         $options = ClientCountryOptions::all('de');

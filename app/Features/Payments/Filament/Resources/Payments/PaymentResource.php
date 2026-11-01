@@ -6,13 +6,14 @@ use App\Features\Payments\Filament\Resources\Payments\Pages\ListPayments;
 use App\Features\Payments\Filament\Resources\Payments\Tables\PaymentsTable;
 use App\Features\Payments\Models\Payment;
 use App\Filament\Concerns\HasConfigurableNavigation;
+use App\Filament\Navigation\HasSidebarCreateModal;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use UnitEnum;
 
-class PaymentResource extends Resource
+class PaymentResource extends Resource implements HasSidebarCreateModal
 {
     use HasConfigurableNavigation;
 
@@ -53,6 +54,11 @@ class PaymentResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('payments::messages.feature');
+    }
+
+    public static function getSidebarCreateModalAction(): string
+    {
+        return 'createPayment';
     }
 
     public static function table(Table $table): Table

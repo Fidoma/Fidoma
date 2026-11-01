@@ -8,6 +8,7 @@ use App\Features\Documents\Livewire\AssignBankTransaction;
 use App\Features\Terminals\Contracts\PaymentTerminalInterface;
 use App\Features\Terminals\Services\InternalApiTerminalGateway;
 use App\Features\TradeFairs\Livewire\UpcomingTradeFairsTable;
+use App\Filament\Livewire\SidebarCreateModal;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Forms\Components\Select;
@@ -36,6 +37,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Livewire::component('filament.sidebar-create-modal', SidebarCreateModal::class);
+
         Select::configureUsing(function (Select $select): void {
             $select
                 ->selectablePlaceholder(fn (Select $component): bool => self::isLinkedSelect($component))

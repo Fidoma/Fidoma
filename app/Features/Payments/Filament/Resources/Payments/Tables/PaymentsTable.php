@@ -158,7 +158,7 @@ class PaymentsTable
             ->extraAttributes(['style' => 'display: none']);
     }
 
-    private static function createPaymentAction(): Action
+    public static function createPaymentAction(): Action
     {
         return Action::make('createPayment')
             ->label('Zahlung')

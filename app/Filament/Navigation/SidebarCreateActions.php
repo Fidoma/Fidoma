@@ -7,7 +7,7 @@ use Filament\Facades\Filament;
 final class SidebarCreateActions
 {
     /**
-     * @return array<int, array{navigationUrl: string, createUrl: string, label: string}>
+     * @return array<int, array{navigationUrl: string, createUrl: ?string, modalAction: ?string, label: string}>
      */
     public function all(): array
     {
@@ -21,7 +21,9 @@ final class SidebarCreateActions
         );
 
         foreach ($resources as $resource) {
-            if (! $resource::hasPage('create') || ! $resource::canCreate()) {
+            $hasCreateModal = is_subclass_of($resource, HasSidebarCreateModal::class);
+
+            if ((! $hasCreateModal && ! $resource::hasPage('create')) || ! $resource::canCreate()) {
                 continue;
             }
 
@@ -42,7 +44,8 @@ final class SidebarCreateActions
 
             $actions[$navigationUrl] = [
                 'navigationUrl' => $navigationUrl,
-                'createUrl' => $resource::getUrl('create'),
+                'createUrl' => $hasCreateModal ? null : $resource::getUrl('create'),
+                'modalAction' => $hasCreateModal ? $resource::getSidebarCreateModalAction() : null,
                 'label' => $resource::getModelLabel().' erstellen',
             ];
         }

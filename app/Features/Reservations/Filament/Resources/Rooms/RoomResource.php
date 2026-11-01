@@ -5,6 +5,7 @@ namespace App\Features\Reservations\Filament\Resources\Rooms;
 use App\Features\Reservations\Filament\Resources\Rooms\Pages\ListRooms;
 use App\Features\Reservations\Models\Room;
 use App\Filament\Concerns\HasConfigurableNavigation;
+use App\Filament\Navigation\HasSidebarCreateModal;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
@@ -21,7 +22,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 
-class RoomResource extends Resource
+class RoomResource extends Resource implements HasSidebarCreateModal
 {
     use HasConfigurableNavigation;
 
@@ -55,6 +56,11 @@ class RoomResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('reservations::messages.rooms');
+    }
+
+    public static function getSidebarCreateModalAction(): string
+    {
+        return 'createRoom';
     }
 
     protected static ?string $recordTitleAttribute = 'room_number';
