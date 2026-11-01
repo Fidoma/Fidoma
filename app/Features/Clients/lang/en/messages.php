@@ -34,7 +34,7 @@ return [
         'state' => 'State / Region',
         'country' => 'Country',
         'title' => 'Salutation / Title',
-        'company' => 'Company',
+        'company' => 'Company / Name',
         'first_name' => 'First name / Name',
         'last_name' => 'Last name',
         'billing_contact' => 'Billing contact',

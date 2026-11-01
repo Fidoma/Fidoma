@@ -157,8 +157,7 @@ class AiTemplateTest extends TestCase
             ->assertHasNoErrors()
             ->assertActionMounted('createClientFromAi')
             ->assertActionDataSet([
-                'client_name' => 'Max',
-                'client_surname' => 'Mustermann',
+                'client_company' => 'Max Mustermann',
                 'client_email' => 'max.mustermann@example.test',
             ]);
 

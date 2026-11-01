@@ -20,6 +20,10 @@ final class CreateClient
      */
     public function handle(array $attributes): Client
     {
+        if (blank($attributes['client_name'] ?? null) && filled($attributes['client_company'] ?? null)) {
+            $attributes['client_name'] = $attributes['client_company'];
+        }
+
         return DB::transaction(function () use ($attributes): Client {
             $invoiceGroupId = (int) $this->defaults->invoiceGroupId();
 

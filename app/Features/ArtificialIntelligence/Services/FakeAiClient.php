@@ -20,16 +20,13 @@ final class FakeAiClient implements AiClient
     ): array {
         return match ($schemaName) {
             'client_create' => [
-                'client_title' => 'Herr',
-                'client_name' => 'Max',
-                'client_surname' => 'Mustermann',
-                'client_company' => null,
+                'client_company' => 'Max Mustermann',
                 'client_email' => 'max.mustermann@example.test',
                 'client_phone' => '+49 30 12345678',
                 'client_address_1' => 'Musterstraße 12',
                 'client_zip' => '10115',
                 'client_city' => 'Berlin',
-                'client_country' => 'Deutschland',
+                'client_country' => 'DE',
                 'client_active' => true,
             ],
             'reservation_create' => [

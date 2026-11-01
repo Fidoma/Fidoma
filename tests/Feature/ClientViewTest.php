@@ -52,7 +52,7 @@ class ClientViewTest extends TestCase
             ->assertSeeText('Rechnungsinformationen');
     }
 
-    public function test_client_edit_form_is_split_into_business_sections(): void
+    public function test_client_edit_form_uses_the_remaining_business_sections(): void
     {
         $user = User::factory()->create();
         $client = Client::query()->create([
@@ -63,7 +63,7 @@ class ClientViewTest extends TestCase
         $this->actingAs($user)
             ->get("/admin/clients/{$client->getKey()}/edit")
             ->assertOk()
-            ->assertSeeText('Stammdaten')
+            ->assertDontSeeText('Stammdaten')
             ->assertSeeText('Anschrift')
             ->assertSeeText('Kontakt')
             ->assertSeeText('Rechnungs- und Steuerdaten');

@@ -40,7 +40,7 @@ class AiClientTest extends TestCase
 
         $this->assertInstanceOf(FakeAiClient::class, $client);
         $this->assertTrue($client->configured());
-        $this->assertSame('Max', $client->structured('', '', 'client_create', [])['client_name']);
+        $this->assertSame('Max Mustermann', $client->structured('', '', 'client_create', [])['client_company']);
     }
 
     public function test_openai_client_returns_structured_output(): void

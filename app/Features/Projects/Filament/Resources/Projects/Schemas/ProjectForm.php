@@ -2,7 +2,6 @@
 
 namespace App\Features\Projects\Filament\Resources\Projects\Schemas;
 
-use App\Features\Clients\Models\Client;
 use App\Features\Contracts\Models\Contract;
 use App\Features\Projects\Enums\ProjectStatus;
 use App\Features\Quotes\Models\Quote;
@@ -14,6 +13,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Builder;
 
 class ProjectForm
 {
@@ -25,13 +25,13 @@ class ProjectForm
                 ->schema([
                     Select::make('client_id')
                         ->label(__('projects::messages.fields.client'))
-                        ->options(fn (): array => Client::query()
-                            ->where('client_active', true)
-                            ->orderBy('client_name')
-                            ->get()
-                            ->mapWithKeys(fn (Client $client): array => [
-                                $client->getKey() => $client->client_company ?: $client->client_name,
-                            ])->all())
+                        ->relationship(
+                            'client',
+                            'client_name',
+                            modifyQueryUsing: fn (Builder $query): Builder => $query
+                                ->where('client_active', true)
+                                ->orderBy('client_name'),
+                        )
                         ->searchable()
                         ->preload()
                         ->live()

@@ -199,10 +199,13 @@ class AdminNavigationTest extends TestCase
         $this->get(ClientResource::getUrl('create'))
             ->assertOk()
             ->assertSee('Address')
-            ->assertSee('Street and house number')
-            ->assertSee('Master data')
+            ->assertSeeInOrder(['Company / Name', 'Street and house number'])
+            ->assertDontSee('Master data')
             ->assertSee('Billing and tax details')
             ->assertSee('Enable e-invoicing')
+            ->assertDontSee('Salutation / Title')
+            ->assertDontSee('First name / Name')
+            ->assertDontSee('Last name')
             ->assertDontSee('Straße und Hausnummer');
 
         $this->get(InvoiceResource::getUrl())

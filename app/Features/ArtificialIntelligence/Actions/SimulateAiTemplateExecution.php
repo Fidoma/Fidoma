@@ -69,9 +69,8 @@ final class SimulateAiTemplateExecution
     {
         $properties = match ($action) {
             AiTemplateAction::CreateClient => [
-                'client_title', 'client_name', 'client_surname', 'client_company', 'client_email',
-                'client_phone', 'client_address_1', 'client_zip', 'client_city', 'client_country',
-                'client_active',
+                'client_company', 'client_email', 'client_phone', 'client_address_1', 'client_zip',
+                'client_city', 'client_country', 'client_active',
             ],
             AiTemplateAction::CreateReservation => [
                 'client_name', 'client_email', 'arrival_date', 'departure_date', 'room_number', 'product_name',
@@ -93,10 +92,7 @@ final class SimulateAiTemplateExecution
     {
         return match ($action) {
             AiTemplateAction::CreateClient => [
-                'client_title' => ['nullable', 'string', 'max:50'],
-                'client_name' => ['required', 'string', 'max:100'],
-                'client_surname' => ['nullable', 'string', 'max:255'],
-                'client_company' => ['nullable', 'string', 'max:150'],
+                'client_company' => ['required', 'string', 'max:150'],
                 'client_email' => ['nullable', 'email', 'max:100'],
                 'client_phone' => ['nullable', 'string', 'max:20'],
                 'client_address_1' => ['nullable', 'string', 'max:100'],

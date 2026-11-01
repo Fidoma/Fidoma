@@ -11,6 +11,7 @@ use App\Features\Projects\Filament\Resources\Projects\ProjectResource;
 use App\Features\Projects\Models\Project;
 use App\Models\User;
 use Filament\Facades\Filament;
+use Filament\Forms\Components\Select;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -82,6 +83,32 @@ class ProjectsPageTest extends TestCase
         $this->assertSame(ProjectStatus::Active, $project->project_status);
         $this->assertSame('100000.00', $project->contract_amount);
         $this->assertSame(43, $group->refresh()->invoice_group_next_id);
+    }
+
+    public function test_project_client_select_uses_the_client_name(): void
+    {
+        $company = Client::query()->create([
+            'client_name' => 'Bauherr GmbH',
+            'client_active' => true,
+        ]);
+        $person = Client::query()->create([
+            'client_name' => 'Max Mustermann',
+            'client_active' => true,
+        ]);
+        $inactive = Client::query()->create([
+            'client_name' => 'Inaktiver Kunde',
+            'client_active' => false,
+        ]);
+
+        Livewire::actingAs(User::factory()->create())
+            ->test(CreateProject::class)
+            ->assertFormFieldExists('client_id', function (Select $field) use ($company, $person, $inactive): bool {
+                $options = $field->getOptions();
+
+                return $options[$company->getKey()] === 'Bauherr GmbH'
+                    && $options[$person->getKey()] === 'Max Mustermann'
+                    && ! array_key_exists($inactive->getKey(), $options);
+            });
     }
 
     public function test_project_can_be_created_without_a_name(): void

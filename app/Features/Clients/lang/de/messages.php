@@ -34,7 +34,7 @@ return [
         'state' => 'Bundesland / Region',
         'country' => 'Land',
         'title' => 'Anrede / Titel',
-        'company' => 'Firma',
+        'company' => 'Firma / Vor-Nachname',
         'first_name' => 'Vorname / Name',
         'last_name' => 'Nachname',
         'billing_contact' => 'Rechnungskontakt',
