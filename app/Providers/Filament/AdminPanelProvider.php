@@ -67,6 +67,10 @@ class AdminPanelProvider extends PanelProvider
                 fn () => view('authentication::login-story'),
                 scopes: Login::class,
             )
+            ->renderHook(
+                PanelsRenderHook::SIDEBAR_NAV_END,
+                fn () => view('filament.sidebar-create-actions'),
+            )
             ->sidebarWidth('17rem')
             ->collapsedSidebarWidth('4.5rem')
             ->sidebarCollapsibleOnDesktop()

@@ -12,8 +12,10 @@ use App\Features\Imports\Filament\Pages\DataImport;
 use App\Features\InvoiceGroups\Filament\Resources\InvoiceGroups\InvoiceGroupResource;
 use App\Features\Invoices\Filament\Pages\InvoiceLayout;
 use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
+use App\Features\Products\Filament\Clusters\ProductsCluster;
 use App\Features\Products\Filament\Resources\Products\ProductResource;
 use App\Features\Quotes\Filament\Resources\Quotes\QuoteResource;
+use App\Features\Reservations\Filament\Resources\Reservations\ReservationResource;
 use App\Features\Settings\Filament\Clusters\SettingsCluster;
 use App\Features\Settings\Filament\Pages\Modules;
 use App\Features\Settings\Filament\Pages\Templates;
@@ -21,6 +23,7 @@ use App\Features\TaxRates\Filament\Resources\TaxRates\TaxRateResource;
 use App\Features\Terminals\Filament\Pages\Terminal;
 use App\Features\Units\Filament\Resources\Units\UnitResource;
 use App\Features\Users\Filament\Resources\Users\UserResource;
+use App\Filament\Navigation\SidebarCreateActions;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Filament\Support\Icons\Heroicon;
@@ -46,6 +49,41 @@ class AdminNavigationTest extends TestCase
     {
         $this->assertSame('Kunden', ClientResource::getNavigationLabel());
         $this->assertSame(Heroicon::OutlinedUserGroup, ClientResource::getNavigationIcon());
+    }
+
+    public function test_creatable_sidebar_resources_receive_a_direct_create_action(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $panel = Filament::getPanel('admin');
+        Filament::setCurrentPanel($panel);
+
+        $actions = collect(app(SidebarCreateActions::class)->all())->keyBy('navigationUrl');
+
+        $this->assertSame(
+            ClientResource::getUrl('create'),
+            $actions->get(ClientResource::getNavigationItems()[0]->getUrl())['createUrl'] ?? null,
+        );
+        $this->assertSame(
+            InvoiceResource::getUrl('create'),
+            $actions->get(InvoiceResource::getNavigationItems()[0]->getUrl())['createUrl'] ?? null,
+        );
+        $this->assertSame(
+            QuoteResource::getUrl('create'),
+            $actions->get(QuoteResource::getNavigationItems()[0]->getUrl())['createUrl'] ?? null,
+        );
+        $this->assertSame(
+            ReservationResource::getUrl('create'),
+            $actions->get(ReservationResource::getNavigationItems()[0]->getUrl())['createUrl'] ?? null,
+        );
+        $this->assertSame(
+            ProductResource::getUrl('create'),
+            $actions->get(ProductsCluster::getNavigationUrl())['createUrl'] ?? null,
+        );
+
+        $this->get('/admin')
+            ->assertOk()
+            ->assertSee('fidoma-sidebar-create-action-template', escape: false);
     }
 
     public function test_external_integrations_share_the_external_services_navigation_group(): void

@@ -300,6 +300,61 @@
     box-shadow: inset 0 0 0 1px rgb(255 0 146 / 0.18);
 }
 
+.fi-sidebar-item:has(> .fidoma-sidebar-create-action) {
+    position: relative;
+}
+
+.fi-sidebar-item:has(> .fidoma-sidebar-create-action) > .fi-sidebar-item-btn {
+    padding-inline-end: 2.75rem;
+}
+
+.fidoma-sidebar-create-action {
+    position: absolute;
+    z-index: 1;
+    inset-block-start: 50%;
+    inset-inline-end: 0.5rem;
+    display: inline-flex;
+    width: 1.75rem;
+    height: 1.75rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.55rem;
+    color: rgb(148 163 184);
+    transform: translateY(-50%);
+    transition: color 75ms, background-color 75ms, box-shadow 75ms;
+}
+
+.fidoma-sidebar-create-action:hover,
+.fidoma-sidebar-create-action:focus-visible {
+    color: rgb(255 0 146);
+    background-color: rgb(255 0 146 / 0.1);
+}
+
+.fidoma-sidebar-create-action:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px rgb(255 0 146 / 0.25);
+}
+
+.dark .fidoma-sidebar-create-action {
+    color: rgb(113 113 122);
+}
+
+.dark .fidoma-sidebar-create-action:hover,
+.dark .fidoma-sidebar-create-action:focus-visible {
+    color: rgb(255 92 185);
+    background-color: rgb(255 0 146 / 0.14);
+}
+
+@media (min-width: 64rem) {
+    .fi-sidebar:not(.fi-sidebar-open) .fidoma-sidebar-create-action {
+        display: none;
+    }
+
+    .fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-item:has(> .fidoma-sidebar-create-action) > .fi-sidebar-item-btn {
+        padding-inline-end: 0.5rem;
+    }
+}
+
 .fi-section,
 .fi-ta-ctn,
 .fi-modal-window {

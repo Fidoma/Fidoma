@@ -3,6 +3,7 @@
 namespace App\Features\Invoices\Filament\Resources\Invoices\Schemas;
 
 use App\Features\Clients\Actions\CreateClient;
+use App\Features\Clients\Filament\Resources\Clients\Schemas\ClientForm;
 use App\Features\Invoices\Actions\ArchiveInvoice;
 use App\Features\Invoices\Enums\InvoiceBillingType;
 use App\Features\Invoices\Enums\InvoiceStatus;
@@ -38,6 +39,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 
 class InvoiceForm
@@ -216,11 +218,8 @@ class InvoiceForm
                         ->preload()
                         ->default(fn (): ?int => request()->integer('client_id') ?: null)
                         ->required()
-                        ->createOptionForm([
-                            TextInput::make('client_name')->label(__('invoices::messages.fields.name'))->required()->maxLength(100),
-                            TextInput::make('client_email')->label(__('invoices::messages.fields.email'))->email()->maxLength(100),
-                            TextInput::make('client_phone')->label(__('invoices::messages.fields.phone'))->tel()->maxLength(20),
-                        ])
+                        ->createOptionForm(fn (Schema $schema): Schema => ClientForm::configure($schema))
+                        ->createOptionAction(fn (Action $action): Action => $action->modalWidth(Width::FiveExtraLarge))
                         ->createOptionUsing(fn (array $data): int => app(CreateClient::class)->handle($data)->getKey())
                         ->disabled(fn (Get $get, ?Invoice $record): bool => filled($get('project_id'))
                             || self::invoiceType($get) !== InvoiceType::Invoice

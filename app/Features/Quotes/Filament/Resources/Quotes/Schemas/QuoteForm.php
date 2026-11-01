@@ -3,6 +3,7 @@
 namespace App\Features\Quotes\Filament\Resources\Quotes\Schemas;
 
 use App\Features\Clients\Actions\CreateClient;
+use App\Features\Clients\Filament\Resources\Clients\Schemas\ClientForm;
 use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
 use App\Features\Products\Models\Product;
 use App\Features\Quotes\Actions\ArchiveQuote;
@@ -34,6 +35,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 
 class QuoteForm
@@ -133,20 +135,8 @@ class QuoteForm
                             ->preload()
                             ->default(fn (): ?int => request()->integer('client_id') ?: null)
                             ->required()
-                            ->createOptionForm([
-                                TextInput::make('client_name')
-                                    ->label(__('quotes::messages.fields.name'))
-                                    ->required()
-                                    ->maxLength(100),
-                                TextInput::make('client_email')
-                                    ->label(__('quotes::messages.fields.email'))
-                                    ->email()
-                                    ->maxLength(100),
-                                TextInput::make('client_phone')
-                                    ->label(__('quotes::messages.fields.phone'))
-                                    ->tel()
-                                    ->maxLength(20),
-                            ])
+                            ->createOptionForm(fn (Schema $schema): Schema => ClientForm::configure($schema))
+                            ->createOptionAction(fn (Action $action): Action => $action->modalWidth(Width::FiveExtraLarge))
                             ->createOptionUsing(fn (array $data): int => app(CreateClient::class)->handle($data)->getKey())
                             ->columnSpan(['default' => 'full', 'xl' => 4]),
                         TextInput::make('quote_number')

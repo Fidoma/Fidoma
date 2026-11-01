@@ -3,6 +3,7 @@
 namespace App\Features\Reservations\Filament\Resources\Reservations\Schemas;
 
 use App\Features\Clients\Actions\CreateClient;
+use App\Features\Clients\Filament\Resources\Clients\Schemas\ClientForm;
 use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
 use App\Features\Products\Models\Product;
 use App\Features\Quotes\Services\QuoteAmountCalculator;
@@ -32,6 +33,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 
 class ReservationForm
@@ -108,11 +110,8 @@ class ReservationForm
                             ->searchable(['client_name', 'client_company', 'client_email'])
                             ->preload()
                             ->required()
-                            ->createOptionForm([
-                                TextInput::make('client_name')->label('Name')->required()->maxLength(100),
-                                TextInput::make('client_email')->label('E-Mail')->email()->maxLength(100),
-                                TextInput::make('client_phone')->label('Telefon')->tel()->maxLength(30),
-                            ])
+                            ->createOptionForm(fn (Schema $schema): Schema => ClientForm::configure($schema))
+                            ->createOptionAction(fn (Action $action): Action => $action->modalWidth(Width::FiveExtraLarge))
                             ->createOptionUsing(fn (array $data): int => app(CreateClient::class)->handle($data)->getKey())
                             ->columnSpan(['default' => 'full', 'xl' => 4]),
                         TextInput::make('reservation_number')
