@@ -31,7 +31,7 @@ class InvoiceArchiveTest extends TestCase
 
         app(ArchiveInvoice::class)->handle($invoice);
 
-        $this->assertDatabaseHas('ip_invoices', [
+        $this->assertDatabaseHas('invoices', [
             'invoice_id' => $invoice->getKey(),
             'is_archived' => true,
             'is_read_only' => true,

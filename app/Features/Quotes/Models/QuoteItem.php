@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class QuoteItem extends Model
 {
-    protected $table = 'ip_quote_items';
+    protected $table = 'quote_items';
 
     protected $primaryKey = 'item_id';
 

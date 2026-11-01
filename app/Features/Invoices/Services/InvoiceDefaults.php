@@ -57,6 +57,6 @@ final class InvoiceDefaults
 
     private function value(string $key, mixed $default): mixed
     {
-        return DB::table('ip_settings')->where('setting_key', $key)->value('setting_value') ?? $default;
+        return DB::table('settings')->where('setting_key', $key)->value('setting_value') ?? $default;
     }
 }

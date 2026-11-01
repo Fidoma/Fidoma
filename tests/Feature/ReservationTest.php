@@ -92,7 +92,7 @@ class ReservationTest extends TestCase
             ->assertHasNoTableActionErrors()
             ->assertCountTableRecords(1);
 
-        $this->assertDatabaseHas('ip_rooms', [
+        $this->assertDatabaseHas('rooms', [
             'room_number' => '204',
             'room_capacity' => 1,
             'room_active' => true,

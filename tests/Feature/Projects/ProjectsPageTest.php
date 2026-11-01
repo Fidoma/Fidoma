@@ -132,7 +132,7 @@ class ProjectsPageTest extends TestCase
             ->assertHasNoFormErrors()
             ->assertRedirect();
 
-        $this->assertDatabaseHas('ip_projects', [
+        $this->assertDatabaseHas('projects', [
             'client_id' => $client->getKey(),
             'project_name' => null,
         ]);

@@ -23,7 +23,7 @@ class ProjectInvoiceTest extends TestCase
 
     protected function tearDown(): void
     {
-        DB::table('ip_settings')->where('setting_key', 'module_enabled_projects')->delete();
+        DB::table('settings')->where('setting_key', 'module_enabled_projects')->delete();
 
         parent::tearDown();
     }
@@ -80,7 +80,7 @@ class ProjectInvoiceTest extends TestCase
         $user = User::factory()->create();
         Filament::setCurrentPanel(Filament::getPanel('admin'));
 
-        DB::table('ip_settings')->insert([
+        DB::table('settings')->insert([
             'setting_key' => 'module_enabled_projects',
             'setting_value' => '0',
         ]);
@@ -108,7 +108,7 @@ class ProjectInvoiceTest extends TestCase
             'invoice_date_due' => '2026-11-18',
         ]);
 
-        DB::table('ip_settings')->insert([
+        DB::table('settings')->insert([
             'setting_key' => 'module_enabled_projects',
             'setting_value' => '0',
         ]);
@@ -135,7 +135,7 @@ class ProjectInvoiceTest extends TestCase
         ]);
         $this->actingAs($user);
 
-        DB::table('ip_settings')->insert([
+        DB::table('settings')->insert([
             'setting_key' => 'module_enabled_projects',
             'setting_value' => '0',
         ]);

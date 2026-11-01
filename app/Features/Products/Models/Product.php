@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Product extends Model
 {
-    protected $table = 'ip_products';
+    protected $table = 'products';
 
     protected $primaryKey = 'product_id';
 

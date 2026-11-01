@@ -99,12 +99,12 @@ class InvoiceDetailsSlideOverTest extends TestCase
             ])
             ->assertSee('Im Slide-over erfasst');
 
-        $this->assertDatabaseHas('ip_payments', [
+        $this->assertDatabaseHas('payments', [
             'invoice_id' => $invoice->getKey(),
             'payment_amount' => 25,
             'payment_note' => 'Im Slide-over erfasst',
         ]);
-        $this->assertDatabaseHas('ip_audit_logs', [
+        $this->assertDatabaseHas('audit_logs', [
             'entity_type' => 'invoice',
             'entity_id' => $invoice->getKey(),
             'event_type' => 'invoice_payment_recorded',

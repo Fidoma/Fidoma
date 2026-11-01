@@ -167,8 +167,8 @@ __('bank-transactions::messages.feature');
 
 ## Daten und Geschäftslogik
 
-- Tabellen mit Präfix `ip_` stammen konzeptionell aus dem InvoicePlane-Datenmodell. Benenne
-  Tabellen oder Schlüssel nicht ohne zwingenden Grund um.
+- Die aus InvoicePlane übernommenen Tabellen verwenden in Fidoma kein technisches Präfix.
+  Benenne Tabellen oder Schlüssel nicht ohne zwingenden Grund um.
 - Geldbeträge niemals mit unpräziser Float-Logik neu implementieren. Verwende vorhandene
   Calculator-, Amount- und Währungslogik.
 - Berücksichtige bei Rechnungen Status, Typ, Teilzahlungen, Gutschriften, Stornierungen und

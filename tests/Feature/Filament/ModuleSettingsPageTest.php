@@ -18,12 +18,12 @@ class ModuleSettingsPageTest extends TestCase
     {
         parent::setUp();
 
-        DB::table('ip_settings')->where('setting_key', 'like', 'module_enabled_%')->delete();
+        DB::table('settings')->where('setting_key', 'like', 'module_enabled_%')->delete();
     }
 
     protected function tearDown(): void
     {
-        DB::table('ip_settings')->where('setting_key', 'like', 'module_enabled_%')->delete();
+        DB::table('settings')->where('setting_key', 'like', 'module_enabled_%')->delete();
 
         parent::tearDown();
     }
@@ -63,7 +63,7 @@ class ModuleSettingsPageTest extends TestCase
 
     public function test_disabled_module_is_removed_from_the_main_navigation(): void
     {
-        DB::table('ip_settings')->insert([
+        DB::table('settings')->insert([
             'setting_key' => 'module_enabled_clients',
             'setting_value' => '0',
         ]);
@@ -81,7 +81,7 @@ class ModuleSettingsPageTest extends TestCase
             ->call('save')
             ->assertNotified('Moduleinstellungen gespeichert');
 
-        $this->assertDatabaseHas('ip_settings', [
+        $this->assertDatabaseHas('settings', [
             'setting_key' => 'module_enabled_clients',
             'setting_value' => '0',
         ]);

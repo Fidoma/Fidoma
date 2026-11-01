@@ -13,7 +13,7 @@ use Illuminate\Validation\ValidationException;
 
 class ReservationItem extends Model
 {
-    protected $table = 'ip_reservation_items';
+    protected $table = 'reservation_items';
 
     protected $primaryKey = 'item_id';
 

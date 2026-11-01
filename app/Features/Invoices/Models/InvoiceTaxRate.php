@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class InvoiceTaxRate extends Model
 {
-    protected $table = 'ip_invoice_tax_rates';
+    protected $table = 'invoice_tax_rates';
 
     protected $primaryKey = 'invoice_tax_rate_id';
 

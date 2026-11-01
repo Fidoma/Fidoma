@@ -27,7 +27,7 @@ class AssignPaperlessDocumentTest extends TestCase
 
         $mapping = app(AssignPaperlessDocument::class)->handle(101, $transaction->getKey(), $transaction->assignmentFingerprint());
 
-        $this->assertDatabaseHas('ip_bank_transaction_mappings', [
+        $this->assertDatabaseHas('bank_transaction_mappings', [
             'bank_transaction_mapping_id' => $mapping->getKey(),
             'bank_transaction_id' => $transaction->getKey(),
             'payment_id' => null,
@@ -47,7 +47,7 @@ class AssignPaperlessDocumentTest extends TestCase
         $assign->handle(201, $first->getKey(), $first->assignmentFingerprint());
         $assign->handle(201, $second->getKey(), $second->assignmentFingerprint());
 
-        $this->assertDatabaseCount('ip_bank_transaction_mappings', 2);
+        $this->assertDatabaseCount('bank_transaction_mappings', 2);
         $this->assertSame(1, $first->mappings()->where('document_id', 201)->count());
         $this->assertSame(1, $second->mappings()->where('document_id', 201)->count());
     }
@@ -65,11 +65,11 @@ class AssignPaperlessDocumentTest extends TestCase
         ]);
 
         $this->assertCount(2, $mappings);
-        $this->assertDatabaseHas('ip_bank_transaction_mappings', [
+        $this->assertDatabaseHas('bank_transaction_mappings', [
             'bank_transaction_id' => $first->getKey(),
             'document_id' => 251,
         ]);
-        $this->assertDatabaseHas('ip_bank_transaction_mappings', [
+        $this->assertDatabaseHas('bank_transaction_mappings', [
             'bank_transaction_id' => $second->getKey(),
             'document_id' => 251,
         ]);
@@ -99,12 +99,12 @@ class AssignPaperlessDocumentTest extends TestCase
             $this->assertStringContainsString('besteht bereits', $exception->errors()['transaction'][0]);
         }
 
-        $this->assertDatabaseMissing('ip_bank_transaction_mappings', [
+        $this->assertDatabaseMissing('bank_transaction_mappings', [
             'bank_transaction_id' => $first->getKey(),
             'document_id' => 252,
         ]);
         $this->assertFalse($first->refresh()->validated);
-        $this->assertDatabaseCount('ip_bank_transaction_mappings', 1);
+        $this->assertDatabaseCount('bank_transaction_mappings', 1);
     }
 
     public function test_one_transaction_can_be_assigned_to_multiple_documents(): void
@@ -137,7 +137,7 @@ class AssignPaperlessDocumentTest extends TestCase
             $this->assertSame('Diese Zuordnung besteht bereits.', $exception->errors()['transaction'][0]);
         }
 
-        $this->assertDatabaseCount('ip_bank_transaction_mappings', 1);
+        $this->assertDatabaseCount('bank_transaction_mappings', 1);
     }
 
     public function test_changed_transaction_is_rejected_without_partial_write(): void
@@ -155,7 +155,7 @@ class AssignPaperlessDocumentTest extends TestCase
             $this->assertStringContainsString('zwischenzeitlich geändert', $exception->errors()['transaction'][0]);
         }
 
-        $this->assertDatabaseCount('ip_bank_transaction_mappings', 0);
+        $this->assertDatabaseCount('bank_transaction_mappings', 0);
     }
 
     public function test_database_constraint_rejects_a_concurrent_identical_mapping(): void
@@ -175,7 +175,7 @@ class AssignPaperlessDocumentTest extends TestCase
             $this->assertSame('23000', $exception->getCode());
         }
 
-        $this->assertDatabaseCount('ip_bank_transaction_mappings', 1);
+        $this->assertDatabaseCount('bank_transaction_mappings', 1);
     }
 
     public function test_missing_paperless_document_does_not_create_a_mapping(): void
@@ -196,7 +196,7 @@ class AssignPaperlessDocumentTest extends TestCase
             $this->assertSame(404, $exception->response->status());
         }
 
-        $this->assertDatabaseCount('ip_bank_transaction_mappings', 0);
+        $this->assertDatabaseCount('bank_transaction_mappings', 0);
     }
 
     public function test_unauthenticated_assignment_is_forbidden_before_paperless_is_called(): void
@@ -212,7 +212,7 @@ class AssignPaperlessDocumentTest extends TestCase
         }
 
         Http::assertNothingSent();
-        $this->assertDatabaseCount('ip_bank_transaction_mappings', 0);
+        $this->assertDatabaseCount('bank_transaction_mappings', 0);
     }
 
     private function createTransaction(string $amount): BankTransaction

@@ -13,23 +13,23 @@ final class TaxReportService
     public function query(CarbonInterface $start, CarbonInterface $end): Builder
     {
         return InvoiceItem::query()
-            ->selectRaw('MIN(ip_invoice_items.item_id) as item_id')
-            ->selectRaw('ip_invoice_items.item_tax_rate_id as report_tax_rate_id')
-            ->selectRaw('ip_tax_rates.tax_rate_name as report_tax_name')
-            ->selectRaw('ip_tax_rates.tax_rate_percent as report_tax_percent')
-            ->selectRaw('SUM(ip_invoice_item_amounts.item_subtotal) as report_net')
-            ->selectRaw('SUM(ip_invoice_item_amounts.item_tax_total) as report_tax')
-            ->selectRaw('SUM(ip_invoice_item_amounts.item_total) as report_gross')
-            ->join('ip_invoice_item_amounts', 'ip_invoice_items.item_id', '=', 'ip_invoice_item_amounts.item_id')
-            ->join('ip_invoices', 'ip_invoice_items.invoice_id', '=', 'ip_invoices.invoice_id')
-            ->leftJoin('ip_tax_rates', 'ip_invoice_items.item_tax_rate_id', '=', 'ip_tax_rates.tax_rate_id')
-            ->where('ip_invoices.is_archived', false)
-            ->where('ip_invoices.invoice_status_id', '!=', InvoiceStatus::Draft->value)
-            ->whereBetween('ip_invoices.invoice_date_created', [$start->toDateString(), $end->toDateString()])
+            ->selectRaw('MIN(invoice_items.item_id) as item_id')
+            ->selectRaw('invoice_items.item_tax_rate_id as report_tax_rate_id')
+            ->selectRaw('tax_rates.tax_rate_name as report_tax_name')
+            ->selectRaw('tax_rates.tax_rate_percent as report_tax_percent')
+            ->selectRaw('SUM(invoice_item_amounts.item_subtotal) as report_net')
+            ->selectRaw('SUM(invoice_item_amounts.item_tax_total) as report_tax')
+            ->selectRaw('SUM(invoice_item_amounts.item_total) as report_gross')
+            ->join('invoice_item_amounts', 'invoice_items.item_id', '=', 'invoice_item_amounts.item_id')
+            ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.invoice_id')
+            ->leftJoin('tax_rates', 'invoice_items.item_tax_rate_id', '=', 'tax_rates.tax_rate_id')
+            ->where('invoices.is_archived', false)
+            ->where('invoices.invoice_status_id', '!=', InvoiceStatus::Draft->value)
+            ->whereBetween('invoices.invoice_date_created', [$start->toDateString(), $end->toDateString()])
             ->groupBy(
-                'ip_invoice_items.item_tax_rate_id',
-                'ip_tax_rates.tax_rate_name',
-                'ip_tax_rates.tax_rate_percent',
+                'invoice_items.item_tax_rate_id',
+                'tax_rates.tax_rate_name',
+                'tax_rates.tax_rate_percent',
             );
     }
 

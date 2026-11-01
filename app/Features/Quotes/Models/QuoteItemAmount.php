@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class QuoteItemAmount extends Model
 {
-    protected $table = 'ip_quote_item_amounts';
+    protected $table = 'quote_item_amounts';
 
     protected $primaryKey = 'item_amount_id';
 

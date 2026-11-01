@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class EmailTemplate extends Model
 {
-    protected $table = 'ip_email_templates';
+    protected $table = 'email_templates';
 
     protected $primaryKey = 'email_template_id';
 

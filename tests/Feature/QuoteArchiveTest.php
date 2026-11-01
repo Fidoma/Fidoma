@@ -34,7 +34,7 @@ class QuoteArchiveTest extends TestCase
 
         app(ArchiveQuote::class)->handle($quote);
 
-        $this->assertDatabaseHas('ip_quotes', [
+        $this->assertDatabaseHas('quotes', [
             'quote_id' => $quote->getKey(),
             'is_archived' => true,
         ]);
@@ -153,7 +153,7 @@ class QuoteArchiveTest extends TestCase
 
         $this->assertCount(1, Mail::mailer()->getSymfonyTransport()->messages());
         $this->assertSame(QuoteStatus::Sent, $quote->refresh()->quote_status_id);
-        $this->assertDatabaseHas('ip_audit_logs', [
+        $this->assertDatabaseHas('audit_logs', [
             'event_type' => 'quote_smtp_accepted',
             'entity_type' => 'quote',
             'entity_id' => $quote->getKey(),

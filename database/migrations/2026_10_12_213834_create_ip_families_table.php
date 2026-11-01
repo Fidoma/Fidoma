@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('ip_families', function (Blueprint $table) {
+        Schema::create('families', function (Blueprint $table) {
             $table->engine = 'MyISAM';
             $table->charset = 'utf8';
             $table->collation = 'utf8_general_ci';
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('ip_families');
+        Schema::dropIfExists('families');
     }
 };

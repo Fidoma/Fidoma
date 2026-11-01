@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('ip_quote_tax_rates', function (Blueprint $table) {
+        Schema::create('quote_tax_rates', function (Blueprint $table) {
             $table->engine = 'MyISAM';
             $table->charset = 'utf8';
             $table->collation = 'utf8_general_ci';
@@ -32,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('ip_quote_tax_rates');
+        Schema::dropIfExists('quote_tax_rates');
     }
 };

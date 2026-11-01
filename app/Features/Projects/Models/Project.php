@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Project extends Model
 {
-    protected $table = 'ip_projects';
+    protected $table = 'projects';
 
     protected $primaryKey = 'project_id';
 

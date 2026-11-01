@@ -9,7 +9,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        DB::statement('ALTER TABLE ip_clients ENGINE=InnoDB');
+        DB::statement('ALTER TABLE clients ENGINE=InnoDB');
 
         Schema::create('contracts', function (Blueprint $table): void {
             $table->engine = 'InnoDB';
@@ -40,7 +40,7 @@ return new class extends Migration
                 ->restrictOnDelete();
             $table->foreign('client_id')
                 ->references('client_id')
-                ->on('ip_clients')
+                ->on('clients')
                 ->restrictOnDelete();
             $table->foreign('issuer_id')
                 ->references('id')
@@ -53,6 +53,6 @@ return new class extends Migration
     {
         Schema::dropIfExists('contracts');
 
-        DB::statement('ALTER TABLE ip_clients ENGINE=MyISAM');
+        DB::statement('ALTER TABLE clients ENGINE=MyISAM');
     }
 };

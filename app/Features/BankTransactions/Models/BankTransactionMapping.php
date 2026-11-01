@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class BankTransactionMapping extends Model
 {
-    protected $table = 'ip_bank_transaction_mappings';
+    protected $table = 'bank_transaction_mappings';
 
     protected $primaryKey = 'bank_transaction_mapping_id';
 

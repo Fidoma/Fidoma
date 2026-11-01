@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Room extends Model
 {
-    protected $table = 'ip_rooms';
+    protected $table = 'rooms';
 
     protected $primaryKey = 'room_id';
 

@@ -29,7 +29,7 @@ class BankTransactionTest extends TestCase
             'pending' => false,
         ]);
 
-        $this->assertDatabaseHas('ip_bank_transactions', [
+        $this->assertDatabaseHas('bank_transactions', [
             'id' => $transaction->getKey(),
             'currency' => 'EUR',
             'validated' => false,

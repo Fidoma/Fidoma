@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Family extends Model
 {
-    protected $table = 'ip_families';
+    protected $table = 'families';
 
     protected $primaryKey = 'family_id';
 

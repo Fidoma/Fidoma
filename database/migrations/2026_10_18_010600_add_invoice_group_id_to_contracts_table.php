@@ -14,7 +14,7 @@ return new class extends Migration
         });
 
         if (DB::table('contracts')->exists()) {
-            $invoiceGroupId = DB::table('ip_invoice_groups')->orderBy('invoice_group_id')->value('invoice_group_id');
+            $invoiceGroupId = DB::table('invoice_groups')->orderBy('invoice_group_id')->value('invoice_group_id');
 
             if ($invoiceGroupId === null) {
                 throw new LogicException('A number group is required before contracts can be migrated.');

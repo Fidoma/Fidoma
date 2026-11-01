@@ -144,7 +144,7 @@ class TerminalPageTest extends TestCase
 
         $this->assertNotNull($attempt->refresh()->payment_id);
         $this->assertSame(1, $invoice->payments()->count());
-        $this->assertDatabaseHas('ip_payments', ['invoice_id' => $invoice->getKey(), 'payment_method_id' => $method->getKey(), 'payment_amount' => 40]);
+        $this->assertDatabaseHas('payments', ['invoice_id' => $invoice->getKey(), 'payment_method_id' => $method->getKey(), 'payment_amount' => 40]);
         $this->assertSame('60.00', $invoice->refresh()->amount->invoice_balance);
         $this->assertSame(InvoiceStatus::Open, $invoice->invoice_status_id);
     }

@@ -123,7 +123,7 @@ final class DashboardMetrics
         $decided = (clone $periodQuotes)->whereIn('quote_status_id', [QuoteStatus::Approved->value, QuoteStatus::Rejected->value])->count();
 
         return [
-            'open_value' => round((float) (clone $open)->join('ip_quote_amounts', 'ip_quotes.quote_id', '=', 'ip_quote_amounts.quote_id')->sum('ip_quote_amounts.quote_total'), 2),
+            'open_value' => round((float) (clone $open)->join('quote_amounts', 'quotes.quote_id', '=', 'quote_amounts.quote_id')->sum('quote_amounts.quote_total'), 2),
             'open_count' => (clone $open)->count(),
             'approved_count' => $approved,
             'acceptance_rate' => $decided > 0 ? round(($approved / $decided) * 100, 1) : 0.0,
@@ -133,11 +133,11 @@ final class DashboardMetrics
     private function revenueBetween(CarbonImmutable $start, CarbonImmutable $end): float
     {
         return round((float) Invoice::query()
-            ->join('ip_invoice_amounts', 'ip_invoices.invoice_id', '=', 'ip_invoice_amounts.invoice_id')
-            ->where('ip_invoices.invoice_status_id', '!=', InvoiceStatus::Draft->value)
-            ->where('ip_invoices.is_archived', false)
-            ->whereBetween('ip_invoices.invoice_date_created', [$start, $end])
-            ->sum('ip_invoice_amounts.invoice_total'), 2);
+            ->join('invoice_amounts', 'invoices.invoice_id', '=', 'invoice_amounts.invoice_id')
+            ->where('invoices.invoice_status_id', '!=', InvoiceStatus::Draft->value)
+            ->where('invoices.is_archived', false)
+            ->whereBetween('invoices.invoice_date_created', [$start, $end])
+            ->sum('invoice_amounts.invoice_total'), 2);
     }
 
     /** @return Collection<string, float> */

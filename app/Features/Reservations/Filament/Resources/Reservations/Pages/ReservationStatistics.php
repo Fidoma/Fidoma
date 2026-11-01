@@ -47,7 +47,7 @@ class ReservationStatistics extends Page
         $this->validate([
             'startDate' => ['required', 'date'],
             'endDate' => ['required', 'date', 'after_or_equal:startDate'],
-            'roomId' => ['nullable', 'integer', 'exists:ip_rooms,room_id'],
+            'roomId' => ['nullable', 'integer', 'exists:rooms,room_id'],
             'status' => ['nullable', 'integer', 'in:'.collect(ReservationStatus::cases())->pluck('value')->implode(',')],
         ], [
             'endDate.after_or_equal' => __('reservations::messages.statistics.validation.end_after_start'),

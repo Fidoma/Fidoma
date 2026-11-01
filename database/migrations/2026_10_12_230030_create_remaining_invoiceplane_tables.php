@@ -12,14 +12,14 @@ return new class extends Migration
      * @var list<string>
      */
     private const EXISTING_TABLES = [
-        'ip_clients',
-        'ip_families',
-        'ip_products',
-        'ip_quote_item_amounts',
-        'ip_quote_items',
-        'ip_quote_tax_rates',
-        'ip_quotes',
-        'ip_tax_rates',
+        'clients',
+        'families',
+        'products',
+        'quote_item_amounts',
+        'quote_items',
+        'quote_tax_rates',
+        'quotes',
+        'tax_rates',
     ];
 
     /**

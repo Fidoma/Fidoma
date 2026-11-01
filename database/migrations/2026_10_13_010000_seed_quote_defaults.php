@@ -17,8 +17,8 @@ return new class extends Migration
         ];
 
         foreach ($defaults as $key => $value) {
-            if (! DB::table('ip_settings')->where('setting_key', $key)->exists()) {
-                DB::table('ip_settings')->insert([
+            if (! DB::table('settings')->where('setting_key', $key)->exists()) {
+                DB::table('settings')->insert([
                     'setting_key' => $key,
                     'setting_value' => $value,
                 ]);

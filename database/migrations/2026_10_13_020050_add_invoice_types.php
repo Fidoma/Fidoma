@@ -9,7 +9,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('ip_invoices', function (Blueprint $table): void {
+        Schema::table('invoices', function (Blueprint $table): void {
             $table->string('invoice_type', 20)->default('invoice')->after('invoice_id')->index();
             $table->index('creditinvoice_parent_id');
         });
@@ -20,8 +20,8 @@ return new class extends Migration
         ];
 
         foreach ($groups as $group) {
-            if (! DB::table('ip_invoice_groups')->where('invoice_group_name', $group['name'])->exists()) {
-                DB::table('ip_invoice_groups')->insert([
+            if (! DB::table('invoice_groups')->where('invoice_group_name', $group['name'])->exists()) {
+                DB::table('invoice_groups')->insert([
                     'invoice_group_name' => $group['name'],
                     'invoice_group_identifier_format' => $group['format'],
                     'invoice_group_next_id' => 1,
@@ -33,7 +33,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::table('ip_invoices', function (Blueprint $table): void {
+        Schema::table('invoices', function (Blueprint $table): void {
             $table->dropIndex(['creditinvoice_parent_id']);
             $table->dropColumn('invoice_type');
         });

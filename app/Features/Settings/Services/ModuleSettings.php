@@ -37,7 +37,7 @@ class ModuleSettings
 
     public function isEnabled(string $module): bool
     {
-        $storedValue = DB::table('ip_settings')
+        $storedValue = DB::table('settings')
             ->where('setting_key', $this->settingKey($module))
             ->value('setting_value');
 
@@ -47,7 +47,7 @@ class ModuleSettings
     /** @return array<string, bool> */
     public function all(): array
     {
-        $storedSettings = DB::table('ip_settings')
+        $storedSettings = DB::table('settings')
             ->whereIn('setting_key', array_map($this->settingKey(...), self::MODULES))
             ->pluck('setting_value', 'setting_key');
 
@@ -62,7 +62,7 @@ class ModuleSettings
     public function save(array $modules): void
     {
         foreach (self::MODULES as $module) {
-            DB::table('ip_settings')->updateOrInsert(
+            DB::table('settings')->updateOrInsert(
                 ['setting_key' => $this->settingKey($module)],
                 ['setting_value' => ($modules[$module] ?? false) ? '1' : '0'],
             );

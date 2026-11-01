@@ -8,14 +8,14 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('ip_products', function (Blueprint $table): void {
+        Schema::table('products', function (Blueprint $table): void {
             $table->boolean('product_tax_included')->default(false)->after('product_price');
         });
     }
 
     public function down(): void
     {
-        Schema::table('ip_products', function (Blueprint $table): void {
+        Schema::table('products', function (Blueprint $table): void {
             $table->dropColumn('product_tax_included');
         });
     }

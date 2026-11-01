@@ -7,11 +7,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        DB::table('ip_invoices')
+        DB::table('invoices')
             ->where('invoice_status_id', 3)
             ->update(['invoice_status_id' => 2]);
 
-        DB::table('ip_quotes')
+        DB::table('quotes')
             ->where('quote_status_id', 3)
             ->update(['quote_status_id' => 2]);
     }

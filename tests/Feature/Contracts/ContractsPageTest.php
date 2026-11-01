@@ -188,7 +188,7 @@ class ContractsPageTest extends TestCase
             'invoice_group_id' => $invoiceGroup->getKey(),
             'number' => 'V-MANUELL-7',
         ]);
-        $this->assertDatabaseHas('ip_invoice_groups', [
+        $this->assertDatabaseHas('invoice_groups', [
             'invoice_group_id' => $invoiceGroup->getKey(),
             'invoice_group_next_id' => 7,
         ]);

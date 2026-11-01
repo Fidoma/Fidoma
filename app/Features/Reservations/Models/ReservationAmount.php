@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ReservationAmount extends Model
 {
-    protected $table = 'ip_reservation_amounts';
+    protected $table = 'reservation_amounts';
 
     protected $primaryKey = 'reservation_amount_id';
 

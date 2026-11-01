@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Quote extends Model
 {
-    protected $table = 'ip_quotes';
+    protected $table = 'quotes';
 
     protected $primaryKey = 'quote_id';
 

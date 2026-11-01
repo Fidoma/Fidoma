@@ -15,7 +15,7 @@ final class InvoiceBankTransactionCandidateQuery
 
         $query = BankTransaction::query()
             ->where('amount', '>', 0)
-            ->select('ip_bank_transactions.*')
+            ->select('bank_transactions.*')
             ->withCount('mappings')
             ->withExists([
                 'mappings as mapped_to_current_invoice' => fn (Builder $query): Builder => $query

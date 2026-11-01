@@ -70,7 +70,7 @@ final class SendInvoiceEmail
 
     private function audit(Invoice $invoice, string $event, string $status, string $message): void
     {
-        DB::table('ip_audit_logs')->insert([
+        DB::table('audit_logs')->insert([
             'created_at' => now(),
             'user_id' => Auth::id(),
             'user_name' => Auth::user()?->name ?? '',

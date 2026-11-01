@@ -33,7 +33,7 @@ final class ReservationStatisticsService
     public function summary(ReservationStatisticsFilter $filter): array
     {
         $reservationQuery = $this->reservationsOverlapping($filter);
-        $reservationIds = (clone $reservationQuery)->select('ip_reservations.reservation_id');
+        $reservationIds = (clone $reservationQuery)->select('reservations.reservation_id');
         $statusCounts = (clone $reservationQuery)
             ->selectRaw('reservation_status_id, COUNT(*) AS aggregate')
             ->groupBy('reservation_status_id')

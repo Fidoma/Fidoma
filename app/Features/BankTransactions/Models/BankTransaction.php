@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[UsePolicy(BankTransactionPolicy::class)]
 class BankTransaction extends Model
 {
-    protected $table = 'ip_bank_transactions';
+    protected $table = 'bank_transactions';
 
     public const UPDATED_AT = null;
 

@@ -12,7 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('ip_clients', function (Blueprint $table) {
+        Schema::table('clients', function (Blueprint $table) {
             $table->string('client_company', 150)->nullable()->after('client_name');
             $table->text('client_address_2')->nullable()->after('client_address_1');
             $table->text('client_fax')->nullable()->after('client_phone');
@@ -31,23 +31,23 @@ return new class extends Migration
             $table->integer('client_gender')->nullable()->default(0)->after('client_birthdate');
         });
 
-        if (Schema::hasColumn('ip_products', 'product_number') && ! Schema::hasColumn('ip_products', 'product_sku')) {
-            Schema::table('ip_products', fn (Blueprint $table) => $table->renameColumn('product_number', 'product_sku'));
+        if (Schema::hasColumn('products', 'product_number') && ! Schema::hasColumn('products', 'product_sku')) {
+            Schema::table('products', fn (Blueprint $table) => $table->renameColumn('product_number', 'product_sku'));
         }
 
-        Schema::table('ip_products', function (Blueprint $table) {
+        Schema::table('products', function (Blueprint $table) {
             $table->text('provider_name')->nullable()->after('purchase_price');
             $table->integer('unit_id')->nullable()->after('tax_rate_id');
             $table->integer('product_tariff')->nullable()->after('unit_id');
         });
 
-        Schema::table('ip_quotes', function (Blueprint $table) {
+        Schema::table('quotes', function (Blueprint $table) {
             $table->decimal('quote_discount_amount', 20, 2)->nullable()->after('quote_number');
             $table->decimal('quote_discount_percent', 20, 2)->nullable()->after('quote_discount_amount');
             $table->longText('notes')->nullable()->after('quote_url_key');
         });
 
-        Schema::table('ip_quote_items', function (Blueprint $table) {
+        Schema::table('quote_items', function (Blueprint $table) {
             $table->boolean('item_tax_included')->default(false)->after('item_tax_rate_id');
             $table->integer('item_product_id')->nullable()->after('item_tax_included');
             $table->decimal('item_discount_amount', 20, 2)->nullable()->after('item_price');
@@ -55,7 +55,7 @@ return new class extends Migration
             $table->integer('item_product_unit_id')->nullable()->after('item_product_unit');
         });
 
-        Schema::table('ip_quote_item_amounts', function (Blueprint $table) {
+        Schema::table('quote_item_amounts', function (Blueprint $table) {
             $table->decimal('item_discount', 20, 2)->nullable()->after('item_tax_total');
         });
 
@@ -64,7 +64,7 @@ return new class extends Migration
         }
 
         DB::unprepared(<<<'SQL'
-            ALTER TABLE ip_clients
+            ALTER TABLE clients
                 MODIFY client_name TEXT NULL,
                 MODIFY client_address_1 TEXT NULL,
                 MODIFY client_city TEXT NULL,
@@ -78,7 +78,7 @@ return new class extends Migration
         SQL);
 
         DB::unprepared(<<<'SQL'
-            ALTER TABLE ip_products
+            ALTER TABLE products
                 MODIFY family_id INT NULL,
                 MODIFY product_sku TEXT NULL,
                 MODIFY product_name TEXT NULL,
@@ -87,10 +87,10 @@ return new class extends Migration
                 MODIFY tax_rate_id INT NULL
         SQL);
 
-        DB::unprepared('ALTER TABLE ip_quotes MODIFY quote_number VARCHAR(100) NULL');
+        DB::unprepared('ALTER TABLE quotes MODIFY quote_number VARCHAR(100) NULL');
 
         DB::unprepared(<<<'SQL'
-            ALTER TABLE ip_quote_items
+            ALTER TABLE quote_items
                 MODIFY item_name TEXT NULL,
                 MODIFY item_description TEXT NULL,
                 MODIFY item_quantity DECIMAL(20, 8) NULL,
@@ -98,14 +98,14 @@ return new class extends Migration
         SQL);
 
         DB::unprepared(<<<'SQL'
-            ALTER TABLE ip_quote_item_amounts
+            ALTER TABLE quote_item_amounts
                 MODIFY item_subtotal DECIMAL(20, 2) NULL,
                 MODIFY item_tax_total DECIMAL(20, 2) NULL,
                 MODIFY item_total DECIMAL(20, 2) NULL
         SQL);
 
-        DB::unprepared('ALTER TABLE ip_quote_tax_rates MODIFY quote_tax_rate_amount DECIMAL(20, 2) NULL');
-        DB::unprepared('ALTER TABLE ip_tax_rates MODIFY tax_rate_name TEXT NULL');
+        DB::unprepared('ALTER TABLE quote_tax_rates MODIFY quote_tax_rate_amount DECIMAL(20, 2) NULL');
+        DB::unprepared('ALTER TABLE tax_rates MODIFY tax_rate_name TEXT NULL');
     }
 
     /**
@@ -113,9 +113,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('ip_quote_item_amounts', fn (Blueprint $table) => $table->dropColumn('item_discount'));
+        Schema::table('quote_item_amounts', fn (Blueprint $table) => $table->dropColumn('item_discount'));
 
-        Schema::table('ip_quote_items', function (Blueprint $table) {
+        Schema::table('quote_items', function (Blueprint $table) {
             $table->dropColumn([
                 'item_tax_included',
                 'item_product_id',
@@ -125,23 +125,23 @@ return new class extends Migration
             ]);
         });
 
-        Schema::table('ip_quotes', fn (Blueprint $table) => $table->dropColumn([
+        Schema::table('quotes', fn (Blueprint $table) => $table->dropColumn([
             'quote_discount_amount',
             'quote_discount_percent',
             'notes',
         ]));
 
-        Schema::table('ip_products', fn (Blueprint $table) => $table->dropColumn([
+        Schema::table('products', fn (Blueprint $table) => $table->dropColumn([
             'provider_name',
             'unit_id',
             'product_tariff',
         ]));
 
-        if (Schema::hasColumn('ip_products', 'product_sku') && ! Schema::hasColumn('ip_products', 'product_number')) {
-            Schema::table('ip_products', fn (Blueprint $table) => $table->renameColumn('product_sku', 'product_number'));
+        if (Schema::hasColumn('products', 'product_sku') && ! Schema::hasColumn('products', 'product_number')) {
+            Schema::table('products', fn (Blueprint $table) => $table->renameColumn('product_sku', 'product_number'));
         }
 
-        Schema::table('ip_clients', fn (Blueprint $table) => $table->dropColumn([
+        Schema::table('clients', fn (Blueprint $table) => $table->dropColumn([
             'client_company',
             'client_address_2',
             'client_fax',

@@ -24,7 +24,7 @@ use LogicException;
 #[UsePolicy(InvoicePolicy::class)]
 class Invoice extends Model
 {
-    protected $table = 'ip_invoices';
+    protected $table = 'invoices';
 
     protected $primaryKey = 'invoice_id';
 

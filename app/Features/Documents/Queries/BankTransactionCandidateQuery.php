@@ -16,7 +16,7 @@ final class BankTransactionCandidateQuery
     {
         $query = BankTransaction::query()
             ->where('amount', '<', 0)
-            ->select('ip_bank_transactions.*')
+            ->select('bank_transactions.*')
             ->with('mappings')
             ->withCount('mappings')
             ->withExists([

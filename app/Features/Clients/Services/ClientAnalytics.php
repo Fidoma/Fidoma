@@ -60,20 +60,20 @@ final class ClientAnalytics
     private function invoiceMetrics(ClientAnalyticsPeriod $period): Collection
     {
         return Invoice::query()
-            ->join('ip_clients', 'ip_clients.client_id', '=', 'ip_invoices.client_id')
-            ->join('ip_invoice_amounts', 'ip_invoice_amounts.invoice_id', '=', 'ip_invoices.invoice_id')
-            ->where('ip_invoices.invoice_status_id', '!=', InvoiceStatus::Draft->value)
-            ->where('ip_invoices.is_archived', false)
-            ->whereBetween('ip_invoices.invoice_date_created', [$period->start, $period->end])
-            ->groupBy('ip_invoices.client_id', 'ip_clients.client_name')
-            ->selectRaw('ip_invoices.client_id, ip_clients.client_name')
-            ->selectRaw('SUM(ip_invoice_amounts.invoice_total) as revenue')
+            ->join('clients', 'clients.client_id', '=', 'invoices.client_id')
+            ->join('invoice_amounts', 'invoice_amounts.invoice_id', '=', 'invoices.invoice_id')
+            ->where('invoices.invoice_status_id', '!=', InvoiceStatus::Draft->value)
+            ->where('invoices.is_archived', false)
+            ->whereBetween('invoices.invoice_date_created', [$period->start, $period->end])
+            ->groupBy('invoices.client_id', 'clients.client_name')
+            ->selectRaw('invoices.client_id, clients.client_name')
+            ->selectRaw('SUM(invoice_amounts.invoice_total) as revenue')
             ->selectRaw(
-                'SUM(CASE WHEN ip_invoices.invoice_type = ? AND ip_invoice_amounts.invoice_balance > 0 THEN ip_invoice_amounts.invoice_balance ELSE 0 END) as receivables',
+                'SUM(CASE WHEN invoices.invoice_type = ? AND invoice_amounts.invoice_balance > 0 THEN invoice_amounts.invoice_balance ELSE 0 END) as receivables',
                 [InvoiceType::Invoice->value],
             )
             ->selectRaw(
-                'SUM(CASE WHEN ip_invoices.invoice_type = ? THEN 1 ELSE 0 END) as invoice_count',
+                'SUM(CASE WHEN invoices.invoice_type = ? THEN 1 ELSE 0 END) as invoice_count',
                 [InvoiceType::Invoice->value],
             )
             ->get();
@@ -83,12 +83,12 @@ final class ClientAnalytics
     {
         $recentStart = $period->end->subDays(89)->startOfDay();
         $recentRevenue = Invoice::query()
-            ->join('ip_invoice_amounts', 'ip_invoice_amounts.invoice_id', '=', 'ip_invoices.invoice_id')
-            ->where('ip_invoices.invoice_status_id', '!=', InvoiceStatus::Draft->value)
-            ->where('ip_invoices.is_archived', false)
-            ->whereBetween('ip_invoices.invoice_date_created', [$recentStart, $period->end])
-            ->groupBy('ip_invoices.client_id')
-            ->selectRaw('ip_invoices.client_id, SUM(ip_invoice_amounts.invoice_total) as revenue');
+            ->join('invoice_amounts', 'invoice_amounts.invoice_id', '=', 'invoices.invoice_id')
+            ->where('invoices.invoice_status_id', '!=', InvoiceStatus::Draft->value)
+            ->where('invoices.is_archived', false)
+            ->whereBetween('invoices.invoice_date_created', [$recentStart, $period->end])
+            ->groupBy('invoices.client_id')
+            ->selectRaw('invoices.client_id, SUM(invoice_amounts.invoice_total) as revenue');
 
         return Client::query()
             ->where('client_active', true)

@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class InvoiceGroup extends Model
 {
-    protected $table = 'ip_invoice_groups';
+    protected $table = 'invoice_groups';
 
     protected $primaryKey = 'invoice_group_id';
 

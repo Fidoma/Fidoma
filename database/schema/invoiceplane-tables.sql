@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS `ip_audit_logs` (
+CREATE TABLE IF NOT EXISTS `audit_logs` (
   `audit_log_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `created_at` datetime NOT NULL,
   `user_id` int(11) DEFAULT NULL,
@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS `ip_audit_logs` (
   KEY `idx_audit_entity` (`entity_type`,`entity_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `ip_bank_transaction_mappings` (
+CREATE TABLE IF NOT EXISTS `bank_transaction_mappings` (
   `bank_transaction_mapping_id` int(11) NOT NULL AUTO_INCREMENT,
   `bank_transaction_id` bigint(20) unsigned NOT NULL,
   `payment_id` int(11) DEFAULT NULL,
@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS `ip_bank_transaction_mappings` (
   KEY `idx_bank_transaction_mapping_payment` (`payment_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `ip_bank_transactions` (
+CREATE TABLE IF NOT EXISTS `bank_transactions` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `account_iban` varchar(34) NOT NULL,
   `booking_date` date NOT NULL,
@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS `ip_bank_transactions` (
   KEY `idx_open_transactions` (`validated`,`pending`,`booking_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
-CREATE TABLE IF NOT EXISTS `ip_clients` (
+CREATE TABLE IF NOT EXISTS `clients` (
   `client_id` int(11) NOT NULL AUTO_INCREMENT,
   `client_date_created` datetime NOT NULL,
   `client_date_modified` datetime NOT NULL,
@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS `ip_clients` (
   KEY `client_active` (`client_active`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
-CREATE TABLE IF NOT EXISTS `ip_email_templates` (
+CREATE TABLE IF NOT EXISTS `email_templates` (
   `email_template_id` int(11) NOT NULL AUTO_INCREMENT,
   `email_template_title` text DEFAULT NULL,
   `email_template_type` varchar(255) DEFAULT NULL,
@@ -100,13 +100,13 @@ CREATE TABLE IF NOT EXISTS `ip_email_templates` (
   PRIMARY KEY (`email_template_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
-CREATE TABLE IF NOT EXISTS `ip_families` (
+CREATE TABLE IF NOT EXISTS `families` (
   `family_id` int(11) NOT NULL AUTO_INCREMENT,
   `family_name` text DEFAULT NULL,
   PRIMARY KEY (`family_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
-CREATE TABLE IF NOT EXISTS `ip_invoice_amounts` (
+CREATE TABLE IF NOT EXISTS `invoice_amounts` (
   `invoice_amount_id` int(11) NOT NULL AUTO_INCREMENT,
   `invoice_id` int(11) NOT NULL,
   `invoice_sign` enum('1','-1') NOT NULL DEFAULT '1',
@@ -121,7 +121,7 @@ CREATE TABLE IF NOT EXISTS `ip_invoice_amounts` (
   KEY `invoice_paid` (`invoice_paid`,`invoice_balance`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
-CREATE TABLE IF NOT EXISTS `ip_invoice_groups` (
+CREATE TABLE IF NOT EXISTS `invoice_groups` (
   `invoice_group_id` int(11) NOT NULL AUTO_INCREMENT,
   `invoice_group_name` text DEFAULT NULL,
   `invoice_group_identifier_format` varchar(255) NOT NULL,
@@ -132,7 +132,7 @@ CREATE TABLE IF NOT EXISTS `ip_invoice_groups` (
   KEY `invoice_group_left_pad` (`invoice_group_left_pad`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
-CREATE TABLE IF NOT EXISTS `ip_invoice_item_amounts` (
+CREATE TABLE IF NOT EXISTS `invoice_item_amounts` (
   `item_amount_id` int(11) NOT NULL AUTO_INCREMENT,
   `item_id` int(11) NOT NULL,
   `item_subtotal` decimal(20,2) DEFAULT NULL,
@@ -143,7 +143,7 @@ CREATE TABLE IF NOT EXISTS `ip_invoice_item_amounts` (
   KEY `item_id` (`item_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
-CREATE TABLE IF NOT EXISTS `ip_invoice_items` (
+CREATE TABLE IF NOT EXISTS `invoice_items` (
   `item_id` int(11) NOT NULL AUTO_INCREMENT,
   `invoice_id` int(11) NOT NULL,
   `item_tax_rate_id` int(11) NOT NULL DEFAULT 0,
@@ -165,7 +165,7 @@ CREATE TABLE IF NOT EXISTS `ip_invoice_items` (
   KEY `invoice_id` (`invoice_id`,`item_tax_rate_id`,`item_date_added`,`item_order`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
-CREATE TABLE IF NOT EXISTS `ip_invoice_tax_rates` (
+CREATE TABLE IF NOT EXISTS `invoice_tax_rates` (
   `invoice_tax_rate_id` int(11) NOT NULL AUTO_INCREMENT,
   `invoice_id` int(11) NOT NULL,
   `tax_rate_id` int(11) NOT NULL,
@@ -175,7 +175,7 @@ CREATE TABLE IF NOT EXISTS `ip_invoice_tax_rates` (
   KEY `invoice_id` (`invoice_id`,`tax_rate_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
-CREATE TABLE IF NOT EXISTS `ip_invoices` (
+CREATE TABLE IF NOT EXISTS `invoices` (
   `invoice_id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,
   `client_id` int(11) NOT NULL,
@@ -201,13 +201,13 @@ CREATE TABLE IF NOT EXISTS `ip_invoices` (
   KEY `invoice_status_id` (`invoice_status_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
-CREATE TABLE IF NOT EXISTS `ip_payment_methods` (
+CREATE TABLE IF NOT EXISTS `payment_methods` (
   `payment_method_id` int(11) NOT NULL AUTO_INCREMENT,
   `payment_method_name` text DEFAULT NULL,
   PRIMARY KEY (`payment_method_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
-CREATE TABLE IF NOT EXISTS `ip_payments` (
+CREATE TABLE IF NOT EXISTS `payments` (
   `payment_id` int(11) NOT NULL AUTO_INCREMENT,
   `invoice_id` int(11) NOT NULL,
   `payment_method_id` int(11) NOT NULL DEFAULT 0,
@@ -220,7 +220,7 @@ CREATE TABLE IF NOT EXISTS `ip_payments` (
   KEY `payment_amount` (`payment_amount`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
-CREATE TABLE IF NOT EXISTS `ip_products` (
+CREATE TABLE IF NOT EXISTS `products` (
   `product_id` int(11) NOT NULL AUTO_INCREMENT,
   `family_id` int(11) DEFAULT NULL,
   `product_sku` text DEFAULT NULL,
@@ -235,14 +235,14 @@ CREATE TABLE IF NOT EXISTS `ip_products` (
   PRIMARY KEY (`product_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
-CREATE TABLE IF NOT EXISTS `ip_projects` (
+CREATE TABLE IF NOT EXISTS `projects` (
   `project_id` int(11) NOT NULL AUTO_INCREMENT,
   `client_id` int(11) NOT NULL,
   `project_name` text DEFAULT NULL,
   PRIMARY KEY (`project_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
-CREATE TABLE IF NOT EXISTS `ip_quote_amounts` (
+CREATE TABLE IF NOT EXISTS `quote_amounts` (
   `quote_amount_id` int(11) NOT NULL AUTO_INCREMENT,
   `quote_id` int(11) NOT NULL,
   `quote_item_subtotal` decimal(20,2) DEFAULT NULL,
@@ -253,7 +253,7 @@ CREATE TABLE IF NOT EXISTS `ip_quote_amounts` (
   KEY `quote_id` (`quote_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
-CREATE TABLE IF NOT EXISTS `ip_quote_item_amounts` (
+CREATE TABLE IF NOT EXISTS `quote_item_amounts` (
   `item_amount_id` int(11) NOT NULL AUTO_INCREMENT,
   `item_id` int(11) NOT NULL,
   `item_subtotal` decimal(20,2) DEFAULT NULL,
@@ -264,7 +264,7 @@ CREATE TABLE IF NOT EXISTS `ip_quote_item_amounts` (
   KEY `item_id` (`item_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
-CREATE TABLE IF NOT EXISTS `ip_quote_items` (
+CREATE TABLE IF NOT EXISTS `quote_items` (
   `item_id` int(11) NOT NULL AUTO_INCREMENT,
   `quote_id` int(11) NOT NULL,
   `item_tax_rate_id` int(11) NOT NULL,
@@ -284,7 +284,7 @@ CREATE TABLE IF NOT EXISTS `ip_quote_items` (
   KEY `item_tax_rate_id` (`item_tax_rate_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
-CREATE TABLE IF NOT EXISTS `ip_quote_tax_rates` (
+CREATE TABLE IF NOT EXISTS `quote_tax_rates` (
   `quote_tax_rate_id` int(11) NOT NULL AUTO_INCREMENT,
   `quote_id` int(11) NOT NULL,
   `tax_rate_id` int(11) NOT NULL,
@@ -295,7 +295,7 @@ CREATE TABLE IF NOT EXISTS `ip_quote_tax_rates` (
   KEY `tax_rate_id` (`tax_rate_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
-CREATE TABLE IF NOT EXISTS `ip_quotes` (
+CREATE TABLE IF NOT EXISTS `quotes` (
   `quote_id` int(11) NOT NULL AUTO_INCREMENT,
   `invoice_id` int(11) NOT NULL DEFAULT 0,
   `user_id` int(11) NOT NULL,
@@ -316,7 +316,7 @@ CREATE TABLE IF NOT EXISTS `ip_quotes` (
   KEY `quote_status_id` (`quote_status_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
-CREATE TABLE IF NOT EXISTS `ip_reservation_amounts` (
+CREATE TABLE IF NOT EXISTS `reservation_amounts` (
   `reservation_amount_id` int(11) NOT NULL AUTO_INCREMENT,
   `reservation_id` int(11) NOT NULL,
   `reservation_item_subtotal` decimal(20,2) DEFAULT NULL,
@@ -327,7 +327,7 @@ CREATE TABLE IF NOT EXISTS `ip_reservation_amounts` (
   KEY `reservation_id` (`reservation_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
-CREATE TABLE IF NOT EXISTS `ip_reservation_item_amounts` (
+CREATE TABLE IF NOT EXISTS `reservation_item_amounts` (
   `item_amount_id` int(11) NOT NULL AUTO_INCREMENT,
   `item_id` int(11) NOT NULL,
   `item_subtotal` decimal(20,2) DEFAULT NULL,
@@ -338,7 +338,7 @@ CREATE TABLE IF NOT EXISTS `ip_reservation_item_amounts` (
   KEY `item_id` (`item_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
-CREATE TABLE IF NOT EXISTS `ip_reservation_items` (
+CREATE TABLE IF NOT EXISTS `reservation_items` (
   `item_id` int(11) NOT NULL AUTO_INCREMENT,
   `reservation_id` int(11) NOT NULL,
   `room_id` int(11) DEFAULT NULL,
@@ -363,7 +363,7 @@ CREATE TABLE IF NOT EXISTS `ip_reservation_items` (
   KEY `reservation_period` (`arrival_date`,`departure_date`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
-CREATE TABLE IF NOT EXISTS `ip_reservation_tax_rates` (
+CREATE TABLE IF NOT EXISTS `reservation_tax_rates` (
   `reservation_tax_rate_id` int(11) NOT NULL AUTO_INCREMENT,
   `reservation_id` int(11) NOT NULL,
   `tax_rate_id` int(11) NOT NULL,
@@ -374,7 +374,7 @@ CREATE TABLE IF NOT EXISTS `ip_reservation_tax_rates` (
   KEY `tax_rate_id` (`tax_rate_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
-CREATE TABLE IF NOT EXISTS `ip_reservations` (
+CREATE TABLE IF NOT EXISTS `reservations` (
   `reservation_id` int(11) NOT NULL AUTO_INCREMENT,
   `invoice_id` int(11) NOT NULL DEFAULT 0,
   `user_id` int(11) NOT NULL,
@@ -395,7 +395,7 @@ CREATE TABLE IF NOT EXISTS `ip_reservations` (
   KEY `reservation_status_id` (`reservation_status_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
-CREATE TABLE IF NOT EXISTS `ip_rooms` (
+CREATE TABLE IF NOT EXISTS `rooms` (
   `room_id` int(11) NOT NULL AUTO_INCREMENT,
   `room_number` varchar(50) NOT NULL,
   `room_name` varchar(100) DEFAULT NULL,
@@ -406,7 +406,7 @@ CREATE TABLE IF NOT EXISTS `ip_rooms` (
   KEY `room_active` (`room_active`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE IF NOT EXISTS `ip_settings` (
+CREATE TABLE IF NOT EXISTS `settings` (
   `setting_id` int(11) NOT NULL AUTO_INCREMENT,
   `setting_key` varchar(50) NOT NULL,
   `setting_value` longtext NOT NULL,
@@ -414,14 +414,14 @@ CREATE TABLE IF NOT EXISTS `ip_settings` (
   KEY `setting_key` (`setting_key`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
-CREATE TABLE IF NOT EXISTS `ip_tax_rates` (
+CREATE TABLE IF NOT EXISTS `tax_rates` (
   `tax_rate_id` int(11) NOT NULL AUTO_INCREMENT,
   `tax_rate_name` text DEFAULT NULL,
   `tax_rate_percent` decimal(5,2) NOT NULL,
   PRIMARY KEY (`tax_rate_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
-CREATE TABLE IF NOT EXISTS `ip_units` (
+CREATE TABLE IF NOT EXISTS `units` (
   `unit_id` int(11) NOT NULL AUTO_INCREMENT,
   `unit_name` varchar(50) DEFAULT NULL,
   `unit_name_plrl` varchar(50) DEFAULT NULL,

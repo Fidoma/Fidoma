@@ -78,12 +78,12 @@ class AssignInvoiceBankTransactionTest extends TestCase
         ])->sole();
 
         $this->assertNotNull($mapping->payment_id);
-        $this->assertDatabaseHas('ip_payments', [
+        $this->assertDatabaseHas('payments', [
             'payment_id' => $mapping->payment_id,
             'invoice_id' => $invoice->getKey(),
             'payment_amount' => 1119,
         ]);
-        $this->assertDatabaseHas('ip_bank_transaction_mappings', [
+        $this->assertDatabaseHas('bank_transaction_mappings', [
             'bank_transaction_mapping_id' => $mapping->getKey(),
             'payment_created_by_mapping' => true,
         ]);
@@ -95,10 +95,10 @@ class AssignInvoiceBankTransactionTest extends TestCase
             $transaction->getKey() => $transaction->assignmentFingerprint(),
         ]);
 
-        $this->assertDatabaseMissing('ip_bank_transaction_mappings', [
+        $this->assertDatabaseMissing('bank_transaction_mappings', [
             'bank_transaction_mapping_id' => $mapping->getKey(),
         ]);
-        $this->assertDatabaseMissing('ip_payments', [
+        $this->assertDatabaseMissing('payments', [
             'payment_id' => $mapping->payment_id,
         ]);
         $this->assertSame('119.00', $invoice->refresh()->amount->invoice_balance);

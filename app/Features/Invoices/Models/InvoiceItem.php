@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class InvoiceItem extends Model
 {
-    protected $table = 'ip_invoice_items';
+    protected $table = 'invoice_items';
 
     protected $primaryKey = 'item_id';
 

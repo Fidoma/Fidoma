@@ -192,6 +192,6 @@ class AiTemplateTest extends TestCase
             ]);
 
         Http::assertNothingSent();
-        $this->assertDatabaseCount('ip_reservations', 0);
+        $this->assertDatabaseCount('reservations', 0);
     }
 }

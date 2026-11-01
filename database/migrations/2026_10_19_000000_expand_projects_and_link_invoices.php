@@ -9,7 +9,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('ip_projects', function (Blueprint $table): void {
+        Schema::table('projects', function (Blueprint $table): void {
             $table->integer('invoice_group_id')->nullable()->after('client_id')->index();
             $table->string('project_number', 100)->nullable()->after('invoice_group_id')->unique();
             $table->string('project_status', 30)->default('draft')->after('project_name')->index();
@@ -23,13 +23,13 @@ return new class extends Migration
             $table->dateTime('updated_at')->nullable()->after('created_at');
         });
 
-        Schema::table('ip_invoices', function (Blueprint $table): void {
+        Schema::table('invoices', function (Blueprint $table): void {
             $table->integer('project_id')->nullable()->after('client_id')->index();
             $table->string('billing_type', 30)->default('standard')->after('invoice_type')->index();
         });
 
-        if (! DB::table('ip_invoice_groups')->where('invoice_group_name', 'Projekte')->exists()) {
-            DB::table('ip_invoice_groups')->insert([
+        if (! DB::table('invoice_groups')->where('invoice_group_name', 'Projekte')->exists()) {
+            DB::table('invoice_groups')->insert([
                 'invoice_group_name' => 'Projekte',
                 'invoice_group_identifier_format' => 'PR-{{{year}}}-{{{id}}}',
                 'invoice_group_next_id' => 1,
@@ -40,18 +40,18 @@ return new class extends Migration
 
     public function down(): void
     {
-        DB::table('ip_invoice_groups')
+        DB::table('invoice_groups')
             ->where('invoice_group_name', 'Projekte')
-            ->whereNotIn('invoice_group_id', DB::table('ip_projects')->whereNotNull('invoice_group_id')->select('invoice_group_id'))
+            ->whereNotIn('invoice_group_id', DB::table('projects')->whereNotNull('invoice_group_id')->select('invoice_group_id'))
             ->delete();
 
-        Schema::table('ip_invoices', function (Blueprint $table): void {
+        Schema::table('invoices', function (Blueprint $table): void {
             $table->dropIndex(['project_id']);
             $table->dropIndex(['billing_type']);
             $table->dropColumn(['project_id', 'billing_type']);
         });
 
-        Schema::table('ip_projects', function (Blueprint $table): void {
+        Schema::table('projects', function (Blueprint $table): void {
             $table->dropUnique(['project_number']);
             $table->dropIndex(['invoice_group_id']);
             $table->dropIndex(['project_status']);

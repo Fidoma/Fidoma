@@ -55,7 +55,7 @@ class BankTransactionCsvImportTest extends TestCase
         ]);
 
         $this->assertSame(2, $count);
-        $this->assertDatabaseHas('ip_bank_transactions', [
+        $this->assertDatabaseHas('bank_transactions', [
             'account_iban' => 'DE1234567890',
             'booking_date' => '2026-10-17',
             'amount' => '1234.5600',
@@ -63,7 +63,7 @@ class BankTransactionCsvImportTest extends TestCase
             'counterparty_name' => 'Beispiel GmbH',
             'transaction_reference' => hash('sha256', 'DE1234567890|bank-1'),
         ]);
-        $this->assertDatabaseHas('ip_bank_transactions', [
+        $this->assertDatabaseHas('bank_transactions', [
             'booking_date' => '2026-10-18',
             'amount' => '-25.4000',
             'transaction_reference' => hash('sha256', 'DE1234567890|bank-2'),
@@ -122,7 +122,7 @@ class BankTransactionCsvImportTest extends TestCase
             ->call('importCsv')
             ->assertHasNoErrors();
 
-        $this->assertDatabaseHas('ip_bank_transactions', [
+        $this->assertDatabaseHas('bank_transactions', [
             'amount' => '49.9000',
             'purpose' => 'Testimport',
         ]);
@@ -261,8 +261,8 @@ class BankTransactionCsvImportTest extends TestCase
         );
 
         $this->assertSame(1, $count);
-        $this->assertDatabaseMissing('ip_bank_transactions', ['purpose' => 'Entfernen']);
-        $this->assertDatabaseHas('ip_bank_transactions', ['purpose' => 'Importieren']);
+        $this->assertDatabaseMissing('bank_transactions', ['purpose' => 'Entfernen']);
+        $this->assertDatabaseHas('bank_transactions', ['purpose' => 'Importieren']);
     }
 
     public function test_the_import_page_keeps_rows_removed_by_the_preview_excluded(): void

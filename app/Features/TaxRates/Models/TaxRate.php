@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TaxRate extends Model
 {
-    protected $table = 'ip_tax_rates';
+    protected $table = 'tax_rates';
 
     protected $primaryKey = 'tax_rate_id';
 

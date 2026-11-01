@@ -138,7 +138,7 @@ class PaymentsPageTest extends TestCase
             );
         }
 
-        $this->assertDatabaseHas('ip_payments', ['payment_id' => $payment->getKey()]);
+        $this->assertDatabaseHas('payments', ['payment_id' => $payment->getKey()]);
     }
 
     public function test_a_payment_can_be_added_for_an_open_invoice(): void
@@ -197,7 +197,7 @@ class PaymentsPageTest extends TestCase
             ])
             ->assertNotified('Zahlung wurde gespeichert.');
 
-        $this->assertDatabaseHas('ip_payments', [
+        $this->assertDatabaseHas('payments', [
             'invoice_id' => $invoice->getKey(),
             'payment_method_id' => $method->getKey(),
             'payment_amount' => 50,
@@ -220,7 +220,7 @@ class PaymentsPageTest extends TestCase
             ])
             ->assertNotified('Zahlung wurde gespeichert.');
 
-        $this->assertDatabaseHas('ip_payments', [
+        $this->assertDatabaseHas('payments', [
             'payment_id' => $firstPayment->getKey(),
             'payment_amount' => 40,
             'payment_date' => '2026-10-17',
@@ -244,7 +244,7 @@ class PaymentsPageTest extends TestCase
 
         app(DeletePayment::class)->handle($firstPayment);
 
-        $this->assertDatabaseMissing('ip_payments', ['payment_id' => $firstPayment->getKey()]);
+        $this->assertDatabaseMissing('payments', ['payment_id' => $firstPayment->getKey()]);
         $this->assertSame('40.00', $invoice->refresh()->amount->invoice_balance);
         $this->assertSame(InvoiceStatus::Open, $invoice->invoice_status_id);
     }

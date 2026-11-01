@@ -17,7 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 #[UsePolicy(ReservationPolicy::class)]
 class Reservation extends Model
 {
-    protected $table = 'ip_reservations';
+    protected $table = 'reservations';
 
     protected $primaryKey = 'reservation_id';
 

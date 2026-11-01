@@ -91,7 +91,7 @@ class ClientNumberTest extends TestCase
             ->call('save')
             ->assertHasNoFormErrors();
 
-        $this->assertDatabaseHas('ip_clients', [
+        $this->assertDatabaseHas('clients', [
             'client_id' => $client->getKey(),
             'client_name' => 'Neue Bezeichnung GmbH',
             'client_company' => 'Neue Bezeichnung GmbH',

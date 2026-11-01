@@ -12,7 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('ip_products', function (Blueprint $table) {
+        Schema::create('products', function (Blueprint $table) {
             $table->engine = 'MyISAM';
             $table->charset = 'utf8';
             $table->collation = 'utf8_general_ci';
@@ -28,8 +28,8 @@ return new class extends Migration
         });
 
         if (DB::getDriverName() === 'mysql') {
-            DB::statement('ALTER TABLE ip_products MODIFY product_price FLOAT(10, 2) NOT NULL');
-            DB::statement('ALTER TABLE ip_products MODIFY purchase_price FLOAT(10, 2) NOT NULL');
+            DB::statement('ALTER TABLE products MODIFY product_price FLOAT(10, 2) NOT NULL');
+            DB::statement('ALTER TABLE products MODIFY purchase_price FLOAT(10, 2) NOT NULL');
         }
     }
 
@@ -38,6 +38,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('ip_products');
+        Schema::dropIfExists('products');
     }
 };

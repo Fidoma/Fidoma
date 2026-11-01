@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PaymentMethod extends Model
 {
-    protected $table = 'ip_payment_methods';
+    protected $table = 'payment_methods';
 
     protected $primaryKey = 'payment_method_id';
 

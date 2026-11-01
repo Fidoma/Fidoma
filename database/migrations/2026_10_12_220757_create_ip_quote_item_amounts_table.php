@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('ip_quote_item_amounts', function (Blueprint $table) {
+        Schema::create('quote_item_amounts', function (Blueprint $table) {
             $table->engine = 'MyISAM';
             $table->charset = 'utf8';
             $table->collation = 'utf8_general_ci';
@@ -31,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('ip_quote_item_amounts');
+        Schema::dropIfExists('quote_item_amounts');
     }
 };

@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('ip_invoices', function (Blueprint $table) {
+        Schema::table('invoices', function (Blueprint $table) {
             $table->boolean('is_archived')
                 ->default(false)
                 ->index()
@@ -18,7 +18,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::table('ip_invoices', function (Blueprint $table) {
+        Schema::table('invoices', function (Blueprint $table) {
             $table->dropColumn('is_archived');
         });
     }

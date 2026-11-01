@@ -10,7 +10,7 @@ final class InvoiceAuditLogger
 {
     public function log(Invoice $invoice, string $event, string $message, string $category = 'finance'): void
     {
-        DB::table('ip_audit_logs')->insert([
+        DB::table('audit_logs')->insert([
             'created_at' => now(),
             'user_id' => Auth::id(),
             'user_name' => Auth::user()?->name ?? '',

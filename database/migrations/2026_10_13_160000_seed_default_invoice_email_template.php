@@ -7,13 +7,13 @@ return new class extends Migration
 {
     public function up(): void
     {
-        $templateId = DB::table('ip_email_templates')
+        $templateId = DB::table('email_templates')
             ->where('email_template_type', 'invoice')
             ->orderBy('email_template_id')
             ->value('email_template_id');
 
         if ($templateId === null) {
-            $templateId = DB::table('ip_email_templates')->insertGetId([
+            $templateId = DB::table('email_templates')->insertGetId([
                 'email_template_title' => 'Standardrechnung',
                 'email_template_type' => 'invoice',
                 'email_template_subject' => '{{{invoice_type}}} {{{invoice_number}}}',
@@ -26,12 +26,12 @@ return new class extends Migration
             ]);
         }
 
-        $currentDefault = DB::table('ip_settings')
+        $currentDefault = DB::table('settings')
             ->where('setting_key', 'email_invoice_template')
             ->value('setting_value');
 
         if (blank($currentDefault)) {
-            DB::table('ip_settings')->updateOrInsert(
+            DB::table('settings')->updateOrInsert(
                 ['setting_key' => 'email_invoice_template'],
                 ['setting_value' => (string) $templateId],
             );

@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Client extends Model
 {
-    protected $table = 'ip_clients';
+    protected $table = 'clients';
 
     protected $primaryKey = 'client_id';
 

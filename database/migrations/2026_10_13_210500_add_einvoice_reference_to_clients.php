@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('ip_clients', function (Blueprint $table): void {
+        Schema::table('clients', function (Blueprint $table): void {
             $table->string('client_einvoicing_reference', 100)
                 ->nullable()
                 ->after('client_einvoicing_version');
@@ -17,7 +17,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::table('ip_clients', function (Blueprint $table): void {
+        Schema::table('clients', function (Blueprint $table): void {
             $table->dropColumn('client_einvoicing_reference');
         });
     }

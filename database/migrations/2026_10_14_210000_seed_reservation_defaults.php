@@ -7,12 +7,12 @@ return new class extends Migration
 {
     public function up(): void
     {
-        $groupId = DB::table('ip_invoice_groups')
+        $groupId = DB::table('invoice_groups')
             ->where('invoice_group_name', 'Reservierung')
             ->value('invoice_group_id');
 
         if (! $groupId) {
-            $groupId = DB::table('ip_invoice_groups')->insertGetId([
+            $groupId = DB::table('invoice_groups')->insertGetId([
                 'invoice_group_name' => 'Reservierung',
                 'invoice_group_identifier_format' => 'RES{{{id}}}',
                 'invoice_group_next_id' => 1,
@@ -21,8 +21,8 @@ return new class extends Migration
         }
 
         foreach (['default_reservation_group' => (string) $groupId, 'reservations_expire_after' => '30'] as $key => $value) {
-            if (! DB::table('ip_settings')->where('setting_key', $key)->exists()) {
-                DB::table('ip_settings')->insert(['setting_key' => $key, 'setting_value' => $value]);
+            if (! DB::table('settings')->where('setting_key', $key)->exists()) {
+                DB::table('settings')->insert(['setting_key' => $key, 'setting_value' => $value]);
             }
         }
     }

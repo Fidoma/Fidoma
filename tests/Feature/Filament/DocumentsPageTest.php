@@ -210,14 +210,14 @@ class DocumentsPageTest extends TestCase
             ->dispatch('invoice-linked-tab-opened')
             ->assertCanSeeTableRecords([$incoming]);
 
-        $this->assertDatabaseHas('ip_bank_transaction_mappings', [
+        $this->assertDatabaseHas('bank_transaction_mappings', [
             'bank_transaction_id' => $incoming->getKey(),
         ]);
-        $this->assertDatabaseHas('ip_payments', [
+        $this->assertDatabaseHas('payments', [
             'invoice_id' => $invoice->getKey(),
             'payment_amount' => 119,
         ]);
-        $this->assertDatabaseHas('ip_bank_transaction_mappings', [
+        $this->assertDatabaseHas('bank_transaction_mappings', [
             'bank_transaction_id' => $incoming->getKey(),
             'payment_created_by_mapping' => true,
         ]);

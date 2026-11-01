@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Payment extends Model
 {
-    protected $table = 'ip_payments';
+    protected $table = 'payments';
 
     protected $primaryKey = 'payment_id';
 

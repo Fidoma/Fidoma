@@ -9,16 +9,16 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('ip_products', function (Blueprint $table): void {
+        Schema::table('products', function (Blueprint $table): void {
             $table->longText('product_description')->nullable()->change();
         });
     }
 
     public function down(): void
     {
-        DB::table('ip_products')->whereNull('product_description')->update(['product_description' => '']);
+        DB::table('products')->whereNull('product_description')->update(['product_description' => '']);
 
-        Schema::table('ip_products', function (Blueprint $table): void {
+        Schema::table('products', function (Blueprint $table): void {
             $table->longText('product_description')->nullable(false)->change();
         });
     }

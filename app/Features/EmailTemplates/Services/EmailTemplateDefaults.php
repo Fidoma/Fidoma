@@ -62,12 +62,12 @@ final class EmailTemplateDefaults
 
     private function setting(string $key): ?string
     {
-        return DB::table('ip_settings')->where('setting_key', $key)->value('setting_value');
+        return DB::table('settings')->where('setting_key', $key)->value('setting_value');
     }
 
     private function putSetting(string $key, string $value): void
     {
-        DB::table('ip_settings')->updateOrInsert(
+        DB::table('settings')->updateOrInsert(
             ['setting_key' => $key],
             ['setting_value' => $value],
         );
