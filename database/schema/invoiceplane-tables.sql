@@ -51,24 +51,6 @@ CREATE TABLE IF NOT EXISTS `ip_bank_transactions` (
   KEY `idx_open_transactions` (`validated`,`pending`,`booking_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
-CREATE TABLE IF NOT EXISTS `ip_client_custom` (
-  `client_custom_id` int(11) NOT NULL AUTO_INCREMENT,
-  `client_id` int(11) NOT NULL,
-  `client_custom_fieldid` int(11) NOT NULL,
-  `client_custom_fieldvalue` text DEFAULT NULL,
-  PRIMARY KEY (`client_custom_id`),
-  UNIQUE KEY `client_id` (`client_id`,`client_custom_fieldid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
-CREATE TABLE IF NOT EXISTS `ip_client_notes` (
-  `client_note_id` int(11) NOT NULL AUTO_INCREMENT,
-  `client_id` int(11) NOT NULL,
-  `client_note_date` date NOT NULL,
-  `client_note` longtext NOT NULL,
-  PRIMARY KEY (`client_note_id`),
-  KEY `client_id` (`client_id`,`client_note_date`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
-
 CREATE TABLE IF NOT EXISTS `ip_clients` (
   `client_id` int(11) NOT NULL AUTO_INCREMENT,
   `client_date_created` datetime NOT NULL,
@@ -104,27 +86,6 @@ CREATE TABLE IF NOT EXISTS `ip_clients` (
   KEY `client_active` (`client_active`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
-CREATE TABLE IF NOT EXISTS `ip_custom_fields` (
-  `custom_field_id` int(11) NOT NULL AUTO_INCREMENT,
-  `custom_field_table` varchar(50) DEFAULT NULL,
-  `custom_field_label` varchar(50) DEFAULT NULL,
-  `custom_field_type` varchar(255) NOT NULL DEFAULT 'TEXT',
-  `custom_field_location` int(11) DEFAULT 0,
-  `custom_field_item_slot` tinyint(3) unsigned DEFAULT NULL,
-  `custom_field_order` int(11) DEFAULT 999,
-  PRIMARY KEY (`custom_field_id`),
-  UNIQUE KEY `custom_field_table_2` (`custom_field_table`,`custom_field_label`),
-  UNIQUE KEY `uq_custom_fields_invoice_item_slot` (`custom_field_table`,`custom_field_location`,`custom_field_item_slot`),
-  KEY `custom_field_table` (`custom_field_table`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
-
-CREATE TABLE IF NOT EXISTS `ip_custom_values` (
-  `custom_values_id` int(11) NOT NULL AUTO_INCREMENT,
-  `custom_values_field` int(11) NOT NULL,
-  `custom_values_value` text NOT NULL,
-  PRIMARY KEY (`custom_values_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
-
 CREATE TABLE IF NOT EXISTS `ip_email_templates` (
   `email_template_id` int(11) NOT NULL AUTO_INCREMENT,
   `email_template_title` text DEFAULT NULL,
@@ -139,91 +100,10 @@ CREATE TABLE IF NOT EXISTS `ip_email_templates` (
   PRIMARY KEY (`email_template_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
-CREATE TABLE IF NOT EXISTS `ip_employee_employment` (
-  `employment_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `employee_id` int(10) unsigned NOT NULL,
-  `employment_type_id` int(10) unsigned NOT NULL,
-  `start_date` date NOT NULL,
-  `end_date` date DEFAULT NULL,
-  `job_title` varchar(150) NOT NULL,
-  `workplace` varchar(200) NOT NULL,
-  `weekly_hours` decimal(5,2) NOT NULL,
-  `remuneration` decimal(12,2) NOT NULL,
-  `pay_period` varchar(10) NOT NULL,
-  PRIMARY KEY (`employment_id`),
-  KEY `employment_employee` (`employee_id`,`start_date`),
-  KEY `employee_employment_type_fk` (`employment_type_id`),
-  CONSTRAINT `employee_employment_person_fk` FOREIGN KEY (`employee_id`) REFERENCES `ip_employees` (`employee_id`) ON DELETE CASCADE,
-  CONSTRAINT `employee_employment_type_fk` FOREIGN KEY (`employment_type_id`) REFERENCES `ip_employee_employment_types` (`employment_type_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS `ip_employee_employment_types` (
-  `employment_type_id` int(10) unsigned NOT NULL,
-  `code` varchar(32) NOT NULL,
-  PRIMARY KEY (`employment_type_id`),
-  UNIQUE KEY `employment_type_code` (`code`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS `ip_employee_minijob` (
-  `employment_id` int(10) unsigned NOT NULL,
-  `pension_exempt` tinyint(3) unsigned NOT NULL,
-  PRIMARY KEY (`employment_id`),
-  CONSTRAINT `employee_minijob_employment_fk` FOREIGN KEY (`employment_id`) REFERENCES `ip_employee_employment` (`employment_id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS `ip_employee_short_term` (
-  `employment_id` int(10) unsigned NOT NULL,
-  `previous_days` smallint(5) unsigned NOT NULL,
-  `professional` tinyint(3) unsigned NOT NULL,
-  PRIMARY KEY (`employment_id`),
-  CONSTRAINT `employee_short_term_employment_fk` FOREIGN KEY (`employment_id`) REFERENCES `ip_employee_employment` (`employment_id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS `ip_employee_social_insurance` (
-  `employment_id` int(10) unsigned NOT NULL,
-  `health_insurer` varchar(150) NOT NULL,
-  PRIMARY KEY (`employment_id`),
-  CONSTRAINT `employee_social_employment_fk` FOREIGN KEY (`employment_id`) REFERENCES `ip_employee_employment` (`employment_id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS `ip_employees` (
-  `employee_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `first_name` varchar(100) NOT NULL,
-  `last_name` varchar(100) NOT NULL,
-  `birth_date` date NOT NULL,
-  `birth_place` varchar(100) NOT NULL,
-  `birth_country` varchar(100) NOT NULL,
-  `nationality` varchar(100) NOT NULL,
-  `street` varchar(200) NOT NULL,
-  `postal_code` varchar(20) NOT NULL,
-  `city` varchar(100) NOT NULL,
-  `country` varchar(100) NOT NULL,
-  `social_security_number` char(12) NOT NULL,
-  `tax_id` char(11) NOT NULL,
-  PRIMARY KEY (`employee_id`),
-  KEY `employee_name` (`last_name`,`first_name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 CREATE TABLE IF NOT EXISTS `ip_families` (
   `family_id` int(11) NOT NULL AUTO_INCREMENT,
   `family_name` text DEFAULT NULL,
   PRIMARY KEY (`family_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
-
-CREATE TABLE IF NOT EXISTS `ip_import_details` (
-  `import_detail_id` int(11) NOT NULL AUTO_INCREMENT,
-  `import_id` int(11) NOT NULL,
-  `import_lang_key` varchar(35) NOT NULL,
-  `import_table_name` varchar(35) NOT NULL,
-  `import_record_id` int(11) NOT NULL,
-  PRIMARY KEY (`import_detail_id`),
-  KEY `import_id` (`import_id`,`import_record_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
-
-CREATE TABLE IF NOT EXISTS `ip_imports` (
-  `import_id` int(11) NOT NULL AUTO_INCREMENT,
-  `import_date` datetime NOT NULL,
-  PRIMARY KEY (`import_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 CREATE TABLE IF NOT EXISTS `ip_invoice_amounts` (
@@ -240,15 +120,6 @@ CREATE TABLE IF NOT EXISTS `ip_invoice_amounts` (
   KEY `invoice_id` (`invoice_id`),
   KEY `invoice_paid` (`invoice_paid`,`invoice_balance`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
-
-CREATE TABLE IF NOT EXISTS `ip_invoice_custom` (
-  `invoice_custom_id` int(11) NOT NULL AUTO_INCREMENT,
-  `invoice_id` int(11) NOT NULL,
-  `invoice_custom_fieldid` int(11) NOT NULL,
-  `invoice_custom_fieldvalue` text DEFAULT NULL,
-  PRIMARY KEY (`invoice_custom_id`),
-  UNIQUE KEY `invoice_id` (`invoice_id`,`invoice_custom_fieldid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS `ip_invoice_groups` (
   `invoice_group_id` int(11) NOT NULL AUTO_INCREMENT,
@@ -294,29 +165,6 @@ CREATE TABLE IF NOT EXISTS `ip_invoice_items` (
   KEY `invoice_id` (`invoice_id`,`item_tax_rate_id`,`item_date_added`,`item_order`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
-CREATE TABLE IF NOT EXISTS `ip_invoice_items_custom` (
-  `invoice_item_custom_id` int(11) NOT NULL AUTO_INCREMENT,
-  `item_id` int(11) NOT NULL,
-  `invoice_item_custom_fieldid` int(11) NOT NULL,
-  `invoice_item_custom_fieldvalue` text DEFAULT NULL,
-  PRIMARY KEY (`invoice_item_custom_id`),
-  UNIQUE KEY `uq_invoice_item_custom_field` (`item_id`,`invoice_item_custom_fieldid`),
-  KEY `idx_invoice_item_custom_field` (`invoice_item_custom_fieldid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
-
-CREATE TABLE IF NOT EXISTS `ip_invoice_sumex` (
-  `sumex_id` int(11) NOT NULL AUTO_INCREMENT,
-  `sumex_invoice` int(11) NOT NULL,
-  `sumex_reason` int(11) NOT NULL,
-  `sumex_diagnosis` varchar(500) NOT NULL,
-  `sumex_observations` varchar(500) NOT NULL,
-  `sumex_treatmentstart` date NOT NULL,
-  `sumex_treatmentend` date NOT NULL,
-  `sumex_casedate` date NOT NULL,
-  `sumex_casenumber` varchar(35) DEFAULT NULL,
-  PRIMARY KEY (`sumex_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
-
 CREATE TABLE IF NOT EXISTS `ip_invoice_tax_rates` (
   `invoice_tax_rate_id` int(11) NOT NULL AUTO_INCREMENT,
   `invoice_id` int(11) NOT NULL,
@@ -352,70 +200,6 @@ CREATE TABLE IF NOT EXISTS `ip_invoices` (
   KEY `user_id` (`user_id`,`client_id`,`invoice_group_id`,`invoice_date_created`,`invoice_date_due`,`invoice_number`),
   KEY `invoice_status_id` (`invoice_status_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
-
-CREATE TABLE IF NOT EXISTS `ip_invoices_recurring` (
-  `invoice_recurring_id` int(11) NOT NULL AUTO_INCREMENT,
-  `invoice_id` int(11) NOT NULL,
-  `recur_start_date` date NOT NULL,
-  `recur_end_date` date DEFAULT NULL,
-  `recur_frequency` varchar(255) NOT NULL,
-  `recur_next_date` date DEFAULT NULL,
-  PRIMARY KEY (`invoice_recurring_id`),
-  KEY `invoice_id` (`invoice_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
-
-CREATE TABLE IF NOT EXISTS `ip_item_lookups` (
-  `item_lookup_id` int(11) NOT NULL AUTO_INCREMENT,
-  `item_name` varchar(100) NOT NULL DEFAULT '',
-  `item_description` longtext NOT NULL,
-  `item_price` decimal(10,2) NOT NULL,
-  PRIMARY KEY (`item_lookup_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
-
-CREATE TABLE IF NOT EXISTS `ip_login_log` (
-  `login_name` varchar(100) NOT NULL,
-  `log_count` int(11) DEFAULT 0,
-  `log_create_timestamp` datetime DEFAULT NULL,
-  PRIMARY KEY (`login_name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
-CREATE TABLE IF NOT EXISTS `ip_merchant_responses` (
-  `merchant_response_id` int(11) NOT NULL AUTO_INCREMENT,
-  `invoice_id` int(11) NOT NULL,
-  `merchant_response_successful` tinyint(1) DEFAULT 1,
-  `merchant_response_date` date NOT NULL,
-  `merchant_response_driver` varchar(35) NOT NULL,
-  `merchant_response` varchar(255) NOT NULL,
-  `merchant_response_reference` varchar(255) NOT NULL,
-  PRIMARY KEY (`merchant_response_id`),
-  KEY `merchant_response_date` (`merchant_response_date`),
-  KEY `invoice_id` (`invoice_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
-
-CREATE TABLE IF NOT EXISTS `ip_paperless_zip_imports` (
-  `paperless_zip_import_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `source_key` char(64) NOT NULL,
-  `mailbox` varchar(255) NOT NULL,
-  `message_uid` bigint(20) unsigned NOT NULL,
-  `attachment_part` varchar(50) NOT NULL,
-  `attachment_filename` varchar(255) NOT NULL,
-  `received_at` date DEFAULT NULL,
-  `sender` varchar(255) NOT NULL DEFAULT '',
-  `subject` varchar(255) NOT NULL DEFAULT '',
-  `discovered_at` datetime DEFAULT NULL,
-  `imported_at` datetime DEFAULT NULL,
-  PRIMARY KEY (`paperless_zip_import_id`),
-  UNIQUE KEY `uq_paperless_zip_import_source` (`source_key`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS `ip_payment_custom` (
-  `payment_custom_id` int(11) NOT NULL AUTO_INCREMENT,
-  `payment_id` int(11) NOT NULL,
-  `payment_custom_fieldid` int(11) NOT NULL,
-  `payment_custom_fieldvalue` text DEFAULT NULL,
-  PRIMARY KEY (`payment_custom_id`),
-  UNIQUE KEY `payment_id` (`payment_id`,`payment_custom_fieldid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS `ip_payment_methods` (
   `payment_method_id` int(11) NOT NULL AUTO_INCREMENT,
@@ -468,15 +252,6 @@ CREATE TABLE IF NOT EXISTS `ip_quote_amounts` (
   PRIMARY KEY (`quote_amount_id`),
   KEY `quote_id` (`quote_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
-
-CREATE TABLE IF NOT EXISTS `ip_quote_custom` (
-  `quote_custom_id` int(11) NOT NULL AUTO_INCREMENT,
-  `quote_id` int(11) NOT NULL,
-  `quote_custom_fieldid` int(11) NOT NULL,
-  `quote_custom_fieldvalue` text DEFAULT NULL,
-  PRIMARY KEY (`quote_custom_id`),
-  UNIQUE KEY `quote_id` (`quote_id`,`quote_custom_fieldid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS `ip_quote_item_amounts` (
   `item_amount_id` int(11) NOT NULL AUTO_INCREMENT,
@@ -551,15 +326,6 @@ CREATE TABLE IF NOT EXISTS `ip_reservation_amounts` (
   PRIMARY KEY (`reservation_amount_id`),
   KEY `reservation_id` (`reservation_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
-
-CREATE TABLE IF NOT EXISTS `ip_reservation_custom` (
-  `reservation_custom_id` int(11) NOT NULL AUTO_INCREMENT,
-  `reservation_id` int(11) NOT NULL,
-  `reservation_custom_fieldid` int(11) NOT NULL,
-  `reservation_custom_fieldvalue` text DEFAULT NULL,
-  PRIMARY KEY (`reservation_custom_id`),
-  UNIQUE KEY `reservation_field` (`reservation_id`,`reservation_custom_fieldid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS `ip_reservation_item_amounts` (
   `item_amount_id` int(11) NOT NULL AUTO_INCREMENT,
@@ -640,32 +406,12 @@ CREATE TABLE IF NOT EXISTS `ip_rooms` (
   KEY `room_active` (`room_active`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE IF NOT EXISTS `ip_sessions` (
-  `id` varchar(128) NOT NULL,
-  `ip_address` varchar(45) NOT NULL,
-  `timestamp` int(10) unsigned NOT NULL DEFAULT 0,
-  `data` blob NOT NULL,
-  KEY `ip_sessions_timestamp` (`timestamp`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
 CREATE TABLE IF NOT EXISTS `ip_settings` (
   `setting_id` int(11) NOT NULL AUTO_INCREMENT,
   `setting_key` varchar(50) NOT NULL,
   `setting_value` longtext NOT NULL,
   PRIMARY KEY (`setting_id`),
   KEY `setting_key` (`setting_key`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
-
-CREATE TABLE IF NOT EXISTS `ip_tasks` (
-  `task_id` int(11) NOT NULL AUTO_INCREMENT,
-  `project_id` int(11) NOT NULL,
-  `task_name` text DEFAULT NULL,
-  `task_description` longtext NOT NULL,
-  `task_price` decimal(20,2) DEFAULT NULL,
-  `task_finish_date` date NOT NULL,
-  `task_status` tinyint(1) NOT NULL,
-  `tax_rate_id` int(11) NOT NULL,
-  PRIMARY KEY (`task_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 CREATE TABLE IF NOT EXISTS `ip_tax_rates` (
@@ -680,80 +426,5 @@ CREATE TABLE IF NOT EXISTS `ip_units` (
   `unit_name` varchar(50) DEFAULT NULL,
   `unit_name_plrl` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`unit_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
-
-CREATE TABLE IF NOT EXISTS `ip_uploads` (
-  `upload_id` int(11) NOT NULL AUTO_INCREMENT,
-  `client_id` int(11) NOT NULL,
-  `url_key` char(32) NOT NULL,
-  `file_name_original` longtext NOT NULL,
-  `file_name_new` longtext NOT NULL,
-  `uploaded_date` date NOT NULL,
-  PRIMARY KEY (`upload_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
-
-CREATE TABLE IF NOT EXISTS `ip_user_clients` (
-  `user_client_id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_id` int(11) NOT NULL,
-  `client_id` int(11) NOT NULL,
-  PRIMARY KEY (`user_client_id`),
-  KEY `user_id` (`user_id`,`client_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
-
-CREATE TABLE IF NOT EXISTS `ip_user_custom` (
-  `user_custom_id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_id` int(11) NOT NULL,
-  `user_custom_fieldid` int(11) NOT NULL,
-  `user_custom_fieldvalue` text DEFAULT NULL,
-  PRIMARY KEY (`user_custom_id`),
-  UNIQUE KEY `user_id` (`user_id`,`user_custom_fieldid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
-CREATE TABLE IF NOT EXISTS `ip_users` (
-  `user_id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_type` int(1) NOT NULL DEFAULT 0,
-  `user_active` tinyint(1) DEFAULT 1,
-  `user_date_created` datetime NOT NULL,
-  `user_date_modified` datetime NOT NULL,
-  `user_language` varchar(255) DEFAULT 'system',
-  `user_name` text DEFAULT NULL,
-  `user_company` text DEFAULT NULL,
-  `user_address_1` text DEFAULT NULL,
-  `user_address_2` text DEFAULT NULL,
-  `user_city` text DEFAULT NULL,
-  `user_state` text DEFAULT NULL,
-  `user_zip` text DEFAULT NULL,
-  `user_country` text DEFAULT NULL,
-  `user_invoicing_contact` varchar(50) DEFAULT NULL,
-  `user_phone` text DEFAULT NULL,
-  `user_fax` text DEFAULT NULL,
-  `user_mobile` text DEFAULT NULL,
-  `user_email` text DEFAULT NULL,
-  `user_password` varchar(60) NOT NULL,
-  `user_web` text DEFAULT NULL,
-  `user_vat_id` text DEFAULT NULL,
-  `user_tax_code` text DEFAULT NULL,
-  `user_psalt` text DEFAULT NULL,
-  `user_all_clients` int(1) NOT NULL DEFAULT 0,
-  `user_passwordreset_token` varchar(100) DEFAULT '',
-  `user_passwordreset_token_expiry` datetime DEFAULT NULL,
-  `user_force_password_change` tinyint(1) NOT NULL DEFAULT 0,
-  `user_subscribernumber` varchar(40) DEFAULT NULL,
-  `user_bank` varchar(100) DEFAULT NULL,
-  `user_iban` varchar(34) DEFAULT NULL,
-  `user_bic` varchar(11) DEFAULT NULL,
-  `user_remittance_text` varchar(105) DEFAULT NULL,
-  `user_gln` bigint(13) DEFAULT NULL,
-  `user_rcc` varchar(7) DEFAULT NULL,
-  PRIMARY KEY (`user_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
-
-CREATE TABLE IF NOT EXISTS `ip_versions` (
-  `version_id` int(11) NOT NULL AUTO_INCREMENT,
-  `version_date_applied` varchar(14) NOT NULL,
-  `version_file` varchar(45) NOT NULL,
-  `version_sql_errors` int(2) NOT NULL,
-  PRIMARY KEY (`version_id`),
-  KEY `version_date_applied` (`version_date_applied`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
