@@ -2,6 +2,7 @@
 
 return [
     'feature' => 'Reservierungen',
+    'navigation_group' => 'Hotelverwaltung',
     'singular' => 'Reservierung',
     'rooms' => 'Zimmer',
     'room_singular' => 'Zimmer',

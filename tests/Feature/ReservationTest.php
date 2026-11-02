@@ -17,6 +17,7 @@ use App\Features\Reservations\Filament\Resources\Reservations\Pages\ReservationS
 use App\Features\Reservations\Filament\Resources\Reservations\Pages\ReservationStatistics;
 use App\Features\Reservations\Filament\Resources\Reservations\ReservationResource;
 use App\Features\Reservations\Filament\Resources\Rooms\Pages\ListRooms;
+use App\Features\Reservations\Filament\Resources\Rooms\RoomResource;
 use App\Features\Reservations\Livewire\ReservationDetails;
 use App\Features\Reservations\Models\Reservation;
 use App\Features\Reservations\Models\Room;
@@ -330,6 +331,8 @@ class ReservationTest extends TestCase
         Filament::setCurrentPanel(Filament::getPanel('admin'));
         $navigationItems = ReservationResource::getNavigationItems();
 
+        $this->assertSame('Hotelverwaltung', ReservationResource::getNavigationGroup());
+        $this->assertSame('Hotelverwaltung', RoomResource::getNavigationGroup());
         $this->assertSame(['Reservierungen', 'Belegungsplan', 'Statistik & Auswertung', 'Messen'], array_map(
             fn ($item): string => $item->getLabel(),
             $navigationItems,

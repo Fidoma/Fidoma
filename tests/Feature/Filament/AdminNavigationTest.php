@@ -100,7 +100,10 @@ class AdminNavigationTest extends TestCase
             $actions->get(ContractResource::getNavigationItems()[0]->getUrl())['modalAction'] ?? null,
         );
         $this->assertSame(
-            'createTourismReport',
+            TourismReportResource::getUrl('create'),
+            $actions->get(TourismReportResource::getNavigationItems()[0]->getUrl())['createUrl'] ?? null,
+        );
+        $this->assertNull(
             $actions->get(TourismReportResource::getNavigationItems()[0]->getUrl())['modalAction'] ?? null,
         );
 

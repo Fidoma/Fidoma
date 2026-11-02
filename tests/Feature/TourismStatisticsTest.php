@@ -28,13 +28,13 @@ class TourismStatisticsTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_admin_can_open_the_tourism_statistics_form_from_the_reservations_group(): void
+    public function test_admin_can_open_the_tourism_statistics_form_from_the_hotel_management_group(): void
     {
         $this->actingAs(User::factory()->create());
         Filament::setCurrentPanel(Filament::getPanel('admin'));
 
         $this->assertSame('Tourismusstatistik', TourismReportResource::getNavigationLabel());
-        $this->assertSame('Reservierungen', TourismReportResource::getNavigationGroup());
+        $this->assertSame('Hotelverwaltung', TourismReportResource::getNavigationGroup());
 
         $this->get(TourismReportResource::getUrl('create'))
             ->assertOk()

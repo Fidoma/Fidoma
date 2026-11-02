@@ -43,7 +43,7 @@ class ReservationResource extends Resource implements HasSidebarCreateModal
 
     public static function getNavigationGroup(): ?string
     {
-        return __('reservations::messages.feature');
+        return __('reservations::messages.navigation_group');
     }
 
     public static function getModelLabel(): string
