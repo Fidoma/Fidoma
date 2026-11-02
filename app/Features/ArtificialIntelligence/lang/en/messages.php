@@ -30,7 +30,6 @@ return [
         'create_reservation_heading' => 'Create reservation from email',
         'client_created' => 'Client was created.',
         'reservation_created' => 'Reservation was created.',
-        'duplicate_client' => 'A client with this email address already exists.',
     ],
     'areas' => [
         'email_message' => 'Email message',

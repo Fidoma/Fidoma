@@ -80,6 +80,9 @@ return [
         'description' => 'Der Kunde und alle zugehörigen Angebote, Rechnungen und Zahlungen bleiben erhalten.',
         'success' => 'Kunde wurde archiviert.',
     ],
+    'validation' => [
+        'duplicate_email' => 'Ein Kunde mit dieser E-Mail-Adresse ist bereits vorhanden.',
+    ],
     'relations' => [
         'quotes' => 'Angebote',
         'invoices' => 'Rechnungen',

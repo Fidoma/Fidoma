@@ -7,12 +7,12 @@ use App\Features\Invoices\Enums\InvoiceStatus;
 use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
 use App\Features\Reservations\Actions\ConvertReservationToInvoice;
 use App\Features\Reservations\Enums\ReservationStatus;
+use App\Features\Reservations\Filament\Actions\CreateReservationModalAction;
 use App\Features\Reservations\Models\Reservation;
 use App\Features\Reservations\Models\Room;
 use Carbon\CarbonImmutable;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
-use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DatePicker;
@@ -179,7 +179,7 @@ class ReservationsTable
             ->recordUrl(null)
             ->recordAction('viewDetails')
             ->toolbarActions([
-                CreateAction::make()->label('Reservierung')->icon(Heroicon::Plus),
+                CreateReservationModalAction::make(),
             ])
             ->recordActions([
                 Action::make('viewDetails')

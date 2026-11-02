@@ -2,9 +2,8 @@
 
 namespace App\Filament\Livewire;
 
-use App\Features\Clients\Actions\CreateClient;
+use App\Features\Clients\Filament\Actions\CreateClientModalAction;
 use App\Features\Clients\Filament\Resources\Clients\ClientResource;
-use App\Features\Clients\Models\Client;
 use App\Features\Contracts\Actions\CreateContract;
 use App\Features\Contracts\Filament\Resources\Contracts\ContractResource;
 use App\Features\Contracts\Models\Contract;
@@ -56,15 +55,7 @@ class SidebarCreateModal extends Component implements HasActions, HasSchemas
 
     public function createClientAction(): CreateAction
     {
-        return CreateAction::make('createClient')
-            ->model(Client::class)
-            ->label(__('clients::messages.actions.create_client'))
-            ->modalHeading(__('clients::messages.actions.create_client'))
-            ->modalWidth(Width::FiveExtraLarge)
-            ->schema(fn (Schema $schema): Schema => ClientResource::form($schema))
-            ->using(fn (array $data): Client => app(CreateClient::class)->handle($data))
-            ->createAnother(false)
-            ->successNotificationTitle(__('clients::messages.actions.create_client'));
+        return CreateClientModalAction::make('createClient');
     }
 
     public function createPaymentAction(): Action

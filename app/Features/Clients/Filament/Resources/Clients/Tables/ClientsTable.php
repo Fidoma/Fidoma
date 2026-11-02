@@ -3,19 +3,17 @@
 namespace App\Features\Clients\Filament\Resources\Clients\Tables;
 
 use App\Features\Clients\Actions\ArchiveClient;
-use App\Features\Clients\Actions\CreateClient;
+use App\Features\Clients\Filament\Actions\CreateClientModalAction;
 use App\Features\Clients\Filament\Resources\Clients\ClientResource;
 use App\Features\Clients\Models\Client;
 use App\Features\Invoices\Filament\Resources\Invoices\InvoiceResource;
 use App\Features\Quotes\Filament\Resources\Quotes\QuoteResource;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
-use Filament\Actions\CreateAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
-use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -83,11 +81,7 @@ class ClientsTable
                         ->when($data['until'] ?? null, fn (Builder $query, string $date): Builder => $query->whereDate('client_date_created', '<=', $date))),
             ])
             ->toolbarActions([
-                CreateAction::make()
-                    ->label(__('clients::messages.actions.create_client'))
-                    ->icon(Heroicon::Plus)
-                    ->using(fn (array $data): Client => app(CreateClient::class)->handle($data))
-                    ->modalWidth(Width::FiveExtraLarge),
+                CreateClientModalAction::make(),
             ])
             ->recordActions([
                 ActionGroup::make([

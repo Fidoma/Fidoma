@@ -17,7 +17,7 @@ use Filament\Support\Icons\Heroicon;
 
 final class CreateReservationModalAction
 {
-    public static function make(string $name = 'create'): Action
+    public static function make(string $name = 'create', bool $redirectAfterCreate = true): Action
     {
         return Action::make($name)
             ->label('Reservierung')
@@ -25,13 +25,17 @@ final class CreateReservationModalAction
             ->modalHeading('Reservierung hinzufügen')
             ->modalSubmitActionLabel('Reservierung erstellen')
             ->modalWidth(Width::Large)
-            ->fillForm(fn (array $arguments): array => [
-                'client_id' => null,
-                'product_id' => app(LastSelectedReservationProduct::class)->currentId(),
-                'arrival_date' => $arguments['arrival_date'] ?? now()->toDateString(),
-                'departure_date' => $arguments['departure_date'] ?? now()->addDay()->toDateString(),
-                'room_id' => $arguments['room_id'] ?? null,
-            ])
+            ->fillForm(function (array $arguments): array {
+                $draft = is_array($arguments['draft'] ?? null) ? $arguments['draft'] : [];
+
+                return [
+                    'client_id' => $draft['client_id'] ?? null,
+                    'product_id' => $draft['product_id'] ?? app(LastSelectedReservationProduct::class)->currentId(),
+                    'arrival_date' => $draft['arrival_date'] ?? $arguments['arrival_date'] ?? now()->toDateString(),
+                    'departure_date' => $draft['departure_date'] ?? $arguments['departure_date'] ?? now()->addDay()->toDateString(),
+                    'room_id' => $draft['room_id'] ?? $arguments['room_id'] ?? null,
+                ];
+            })
             ->schema([
                 Select::make('client_id')
                     ->label('Kunde')
@@ -78,11 +82,14 @@ final class CreateReservationModalAction
                     ->preload()
                     ->required(),
             ])
-            ->action(function (array $data, Action $action): void {
+            ->action(function (array $data, Action $action) use ($redirectAfterCreate): void {
                 $reservation = app(CreateReservationWithItem::class)->handle($data);
 
                 Notification::make()->success()->title('Reservierung wurde erstellt.')->send();
-                $action->redirect(ReservationResource::getUrl('edit', ['record' => $reservation]));
+
+                if ($redirectAfterCreate) {
+                    $action->redirect(ReservationResource::getUrl('edit', ['record' => $reservation]));
+                }
             });
     }
 }

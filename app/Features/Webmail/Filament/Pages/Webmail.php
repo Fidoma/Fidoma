@@ -6,25 +6,20 @@ use App\Features\ArtificialIntelligence\Actions\SimulateAiTemplateExecution;
 use App\Features\ArtificialIntelligence\Enums\AiTemplateAction;
 use App\Features\ArtificialIntelligence\Enums\AiTemplateArea;
 use App\Features\ArtificialIntelligence\Queries\AvailableAiTemplates;
-use App\Features\Clients\Actions\CreateClient;
-use App\Features\Clients\Filament\Resources\Clients\Schemas\ClientForm;
+use App\Features\Clients\Filament\Actions\CreateClientModalAction;
 use App\Features\Clients\Models\Client;
 use App\Features\Products\Models\Product;
-use App\Features\Reservations\Actions\CreateReservationWithItem;
+use App\Features\Reservations\Filament\Actions\CreateReservationModalAction;
 use App\Features\Reservations\Models\Room;
 use App\Features\Webmail\Services\RoundcubeInstaller;
 use App\Filament\Concerns\HasConfigurableNavigation;
 use App\Models\User;
 use BackedEnum;
 use Filament\Actions\Action;
-use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
-use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
-use Illuminate\Validation\ValidationException;
 use RuntimeException;
 use UnitEnum;
 
@@ -102,89 +97,24 @@ class Webmail extends Page
 
     public function createClientFromAiAction(): Action
     {
-        return Action::make('createClientFromAi')
+        return CreateClientModalAction::make('createClientFromAi', rejectDuplicateEmail: true)
             ->label(__('artificial-intelligence::messages.actions.create_client'))
             ->icon(Heroicon::OutlinedUserPlus)
             ->modalHeading(__('artificial-intelligence::messages.simulation.create_client_heading'))
             ->modalDescription(__('artificial-intelligence::messages.simulation.badge'))
             ->modalSubmitActionLabel(__('artificial-intelligence::messages.actions.create_client'))
-            ->modalWidth(Width::TwoExtraLarge)
             ->fillForm(fn (array $arguments): array => $arguments['draft'] ?? [])
-            ->schema(fn (Schema $schema): Schema => ClientForm::configure($schema))
-            ->action(function (array $data): void {
-                $email = trim((string) ($data['client_email'] ?? ''));
-
-                if ($email !== '' && Client::query()->where('client_email', $email)->exists()) {
-                    throw ValidationException::withMessages([
-                        'client_email' => __('artificial-intelligence::messages.simulation.duplicate_client'),
-                    ]);
-                }
-
-                app(CreateClient::class)->handle($data);
-
-                Notification::make()
-                    ->title(__('artificial-intelligence::messages.simulation.client_created'))
-                    ->success()
-                    ->send();
-            });
+            ->successNotificationTitle(__('artificial-intelligence::messages.simulation.client_created'));
     }
 
     public function createReservationFromAiAction(): Action
     {
-        return Action::make('createReservationFromAi')
+        return CreateReservationModalAction::make('createReservationFromAi', redirectAfterCreate: false)
             ->label(__('artificial-intelligence::messages.actions.create_reservation'))
             ->icon(Heroicon::OutlinedCalendarDays)
             ->modalHeading(__('artificial-intelligence::messages.simulation.create_reservation_heading'))
             ->modalDescription(__('artificial-intelligence::messages.simulation.badge'))
-            ->modalSubmitActionLabel(__('artificial-intelligence::messages.actions.create_reservation'))
-            ->modalWidth(Width::Large)
-            ->fillForm(fn (array $arguments): array => $arguments['draft'] ?? [])
-            ->schema([
-                Select::make('client_id')
-                    ->label(__('clients::messages.singular'))
-                    ->options(fn (): array => Client::query()
-                        ->where('client_active', true)
-                        ->orderBy('client_name')
-                        ->get()
-                        ->mapWithKeys(fn (Client $client): array => [
-                            $client->getKey() => trim($client->client_name.' '.$client->client_surname),
-                        ])->all())
-                    ->searchable()
-                    ->preload()
-                    ->required(),
-                Select::make('product_id')
-                    ->label(__('artificial-intelligence::messages.fields.product'))
-                    ->options(fn (): array => Product::query()->orderBy('product_name')->pluck('product_name', 'product_id')->all())
-                    ->searchable()
-                    ->preload()
-                    ->required(),
-                Select::make('room_id')
-                    ->label(__('reservations::messages.room_singular'))
-                    ->options(fn (): array => Room::query()
-                        ->where('room_active', true)
-                        ->orderBy('room_number')
-                        ->get()
-                        ->mapWithKeys(fn (Room $room): array => [$room->getKey() => $room->displayName()])
-                        ->all())
-                    ->searchable()
-                    ->preload()
-                    ->required(),
-                DatePicker::make('arrival_date')
-                    ->label(__('artificial-intelligence::messages.fields.arrival_date'))
-                    ->required(),
-                DatePicker::make('departure_date')
-                    ->label(__('artificial-intelligence::messages.fields.departure_date'))
-                    ->after('arrival_date')
-                    ->required(),
-            ])
-            ->action(function (array $data): void {
-                app(CreateReservationWithItem::class)->handle($data);
-
-                Notification::make()
-                    ->title(__('artificial-intelligence::messages.simulation.reservation_created'))
-                    ->success()
-                    ->send();
-            });
+            ->modalSubmitActionLabel(__('artificial-intelligence::messages.actions.create_reservation'));
     }
 
     /** @return array<string> */

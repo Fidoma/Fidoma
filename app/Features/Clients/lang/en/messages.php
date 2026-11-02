@@ -80,6 +80,9 @@ return [
         'description' => 'The client and all related quotes, invoices and payments will be retained.',
         'success' => 'Client archived successfully.',
     ],
+    'validation' => [
+        'duplicate_email' => 'A client with this email address already exists.',
+    ],
     'relations' => [
         'quotes' => 'Quotes',
         'invoices' => 'Invoices',
