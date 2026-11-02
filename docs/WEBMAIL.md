@@ -28,6 +28,16 @@ IMAP_MAILBOX=INBOX
 IMAP_VERIFY_CERTIFICATES=true
 ```
 
+Ein Passwort für regelmäßig eingehende, geschützte ZIP-Anhänge wird nicht in der `.env`
+hinterlegt. Die zugehörige Absenderadresse und das ZIP-Passwort werden unter
+**Einstellungen → Module → Webmail** gepflegt. Das Passwort wird verschlüsselt in der
+Fidoma-Datenbank gespeichert und nicht an das Roundcube-Frontend ausgegeben. Neben einer
+vollständigen Adresse kann mit `*@example.com` eine exakte Absenderdomain freigegeben werden.
+Beim Öffnen einer passenden Nachricht ersetzt das Fidoma-Plugin ausschließlich den Link des
+ZIP-Anhangs. Der Anhang wird beim Download serverseitig mit dem gespeicherten Passwort geöffnet
+und als neue, ungeschützte `*-entschluesselt.zip` ausgeliefert. Nachrichten anderer Absender und
+andere Dateitypen verwenden weiterhin den unveränderten Roundcube-Download.
+
 Danach in Fidoma die Seite **Webmail** öffnen und einmalig **Roundcube installieren** wählen.
 Der Installer lädt ausschließlich das im Code festgelegte Complete-Archiv und prüft dessen
 SHA-256-Prüfsumme vor dem Entpacken.

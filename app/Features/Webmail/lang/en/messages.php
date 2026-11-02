@@ -3,6 +3,15 @@
 return [
     'feature' => 'Webmail',
     'navigation_group' => 'External services',
+    'archive' => [
+        'sender' => 'ZIP sender address',
+        'sender_help' => 'Full address or domain wildcard, for example *@google.de.',
+        'sender_invalid' => 'Enter a full email address or a domain wildcard such as *@google.de.',
+        'password' => 'ZIP password',
+        'password_help' => 'Leave blank to keep an already saved password.',
+        'open_failed' => 'The ZIP attachment could not be opened with the stored password.',
+        'not_allowed' => 'This ZIP attachment does not belong to a configured sender rule.',
+    ],
     'install' => 'Install Roundcube',
     'install_description' => 'The verified Roundcube release will be downloaded and configured for Fidoma. This can take a few minutes.',
     'installed' => 'Roundcube was installed.',

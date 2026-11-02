@@ -3,6 +3,15 @@
 return [
     'feature' => 'Webmail',
     'navigation_group' => 'Externe Dienste',
+    'archive' => [
+        'sender' => 'ZIP-Absenderadresse',
+        'sender_help' => 'Vollständige Adresse oder Domain-Wildcard, zum Beispiel *@google.de.',
+        'sender_invalid' => 'Gib eine vollständige E-Mail-Adresse oder eine Domain-Wildcard wie *@google.de ein.',
+        'password' => 'ZIP-Passwort',
+        'password_help' => 'Leer lassen, um ein bereits gespeichertes Passwort beizubehalten.',
+        'open_failed' => 'Der ZIP-Anhang konnte mit dem hinterlegten Passwort nicht geöffnet werden.',
+        'not_allowed' => 'Dieser ZIP-Anhang gehört nicht zu einer konfigurierten Absenderregel.',
+    ],
     'install' => 'Roundcube installieren',
     'install_description' => 'Die geprüfte Roundcube-Version wird heruntergeladen und für Fidoma eingerichtet. Dieser Vorgang kann einige Minuten dauern.',
     'installed' => 'Roundcube wurde installiert.',

@@ -6,6 +6,7 @@ use App\Features\ArtificialIntelligence\Enums\AiTemplateArea;
 use App\Features\ArtificialIntelligence\Queries\AvailableAiTemplates;
 use App\Features\Webmail\Services\RoundcubeConfiguration;
 use App\Features\Webmail\Services\RoundcubeInstaller;
+use App\Features\Webmail\Services\WebmailArchiveSettings;
 use App\Models\User;
 use Illuminate\Http\Request;
 use RuntimeException;
@@ -18,6 +19,7 @@ class RoundcubeController
         RoundcubeInstaller $installer,
         RoundcubeConfiguration $configuration,
         AvailableAiTemplates $templates,
+        WebmailArchiveSettings $archiveSettings,
     ): never {
         abort_unless($installer->installed(), 503, __('webmail::messages.not_installed'));
 
@@ -34,6 +36,11 @@ class RoundcubeController
 
         $context['ai_templates'] = $templates->summariesForUserAndArea($user, AiTemplateArea::EmailMessage);
         $context['ai_actions_label'] = __('artificial-intelligence::messages.roundcube.actions');
+        $context['archive_rule'] = $archiveSettings->rule();
+        $context['archive_messages'] = [
+            'failed' => __('webmail::messages.archive.open_failed'),
+            'not_allowed' => __('webmail::messages.archive.not_allowed'),
+        ];
 
         $binding = $request->session()->get('webmail_binding');
 
